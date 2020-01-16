@@ -1,5 +1,5 @@
-// Generated from C:/Users/jinho/IdeaProjects/Compiler2020/src/frontend\mx.g4 by ANTLR 4.7.2
-package frontend;
+// Generated from C:/Users/jinho/IdeaProjects/Compiler2020/src/parser\mx.g4 by ANTLR 4.7.2
+package parser;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

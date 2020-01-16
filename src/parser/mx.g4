@@ -78,9 +78,9 @@ statement
 
 expression
     : primary                                    #primaryExpr
-    | expression bop='.'( IDENTIFIER| methodCall)#memberExpr
+    | expression bop='.' IDENTIFIER              #memberExpr
     | expression '[' expression ']'              #arrayExpr
-    | methodCall                                 #methodCallExpr
+    |  expression '(' expressionList? ')'        #methodCallExpr
     | NEW creator                                #newExpr
     | expression postfix=('++' | '--')           #postfixExpr
     | prefix=('+'|'-'|'++'|'--') expression      #prefixExpr
@@ -98,27 +98,21 @@ expression
     | <assoc=right> expression bop='=' expression   #binaryOpExpr
 
 ;
-methodCall
-    : IDENTIFIER '(' expressionList? ')'
-    ;
 
 forControl
-    : forInit? ';' expression? ';' forUpdate=expressionList?
+    : forinit=expression? ';' forcond=expression? ';' forUpdate=expression?
     ;
 
-forInit
-    : variableDeclaration
-    | expressionList
-    ;
+
 expressionList
     : expression (',' expression)*
     ;
 
 primary
-    : '(' expression ')'
-    | THIS
-    | literal
-    | IDENTIFIER
+    : '(' expression ')' #parenthesizedExpr
+    | THIS               #thisExpr
+    | literal            #literalExpr
+    | IDENTIFIER         #nameExpr
     ;
 literal
     : DECIMAL_LITERAL
@@ -128,6 +122,6 @@ literal
     ;
 
 creator
-    : (classType |primitiveType) ('[' expression']')+ ('['']')*
-      | (classType |primitiveType) ('(' expressionList? ')' )?
+    : (classType |primitiveType) ('[' expression']')+ ('['']')* #arrayCreator
+      | (classType |primitiveType) ('(' ')' )?  #constructorCreator
     ;

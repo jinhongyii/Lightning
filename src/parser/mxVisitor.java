@@ -1,4 +1,4 @@
-package frontend;
+package parser;
 // Generated from C:/Users/jinho/IdeaProjects/Compiler2020/src/frontend\mx.g4 by ANTLR 4.7.2
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
