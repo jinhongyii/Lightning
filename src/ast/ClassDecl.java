@@ -8,10 +8,10 @@ public class ClassDecl implements Node {
     private ArrayList<methodDecl> methods=new ArrayList<>();
     private ArrayList<VariableDeclStmt> variables=new ArrayList<>();
     private String name;
-    public ArrayList getMethods() {
+    public ArrayList<methodDecl> getMethods() {
         return methods;
     }
-    public ArrayList getVariables(){
+    public ArrayList<VariableDeclStmt> getVariables(){
         return variables;
     }
 
@@ -27,4 +27,10 @@ public class ClassDecl implements Node {
             throw new Error("not a member");
         }
     }
+
+
+    public String getName() {
+        return name;
+    }
+
 }

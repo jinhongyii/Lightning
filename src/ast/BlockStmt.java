@@ -7,4 +7,9 @@ public class BlockStmt extends Stmt{
     public void addStatement(Stmt stmt){
         statements.add(stmt);
     }
+
+    public ArrayList<Stmt> getStatements() {
+        return statements;
+    }
+
 }

@@ -6,7 +6,20 @@ public class NewExpr extends  Expr {
     String typename;
     ArrayList<Expr> dims;
     int totDim;
-    public NewExpr(String typename, int totDim,ArrayList<Expr> dims){
+
+    public String getTypename() {
+        return typename;
+    }
+
+    public ArrayList<Expr> getDims() {
+        return dims;
+    }
+
+    public int getTotDim() {
+        return totDim;
+    }
+
+    public NewExpr(String typename, int totDim, ArrayList<Expr> dims){
         this.typename = typename;
         this.totDim=totDim;
         this.dims=dims;

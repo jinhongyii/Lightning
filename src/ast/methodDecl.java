@@ -19,7 +19,24 @@ public class methodDecl implements Node {
     private Type returnType;
     private ArrayList<parameter> parameters;
     private Stmt stmt;
-    public methodDecl(String name,Type returnType,Stmt stmt,ArrayList<parameter> parameters){
+
+    public String getName() {
+        return name;
+    }
+
+    public Type getReturnType() {
+        return returnType;
+    }
+
+    public ArrayList<parameter> getParameters() {
+        return parameters;
+    }
+
+    public Stmt getStmt() {
+        return stmt;
+    }
+
+    public methodDecl(String name, Type returnType, Stmt stmt, ArrayList<parameter> parameters){
         this.name=name;
         this.returnType=returnType;
         this.stmt=stmt;

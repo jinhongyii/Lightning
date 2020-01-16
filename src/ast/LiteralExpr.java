@@ -8,6 +8,10 @@ public class LiteralExpr extends  Expr {
 //    Boolean val3;
     Object val;
 
+    public Object getVal() {
+        return val;
+    }
+
     public LiteralExpr(Object val){
         this.val=val;
     }
