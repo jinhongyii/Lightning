@@ -20,7 +20,7 @@ public class WhileStmt extends Stmt {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitWhileStmt(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitWhileStmt(this);
     }
 }

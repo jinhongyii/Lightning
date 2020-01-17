@@ -4,7 +4,7 @@ import frontend.ASTVisitor;
 
 public class BreakStmt extends Stmt {
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitBreakStmt(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitBreakStmt(this);
     }
 }

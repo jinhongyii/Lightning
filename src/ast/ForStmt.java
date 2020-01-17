@@ -31,7 +31,7 @@ public class ForStmt extends Stmt {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitForStmt(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitForStmt(this);
     }
 }

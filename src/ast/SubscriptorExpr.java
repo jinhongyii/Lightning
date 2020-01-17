@@ -21,7 +21,7 @@ public class SubscriptorExpr extends  Expr{
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitSubscriptorExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitSubscriptorExpr(this);
     }
 }

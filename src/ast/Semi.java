@@ -4,7 +4,7 @@ import frontend.ASTVisitor;
 
 public class Semi extends Stmt {
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitSemi(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitSemi(this);
     }
 }

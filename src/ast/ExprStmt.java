@@ -14,7 +14,7 @@ public class ExprStmt extends Stmt {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitExprStmt(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitExprStmt(this);
     }
 }

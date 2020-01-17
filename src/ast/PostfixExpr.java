@@ -20,7 +20,7 @@ public class PostfixExpr extends Expr{
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitPostfixExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitPostfixExpr(this);
     }
 }

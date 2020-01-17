@@ -20,7 +20,7 @@ public class PrefixExpr extends Expr {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitPrefixExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitPrefixExpr(this);
     }
 }

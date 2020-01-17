@@ -4,7 +4,7 @@ import frontend.ASTVisitor;
 
 public class ThisExpr extends Expr{
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitThisExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitThisExpr(this);
     }
 }

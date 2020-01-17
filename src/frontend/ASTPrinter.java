@@ -17,31 +17,34 @@ public class ASTPrinter implements ASTVisitor{
         System.out.println(prefix+str);
     }
     @Override
-    public void visitAssignmentExpr(AssignmentExpr node) {
+    public Object visitAssignmentExpr(AssignmentExpr node) {
         print("assign");
         indent();
         visit(node.getLval());
         visit(node.getRval());
         dedent();
+        return null;
     }
 
     @Override
-    public void visitBlockStmt(BlockStmt node) {
+    public Object visitBlockStmt(BlockStmt node) {
         print("block");
         indent();
         for (var i : node.getStatements()) {
             visit(i);
         }
         dedent();
+        return null;
     }
 
     @Override
-    public void visitBreakStmt(BreakStmt node) {
+    public Object visitBreakStmt(BreakStmt node) {
         print("break");
+        return null;
     }
 
     @Override
-    public void visitClassDecl(ClassDecl node) {
+    public Object visitClassDecl(ClassDecl node) {
         print("class declare");
         print("name: "+node.getName());
         print("methods:");
@@ -56,30 +59,34 @@ public class ASTPrinter implements ASTVisitor{
             visit(i);
         }
         dedent();
+        return null;
     }
 
     @Override
-    public void visitCompilationUnit(CompilationUnit node) {
+    public Object visitCompilationUnit(CompilationUnit node) {
         for (var i : node.getDeclarations()) {
             visit(i);
         }
+        return null;
     }
 
     @Override
-    public void visitContinueStmt(ContinueStmt node) {
+    public Object visitContinueStmt(ContinueStmt node) {
         print("continue");
+        return null;
     }
 
     @Override
-    public void visitExprStmt(ExprStmt node) {
+    public Object visitExprStmt(ExprStmt node) {
         print("expr statement");
         indent();
         visit(node.getExpression());
         dedent();
+        return null;
     }
 
     @Override
-    public void visitForStmt(ForStmt node) {
+    public Object visitForStmt(ForStmt node) {
         print("for");
         if(node.getInit()!=null) {
             print("init:");
@@ -103,10 +110,11 @@ public class ASTPrinter implements ASTVisitor{
         indent();
         visit(node.getLoopBody());
         dedent();
+        return null;
     }
 
     @Override
-    public void visitIfStmt(IfStmt node) {
+    public Object visitIfStmt(IfStmt node) {
         print("if");
         print("condition:");
         indent();
@@ -122,52 +130,58 @@ public class ASTPrinter implements ASTVisitor{
             visit(node.getOtherwise());
             dedent();
         }
+        return null;
     }
 
     @Override
-    public void visitInfixExpr(InfixExpr node) {
+    public Object visitInfixExpr(InfixExpr node) {
         print("infix "+node.getOperator());
         indent();
         visit(node.getLoperand());
         visit(node.getRoperand());
         dedent();
+        return null;
     }
 
     @Override
-    public void visitLiteralExpr(LiteralExpr node) {
+    public Object visitLiteralExpr(LiteralExpr node) {
         print("literal "+node.getVal());
+        return null;
     }
 
     @Override
-    public void visitLogicAndExpr(LogicAndExpr node) {
+    public Object visitLogicAndExpr(LogicAndExpr node) {
         print("logic and");
         indent();
         visit(node.getLoperand());
         visit(node.getRoperand());
         dedent();
+        return null;
     }
 
     @Override
-    public void visitLogicOrExpr(LogicOrExpr node) {
+    public Object visitLogicOrExpr(LogicOrExpr node) {
         print("logic or");
         indent();
         visit(node.getLoperand());
         visit(node.getRoperand());
         dedent();
+        return null;
     }
 
     @Override
-    public void visitMemberExpr(MemberExpr node) {
+    public Object visitMemberExpr(MemberExpr node) {
         print("member");
         print("instance name:");
         indent();
         visit(node.getInstance_name());
         dedent();
         print("member name: "+node.getMember_name());
+        return null;
     }
 
     @Override
-    public void visitMethodCallExpr(MethodCallExpr node) {
+    public Object visitMethodCallExpr(MethodCallExpr node) {
         print("method call");
         print("method:");
         indent();
@@ -179,10 +193,11 @@ public class ASTPrinter implements ASTVisitor{
             visit(argument);
         }
         dedent();
+        return null;
     }
 
     @Override
-    public void visitMethodDecl(MethodDecl node) {
+    public Object visitMethodDecl(MethodDecl node) {
         print("method declare :"+node.getName());
         print("return type: "+node.getReturnType());
         print("parameters:");
@@ -197,15 +212,17 @@ public class ASTPrinter implements ASTVisitor{
         indent();
         visit(node.getStmt());
         dedent();
+        return null;
     }
 
     @Override
-    public void visitNameExpr(NameExpr node) {
+    public Object visitNameExpr(NameExpr node) {
         print("name: "+node.getName());
+        return null;
     }
 
     @Override
-    public void visitNewExpr(NewExpr node) {
+    public Object visitNewExpr(NewExpr node) {
         print("new "+node.getTypename());
         print("totdim: "+node.getTotDim());
         print("given dims:");
@@ -214,41 +231,46 @@ public class ASTPrinter implements ASTVisitor{
             visit(i);
         }
         dedent();
+        return null;
     }
 
     @Override
-    public void visitPostfixExpr(PostfixExpr node) {
+    public Object visitPostfixExpr(PostfixExpr node) {
         print("postfix :"+node.getOperator());
         indent();
         visit(node.getVal());
         dedent();
+        return null;
     }
 
     @Override
-    public void visitPrefixExpr(PrefixExpr node) {
+    public Object visitPrefixExpr(PrefixExpr node) {
         print("prefix :"+node.getOperator());
         indent();
         visit(node.getVal());
         dedent();
+        return null;
     }
 
     @Override
-    public void visitReturnStmt(ReturnStmt node) {
+    public Object visitReturnStmt(ReturnStmt node) {
         print("return ");
         if(node.getVal()!=null) {
             indent();
             visit(node.getVal());
             dedent();
         }
+        return null;
     }
 
     @Override
-    public void visitSemi(Semi node) {
+    public Object visitSemi(Semi node) {
         print("semi");
+        return null;
     }
 
     @Override
-    public void visitSubscriptorExpr(SubscriptorExpr node) {
+    public Object visitSubscriptorExpr(SubscriptorExpr node) {
         print("subscript");
         print("array name");
         indent();
@@ -258,16 +280,17 @@ public class ASTPrinter implements ASTVisitor{
         indent();
         visit(node.getIndex());
         dedent();
-
+        return null;
     }
 
     @Override
-    public void visitThisExpr(ThisExpr node) {
+    public Object visitThisExpr(ThisExpr node) {
         print("this ");
+        return null;
     }
 
     @Override
-    public void visitVariableDeclStmt(VariableDeclStmt node) {
+    public Object visitVariableDeclStmt(VariableDeclStmt node) {
         print("variable declaration "+node.getName());
         print("type: "+node.getType());
         if(node.getInit()!=null) {
@@ -276,10 +299,11 @@ public class ASTPrinter implements ASTVisitor{
             visit(node.getInit());
             dedent();
         }
+        return null;
     }
 
     @Override
-    public void visitWhileStmt(WhileStmt node) {
+    public Object visitWhileStmt(WhileStmt node) {
         print("while");
         print("condition:");
         indent();
@@ -289,10 +313,11 @@ public class ASTPrinter implements ASTVisitor{
         indent();
         visit(node.getLoopBody());
         dedent();
+        return null;
     }
 
     @Override
-    public void visit(Node node) {
-        node.accept(this);
+    public Object visit(Node node) {
+        return node.accept(this);
     }
 }

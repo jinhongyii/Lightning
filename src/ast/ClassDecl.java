@@ -36,7 +36,7 @@ public class ClassDecl implements Node {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitClassDecl(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitClassDecl(this);
     }
 }

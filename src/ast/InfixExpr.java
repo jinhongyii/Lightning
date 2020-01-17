@@ -27,7 +27,7 @@ public class InfixExpr extends Expr {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitInfixExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitInfixExpr(this);
     }
 }

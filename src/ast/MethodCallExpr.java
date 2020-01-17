@@ -25,7 +25,7 @@ public class MethodCallExpr extends Expr {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitMethodCallExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitMethodCallExpr(this);
     }
 }

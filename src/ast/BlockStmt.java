@@ -15,7 +15,7 @@ public class BlockStmt extends Stmt{
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitBlockStmt(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitBlockStmt(this);
     }
 }

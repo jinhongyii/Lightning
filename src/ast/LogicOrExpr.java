@@ -20,7 +20,7 @@ public class LogicOrExpr extends  Expr{
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitLogicOrExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitLogicOrExpr(this);
     }
 }

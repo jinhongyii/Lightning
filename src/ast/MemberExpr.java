@@ -21,7 +21,7 @@ public class MemberExpr extends Expr{
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitMemberExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitMemberExpr(this);
     }
 }

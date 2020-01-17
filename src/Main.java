@@ -8,7 +8,6 @@ import parser.mxLexer;
 import parser.mxParser;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -24,5 +23,6 @@ public class Main {
         ASTBuilder builder=new ASTBuilder();
         walker.walk(builder, tree);
         ASTPrinter printer=new ASTPrinter(builder.getASTStartNode());
+
     }
 }

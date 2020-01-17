@@ -31,7 +31,7 @@ public class NewExpr extends  Expr {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitNewExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitNewExpr(this);
     }
 }

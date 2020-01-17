@@ -4,5 +4,5 @@ import frontend.ASTVisitor;
 
 abstract public class Stmt implements Node{
     @Override
-    public void accept(ASTVisitor visitor){}
+    public Object accept(ASTVisitor visitor){return null ;}
 }

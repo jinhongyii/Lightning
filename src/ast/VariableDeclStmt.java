@@ -28,7 +28,7 @@ public class VariableDeclStmt extends Stmt{
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitVariableDeclStmt(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitVariableDeclStmt(this);
     }
 }

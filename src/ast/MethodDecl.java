@@ -52,7 +52,7 @@ public class MethodDecl implements Node {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitMethodDecl(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitMethodDecl(this);
     }
 }

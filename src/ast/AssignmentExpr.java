@@ -27,7 +27,7 @@ public class AssignmentExpr extends Expr{
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitAssignmentExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitAssignmentExpr(this);
     }
 }

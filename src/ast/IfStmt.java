@@ -27,7 +27,7 @@ public class IfStmt extends  Stmt {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitIfStmt(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitIfStmt(this);
     }
 }

@@ -20,7 +20,7 @@ public class LiteralExpr extends  Expr {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitLiteralExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitLiteralExpr(this);
     }
 }

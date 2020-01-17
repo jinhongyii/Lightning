@@ -15,7 +15,7 @@ public class NameExpr extends  Expr {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitNameExpr(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitNameExpr(this);
     }
 }

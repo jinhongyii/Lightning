@@ -19,7 +19,7 @@ public class CompilationUnit implements Node{
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitCompilationUnit(this);
+    public Object accept(ASTVisitor visitor) {
+        return visitor.visitCompilationUnit(this);
     }
 }
