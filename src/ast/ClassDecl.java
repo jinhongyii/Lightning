@@ -2,13 +2,15 @@ package ast;
 
 
 
+import frontend.ASTVisitor;
+
 import java.util.ArrayList;
 
 public class ClassDecl implements Node {
-    private ArrayList<methodDecl> methods=new ArrayList<>();
+    private ArrayList<MethodDecl> methods=new ArrayList<>();
     private ArrayList<VariableDeclStmt> variables=new ArrayList<>();
     private String name;
-    public ArrayList<methodDecl> getMethods() {
+    public ArrayList<MethodDecl> getMethods() {
         return methods;
     }
     public ArrayList<VariableDeclStmt> getVariables(){
@@ -19,8 +21,8 @@ public class ClassDecl implements Node {
         this.name=name;
     }
     public void add(Node m) {
-        if (m instanceof methodDecl) {
-            methods.add((methodDecl) m);
+        if (m instanceof MethodDecl) {
+            methods.add((MethodDecl) m);
         } else if (m instanceof VariableDeclStmt) {
             variables.add((VariableDeclStmt) m);
         } else {
@@ -33,4 +35,8 @@ public class ClassDecl implements Node {
         return name;
     }
 
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitClassDecl(this);
+    }
 }

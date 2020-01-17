@@ -11,4 +11,8 @@ public class Type {
         this.dims=dims;
     }
 
+    @Override
+    public String toString() {
+        return typename+"[]".repeat(dims);
+    }
 }

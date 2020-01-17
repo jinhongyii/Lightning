@@ -1,5 +1,7 @@
 package ast;
 
+import frontend.ASTVisitor;
+
 import java.util.ArrayList;
 
 public class MethodCallExpr extends Expr {
@@ -20,5 +22,10 @@ public class MethodCallExpr extends Expr {
     }
     void addarguments(Expr argument){
         arguments.add(argument);
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitMethodCallExpr(this);
     }
 }

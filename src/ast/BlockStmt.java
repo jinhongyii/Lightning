@@ -1,5 +1,7 @@
 package ast;
 
+import frontend.ASTVisitor;
+
 import java.util.ArrayList;
 
 public class BlockStmt extends Stmt{
@@ -12,4 +14,8 @@ public class BlockStmt extends Stmt{
         return statements;
     }
 
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitBlockStmt(this);
+    }
 }

@@ -1,5 +1,7 @@
 package ast;
 
-public interface Node {
+import frontend.ASTVisitor;
 
+public interface Node {
+    void accept(ASTVisitor visitor);
 }

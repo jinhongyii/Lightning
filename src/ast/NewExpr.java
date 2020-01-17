@@ -1,5 +1,7 @@
 package ast;
 
+import frontend.ASTVisitor;
+
 import java.util.ArrayList;
 
 public class NewExpr extends  Expr {
@@ -28,4 +30,8 @@ public class NewExpr extends  Expr {
         dims.add(dim);
     }
 
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitNewExpr(this);
+    }
 }

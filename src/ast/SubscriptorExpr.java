@@ -1,5 +1,7 @@
 package ast;
 
+import frontend.ASTVisitor;
+
 public class SubscriptorExpr extends  Expr{
     Expr index;
     Expr name;
@@ -16,5 +18,10 @@ public class SubscriptorExpr extends  Expr{
         this.index=index;
         this.name=name;
 
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitSubscriptorExpr(this);
     }
 }

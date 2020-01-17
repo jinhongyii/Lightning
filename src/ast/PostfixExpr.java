@@ -1,6 +1,8 @@
 package ast;
 
-public class PostfixStmt extends Stmt {
+import frontend.ASTVisitor;
+
+public class PostfixExpr extends Expr{
     Expr val;
     String operator;
 
@@ -12,8 +14,13 @@ public class PostfixStmt extends Stmt {
         return operator;
     }
 
-    public PostfixStmt(Expr val, String operator){
+    public PostfixExpr(Expr val, String operator){
         this.val=val;
         this.operator=operator;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitPostfixExpr(this);
     }
 }

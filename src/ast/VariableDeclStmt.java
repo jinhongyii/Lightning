@@ -1,5 +1,8 @@
 package ast;
 
+import frontend.ASTVisitor;
+import org.jetbrains.annotations.Nullable;
+
 public class VariableDeclStmt extends Stmt{
     String name;
     Type type;
@@ -12,7 +15,7 @@ public class VariableDeclStmt extends Stmt{
     public Type getType() {
         return type;
     }
-
+    @Nullable
     public Expr getInit() {
         return init;
     }
@@ -22,5 +25,10 @@ public class VariableDeclStmt extends Stmt{
         this.type= type;
         this.init=init;
 
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitVariableDeclStmt(this);
     }
 }

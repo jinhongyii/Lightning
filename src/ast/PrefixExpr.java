@@ -1,6 +1,8 @@
 package ast;
 
-public class PrefixStmt extends Stmt {
+import frontend.ASTVisitor;
+
+public class PrefixExpr extends Expr {
     Expr val;
     String operator;
 
@@ -12,8 +14,13 @@ public class PrefixStmt extends Stmt {
         return operator;
     }
 
-    public PrefixStmt(Expr val, String operator){
+    public PrefixExpr(Expr val, String operator){
         this.val=val;
         this.operator=operator;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitPrefixExpr(this);
     }
 }

@@ -1,11 +1,11 @@
 package ast;
 
 
-import com.sun.source.tree.NewArrayTree;
+import frontend.ASTVisitor;
 
 import java.util.ArrayList;
 
-public class methodDecl implements Node {
+public class MethodDecl implements Node {
     private String name;
 
     public static class parameter {
@@ -14,6 +14,11 @@ public class methodDecl implements Node {
         public parameter(Type type, String name){
             this.type=type;
             this.name=name;
+        }
+
+        @Override
+        public String toString() {
+            return "type: "+type+" name: "+name;
         }
     }
     private Type returnType;
@@ -36,7 +41,7 @@ public class methodDecl implements Node {
         return stmt;
     }
 
-    public methodDecl(String name, Type returnType, Stmt stmt, ArrayList<parameter> parameters){
+    public MethodDecl(String name, Type returnType, Stmt stmt, ArrayList<parameter> parameters){
         this.name=name;
         this.returnType=returnType;
         this.stmt=stmt;
@@ -46,4 +51,8 @@ public class methodDecl implements Node {
         parameters.add(new parameter(type,name));
     }
 
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitMethodDecl(this);
+    }
 }

@@ -1,5 +1,8 @@
 package ast;
 
-abstract public class Stmt implements Node{
+import frontend.ASTVisitor;
 
+abstract public class Stmt implements Node{
+    @Override
+    public void accept(ASTVisitor visitor){}
 }

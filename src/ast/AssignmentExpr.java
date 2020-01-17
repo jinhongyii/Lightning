@@ -1,5 +1,7 @@
 package ast;
 
+import frontend.ASTVisitor;
+
 public class AssignmentExpr extends Expr{
     public Expr getLval() {
         return lval;
@@ -22,5 +24,10 @@ public class AssignmentExpr extends Expr{
     public AssignmentExpr(Expr lval,Expr rval){
         this.lval=lval;
         this.rval=rval;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitAssignmentExpr(this);
     }
 }

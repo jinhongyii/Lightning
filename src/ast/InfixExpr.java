@@ -1,5 +1,8 @@
 package ast;
 
+
+import frontend.ASTVisitor;
+
 public class InfixExpr extends Expr {
     public Expr getLoperand() {
         return loperand;
@@ -21,5 +24,10 @@ public class InfixExpr extends Expr {
         this.loperand=loperand;
         this.roperand=roperand;
         this.operator=operator;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitInfixExpr(this);
     }
 }

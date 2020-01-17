@@ -5,12 +5,13 @@ import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import parser.mxBaseListener;
 import parser.mxParser;
 
-import java.time.temporal.ValueRange;
 import java.util.ArrayList;
 
 public class ASTBuilder extends mxBaseListener {
-    public ParseTreeProperty<Object> values = new ParseTreeProperty<>();
-    public CompilationUnit compilationUnit=new CompilationUnit();
+    private ParseTreeProperty<Object> values = new ParseTreeProperty<>();
+    private CompilationUnit compilationUnit=new CompilationUnit();
+
+    public CompilationUnit getASTStartNode(){return compilationUnit;}
     @Override
     public void exitCompilationUnit(mxParser.CompilationUnitContext ctx) {
         for(var sons: ctx.classDeclaration()){
@@ -29,9 +30,16 @@ public class ASTBuilder extends mxBaseListener {
 
     @Override
     public void exitClassDeclaration(mxParser.ClassDeclarationContext ctx) {
-        var classDeclaration=new ClassDecl(ctx.IDENTIFIER().toString());
+        var classDeclaration=new ClassDecl(ctx.IDENTIFIER().getText());
         for(var i:ctx.classBody().classBodyDeclaration()){
-            classDeclaration.add((Node) values.get(i));
+            Object decl=values.get(i);
+            if(decl instanceof  ArrayList){
+                for(var j: (ArrayList) decl){
+                    classDeclaration.add((Node)j);
+                }
+            }else {
+                classDeclaration.add((Node) decl);
+            }
         }
         values.put(ctx, classDeclaration);
     }
@@ -54,15 +62,15 @@ public class ASTBuilder extends mxBaseListener {
         } else {
             returntype= (Type) values.get(ctx.typeTypeOrVoid());
         }
-        String name=ctx.IDENTIFIER().toString();
+        String name=ctx.IDENTIFIER().getText();
         BlockStmt stmt= (BlockStmt) values.get(ctx.block().blockStatement());
-        ArrayList<methodDecl.parameter> parameters;
+        ArrayList<MethodDecl.parameter> parameters;
         if (ctx.parameters().parameterList() == null) {
             parameters = null;
         } else {
-            parameters= (ArrayList<methodDecl.parameter>) values.get(ctx.parameters().parameterList());
+            parameters= (ArrayList<MethodDecl.parameter>) values.get(ctx.parameters().parameterList());
         }
-        values.put(ctx, new methodDecl(name,returntype,stmt,parameters));
+        values.put(ctx, new MethodDecl(name,returntype,stmt,parameters));
     }
 
     class Variable {
@@ -87,9 +95,9 @@ public class ASTBuilder extends mxBaseListener {
     @Override
     public void exitVariableDecorator(mxParser.VariableDecoratorContext ctx) {
         if (ctx.expression() != null) {
-            values.put(ctx, new Variable(ctx.IDENTIFIER().toString(), (Expr) values.get(ctx.expression())));
+            values.put(ctx, new Variable(ctx.IDENTIFIER().getText(), (Expr) values.get(ctx.expression())));
         } else {
-            values.put(ctx, new Variable(ctx.IDENTIFIER().toString(),null));
+            values.put(ctx, new Variable(ctx.IDENTIFIER().getText(),null));
         }
 
     }
@@ -107,17 +115,17 @@ public class ASTBuilder extends mxBaseListener {
 
     @Override
     public void exitClassType(mxParser.ClassTypeContext ctx) {
-        values.put(ctx, new String(ctx.IDENTIFIER().toString()));
+        values.put(ctx, new String(ctx.IDENTIFIER().getText()));
     }
 
     @Override
     public void exitPrimitiveType(mxParser.PrimitiveTypeContext ctx) {
         if (ctx.BOOL() != null) {
-            values.put(ctx, ctx.BOOL().toString());
+            values.put(ctx, ctx.BOOL().getText());
         } else if (ctx.INT() != null) {
-            values.put(ctx, ctx.INT().toString());
+            values.put(ctx, ctx.INT().getText());
         } else {
-            values.put(ctx, ctx.STRING().toString());
+            values.put(ctx, ctx.STRING().getText());
         }
     }
 
@@ -134,29 +142,29 @@ public class ASTBuilder extends mxBaseListener {
     public void exitFuncDeclaration(mxParser.FuncDeclarationContext ctx) {
 
         Type returntype= (Type) values.get(ctx.typeTypeOrVoid());
-        String name=ctx.IDENTIFIER().toString();
+        String name=ctx.IDENTIFIER().getText();
         BlockStmt stmt= (BlockStmt) values.get(ctx.block().blockStatement());
-        ArrayList<methodDecl.parameter> parameters;
+        ArrayList<MethodDecl.parameter> parameters;
         if (ctx.parameters().parameterList() == null) {
             parameters = null;
         } else {
-            parameters= (ArrayList<methodDecl.parameter>) values.get(ctx.parameters().parameterList());
+            parameters= (ArrayList<MethodDecl.parameter>) values.get(ctx.parameters().parameterList());
         }
-        values.put(ctx, new methodDecl(name,returntype,stmt,parameters));
+        values.put(ctx, new MethodDecl(name,returntype,stmt,parameters));
     }
 
     @Override
     public void exitParameterList(mxParser.ParameterListContext ctx) {
-        ArrayList<methodDecl.parameter> pars=new ArrayList<>();
+        ArrayList<MethodDecl.parameter> pars=new ArrayList<>();
         for (var parctx : ctx.parameter()) {
-            pars.add((methodDecl.parameter) values.get(parctx));
+            pars.add((MethodDecl.parameter) values.get(parctx));
         }
         values.put(ctx, pars);
     }
 
     @Override
     public void exitParameter(mxParser.ParameterContext ctx) {
-        values.put(ctx, new methodDecl.parameter((Type) values.get(ctx.typeType()),ctx.IDENTIFIER().toString()));
+        values.put(ctx, new MethodDecl.parameter((Type) values.get(ctx.typeType()),ctx.IDENTIFIER().getText()));
     }
 
     @Override
@@ -168,7 +176,14 @@ public class ASTBuilder extends mxBaseListener {
     public void exitBlockStatement(mxParser.BlockStatementContext ctx) {
         BlockStmt stmt=new BlockStmt();
         for (var stmts : ctx.statement()) {
-            stmt.addStatement((Stmt) values.get(stmts));
+            var i=values.get(stmts);
+            if (i instanceof ArrayList) {
+                for (var ele : (ArrayList)i) {
+                    stmt.addStatement((Stmt)ele);
+                }
+            }else {
+                stmt.addStatement((Stmt)i);
+            }
         }
         values.put(ctx, stmt);
     }
@@ -216,7 +231,7 @@ public class ASTBuilder extends mxBaseListener {
         if (ctx.forUpdate != null) {
             incr=(Expr)values.get(ctx.forUpdate);
         }
-        values.put(ctx, new forElement(init, incr, condition));
+        values.put(ctx, new forElement(init, condition, incr));
     }
 
     @Override
@@ -281,11 +296,11 @@ public class ASTBuilder extends mxBaseListener {
     @Override
     public void exitLiteral(mxParser.LiteralContext ctx) {
         if (ctx.DECIMAL_LITERAL() != null) {
-            values.put(ctx, new LiteralExpr(Integer.parseInt(ctx.DECIMAL_LITERAL().toString())));
+            values.put(ctx, new LiteralExpr(Integer.parseInt(ctx.DECIMAL_LITERAL().getText())));
         } else if (ctx.BOOL_LITERAL() != null) {
-            values.put(ctx, new LiteralExpr(ctx.BOOL_LITERAL().toString().equals("true")));
+            values.put(ctx, new LiteralExpr(ctx.BOOL_LITERAL().getText().equals("true")));
         } else if (ctx.STRING_LITERAL() != null) {
-            var str = ctx.STRING_LITERAL().toString();
+            var str = ctx.STRING_LITERAL().getText();
             values.put(ctx, new LiteralExpr(str.substring(1, str.length() - 1)));
         } else {
             values.put(ctx, new LiteralExpr(null));
@@ -295,7 +310,7 @@ public class ASTBuilder extends mxBaseListener {
     @Override
     public void exitMemberExpr(mxParser.MemberExprContext ctx) {
         Expr instance = (Expr) values.get(ctx.expression());
-        String member=ctx.IDENTIFIER().toString();
+        String member=ctx.IDENTIFIER().getText();
         values.put(ctx, new MemberExpr(instance,member));
     }
 
@@ -332,30 +347,30 @@ public class ASTBuilder extends mxBaseListener {
 
     @Override
     public void exitPostfixExpr(mxParser.PostfixExprContext ctx) {
-        values.put(ctx, new PostfixStmt((Expr)values.get(ctx.expression()),ctx.postfix.toString()));
+        values.put(ctx, new PostfixExpr((Expr)values.get(ctx.expression()),ctx.postfix.getText()));
     }
 
     @Override
     public void exitPrefixExpr(mxParser.PrefixExprContext ctx) {
-        values.put(ctx,new PrefixStmt((Expr)values.get(ctx.expression()), ctx.prefix.toString()));
+        values.put(ctx,new PrefixExpr((Expr)values.get(ctx.expression()), ctx.prefix.getText()));
     }
 
     @Override
     public void exitBinaryOpExpr(mxParser.BinaryOpExprContext ctx) {
-        if (ctx.bop.toString().equals("=")) {
+        if (ctx.bop.getText().equals("=")) {
             values.put(ctx, new AssignmentExpr((Expr)values.get(ctx.expression(0)),(Expr)values.get(ctx.expression(1))));
-        } else if (ctx.bop.toString().equals("||")) {
+        } else if (ctx.bop.getText().equals("||")) {
             values.put(ctx,new LogicOrExpr((Expr)values.get(ctx.expression(0)),(Expr)values.get(ctx.expression(1))));
-        } else if (ctx.bop.toString().equals("&&")) {
+        } else if (ctx.bop.getText().equals("&&")) {
             values.put(ctx, new LogicAndExpr((Expr) values.get(ctx.expression(0)), (Expr) values.get(ctx.expression(1))));
         } else {
-            values.put(ctx, new InfixExpr((Expr)values.get(ctx.expression(0)),(Expr)values.get(ctx.expression(1)),ctx.bop.toString()));
+            values.put(ctx, new InfixExpr((Expr)values.get(ctx.expression(0)),(Expr)values.get(ctx.expression(1)),ctx.bop.getText()));
         }
     }
 
     @Override
     public void exitNameExpr(mxParser.NameExprContext ctx) {
-        values.put(ctx, new NameExpr(ctx.IDENTIFIER().toString()));
+        values.put(ctx, new NameExpr(ctx.IDENTIFIER().getText()));
     }
 
     @Override
@@ -392,7 +407,7 @@ public class ASTBuilder extends mxBaseListener {
         if (ctx.parameterList() != null) {
             values.put(ctx, values.get(ctx.parameterList()));
         } else {
-            values.put(ctx, new ArrayList<methodDecl.parameter>());
+            values.put(ctx, new ArrayList<MethodDecl.parameter>());
         }
     }
 

@@ -1,5 +1,7 @@
 package ast;
 
+import frontend.ASTVisitor;
+
 public class LogicOrExpr extends  Expr{
     Expr loperand;
     Expr roperand;
@@ -15,5 +17,10 @@ public class LogicOrExpr extends  Expr{
     public LogicOrExpr(Expr loperand, Expr roperand) {
         this.loperand=loperand;
         this.roperand=roperand;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitLogicOrExpr(this);
     }
 }

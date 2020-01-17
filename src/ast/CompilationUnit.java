@@ -1,5 +1,7 @@
 package ast;
 
+import frontend.ASTVisitor;
+
 import java.util.ArrayList;
 
 public class CompilationUnit implements Node{
@@ -14,5 +16,10 @@ public class CompilationUnit implements Node{
     private ArrayList<Node> Declarations=new ArrayList<>();
     public void addDeclarations(Node declare){
         Declarations.add(declare);
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitCompilationUnit(this);
     }
 }

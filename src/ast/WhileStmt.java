@@ -1,5 +1,7 @@
 package ast;
 
+import frontend.ASTVisitor;
+
 public class WhileStmt extends Stmt {
     public Expr getCondition() {
         return condition;
@@ -15,5 +17,10 @@ public class WhileStmt extends Stmt {
     public WhileStmt(Expr condition,Stmt loopBody){
         this.condition=condition;
         this.loopBody=loopBody;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitWhileStmt(this);
     }
 }

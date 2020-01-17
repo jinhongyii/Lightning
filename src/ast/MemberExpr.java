@@ -1,5 +1,7 @@
 package ast;
 
+import frontend.ASTVisitor;
+
 public class MemberExpr extends Expr{
     Expr instance_name;
 
@@ -16,5 +18,10 @@ public class MemberExpr extends Expr{
     public MemberExpr(Expr instance_name, String member_name){
         this.instance_name=instance_name;
         this.member_name=member_name;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitMemberExpr(this);
     }
 }
