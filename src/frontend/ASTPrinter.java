@@ -1,6 +1,7 @@
 package frontend;
 
 import ast.*;
+import semantic.TypeChecker;
 
 public class ASTPrinter implements ASTVisitor{
     private String prefix="";
@@ -10,14 +11,14 @@ public class ASTPrinter implements ASTVisitor{
     private void dedent(){
         prefix=prefix.substring(0,prefix.length()-1);
     }
-    public ASTPrinter(CompilationUnit startNode){
+    public ASTPrinter(CompilationUnit startNode) throws TypeChecker.semanticException {
         visit(startNode);
     }
     private void print(String str){
         System.out.println(prefix+str);
     }
     @Override
-    public Object visitAssignmentExpr(AssignmentExpr node) {
+    public Object visitAssignmentExpr(AssignmentExpr node) throws TypeChecker.semanticException {
         print("assign");
         indent();
         visit(node.getLval());
@@ -27,7 +28,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitBlockStmt(BlockStmt node) {
+    public Object visitBlockStmt(BlockStmt node) throws TypeChecker.semanticException {
         print("block");
         indent();
         for (var i : node.getStatements()) {
@@ -44,7 +45,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitClassDecl(ClassDecl node) {
+    public Object visitClassDecl(ClassDecl node) throws TypeChecker.semanticException {
         print("class declare");
         print("name: "+node.getName());
         print("methods:");
@@ -63,7 +64,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitCompilationUnit(CompilationUnit node) {
+    public Object visitCompilationUnit(CompilationUnit node) throws TypeChecker.semanticException {
         for (var i : node.getDeclarations()) {
             visit(i);
         }
@@ -77,7 +78,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitExprStmt(ExprStmt node) {
+    public Object visitExprStmt(ExprStmt node) throws TypeChecker.semanticException {
         print("expr statement");
         indent();
         visit(node.getExpression());
@@ -86,7 +87,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitForStmt(ForStmt node) {
+    public Object visitForStmt(ForStmt node) throws TypeChecker.semanticException {
         print("for");
         if(node.getInit()!=null) {
             print("init:");
@@ -114,7 +115,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitIfStmt(IfStmt node) {
+    public Object visitIfStmt(IfStmt node) throws TypeChecker.semanticException {
         print("if");
         print("condition:");
         indent();
@@ -134,7 +135,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitInfixExpr(InfixExpr node) {
+    public Object visitInfixExpr(InfixExpr node) throws TypeChecker.semanticException {
         print("infix "+node.getOperator());
         indent();
         visit(node.getLoperand());
@@ -150,7 +151,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitLogicAndExpr(LogicAndExpr node) {
+    public Object visitLogicAndExpr(LogicAndExpr node) throws TypeChecker.semanticException {
         print("logic and");
         indent();
         visit(node.getLoperand());
@@ -160,7 +161,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitLogicOrExpr(LogicOrExpr node) {
+    public Object visitLogicOrExpr(LogicOrExpr node) throws TypeChecker.semanticException {
         print("logic or");
         indent();
         visit(node.getLoperand());
@@ -170,7 +171,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitMemberExpr(MemberExpr node) {
+    public Object visitMemberExpr(MemberExpr node) throws TypeChecker.semanticException {
         print("member");
         print("instance name:");
         indent();
@@ -181,7 +182,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitMethodCallExpr(MethodCallExpr node) {
+    public Object visitMethodCallExpr(MethodCallExpr node) throws TypeChecker.semanticException {
         print("method call");
         print("method:");
         indent();
@@ -197,7 +198,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitMethodDecl(MethodDecl node) {
+    public Object visitMethodDecl(MethodDecl node) throws TypeChecker.semanticException {
         print("method declare :"+node.getName());
         print("return type: "+node.getReturnType());
         print("parameters:");
@@ -222,7 +223,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitNewExpr(NewExpr node) {
+    public Object visitNewExpr(NewExpr node) throws TypeChecker.semanticException {
         print("new "+node.getTypename());
         print("totdim: "+node.getTotDim());
         print("given dims:");
@@ -235,7 +236,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitPostfixExpr(PostfixExpr node) {
+    public Object visitPostfixExpr(PostfixExpr node) throws TypeChecker.semanticException {
         print("postfix :"+node.getOperator());
         indent();
         visit(node.getVal());
@@ -244,7 +245,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitPrefixExpr(PrefixExpr node) {
+    public Object visitPrefixExpr(PrefixExpr node) throws TypeChecker.semanticException {
         print("prefix :"+node.getOperator());
         indent();
         visit(node.getVal());
@@ -253,7 +254,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitReturnStmt(ReturnStmt node) {
+    public Object visitReturnStmt(ReturnStmt node) throws TypeChecker.semanticException {
         print("return ");
         if(node.getVal()!=null) {
             indent();
@@ -270,7 +271,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitSubscriptorExpr(SubscriptorExpr node) {
+    public Object visitSubscriptorExpr(SubscriptorExpr node) throws TypeChecker.semanticException {
         print("subscript");
         print("array name");
         indent();
@@ -290,7 +291,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitVariableDeclStmt(VariableDeclStmt node) {
+    public Object visitVariableDeclStmt(VariableDeclStmt node) throws TypeChecker.semanticException {
         print("variable declaration "+node.getName());
         print("type: "+node.getType());
         if(node.getInit()!=null) {
@@ -303,7 +304,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visitWhileStmt(WhileStmt node) {
+    public Object visitWhileStmt(WhileStmt node) throws TypeChecker.semanticException {
         print("while");
         print("condition:");
         indent();
@@ -317,7 +318,7 @@ public class ASTPrinter implements ASTVisitor{
     }
 
     @Override
-    public Object visit(Node node) {
+    public Object visit(Node node) throws TypeChecker.semanticException {
         return node.accept(this);
     }
 }

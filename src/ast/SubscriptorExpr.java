@@ -1,6 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
+import semantic.TypeChecker;
 
 public class SubscriptorExpr extends  Expr{
     Expr index;
@@ -21,7 +22,7 @@ public class SubscriptorExpr extends  Expr{
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitSubscriptorExpr(this);
     }
 }

@@ -1,6 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
+import semantic.TypeChecker;
 
 public class LogicOrExpr extends  Expr{
     Expr loperand;
@@ -20,7 +21,7 @@ public class LogicOrExpr extends  Expr{
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitLogicOrExpr(this);
     }
 }

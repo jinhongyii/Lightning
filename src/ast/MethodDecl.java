@@ -2,6 +2,7 @@ package ast;
 
 
 import frontend.ASTVisitor;
+import semantic.TypeChecker;
 
 import java.util.ArrayList;
 
@@ -19,6 +20,14 @@ public class MethodDecl implements Node {
         @Override
         public String toString() {
             return "type: "+type+" name: "+name;
+        }
+
+        public Type getType() {
+            return type;
+        }
+
+        public String getName() {
+            return name;
         }
     }
     private Type returnType;
@@ -52,7 +61,7 @@ public class MethodDecl implements Node {
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitMethodDecl(this);
     }
 }

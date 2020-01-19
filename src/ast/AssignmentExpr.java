@@ -1,6 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
+import semantic.TypeChecker;
 
 public class AssignmentExpr extends Expr{
     public Expr getLval() {
@@ -27,7 +28,7 @@ public class AssignmentExpr extends Expr{
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitAssignmentExpr(this);
     }
 }

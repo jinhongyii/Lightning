@@ -15,4 +15,12 @@ public class Type {
     public String toString() {
         return typename+"[]".repeat(dims);
     }
+
+    public String getTypename() {
+        return typename;
+    }
+
+    public int getDims() {
+        return dims;
+    }
 }

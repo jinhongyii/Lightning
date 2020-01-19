@@ -1,45 +1,69 @@
 package frontend;
 
 import ast.*;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import parser.mxBaseListener;
 import parser.mxParser;
+import semantic.*;
 
 import java.util.ArrayList;
 
 public class ASTBuilder extends mxBaseListener {
     private ParseTreeProperty<Object> values = new ParseTreeProperty<>();
     private CompilationUnit compilationUnit=new CompilationUnit();
-
+    private SymbolTable<SemanticType> typeTable ;
     public CompilationUnit getASTStartNode(){return compilationUnit;}
+    public ASTBuilder(SymbolTable<SemanticType> typeTable) throws TypeChecker.semanticException {
+        this.typeTable=typeTable;
+        typeTable.enter("int",new IntType());
+        typeTable.enter("string", new StringType());
+        typeTable.enter("void",new VoidType());
+        typeTable.enter("bool", new BoolType());
+    }
     @Override
     public void exitCompilationUnit(mxParser.CompilationUnitContext ctx) {
-        for(var sons: ctx.classDeclaration()){
-            compilationUnit.addDeclarations((Node) values.get(sons));
-        }
-        for(var sons:ctx.funcDeclaration()){
-            compilationUnit.addDeclarations((Node) values.get(sons));
-        }
-        for(var sons:ctx.variableDeclaration()){
-            var decls=(ArrayList)values.get(sons);
-            for(Object decl:decls){
-                compilationUnit.addDeclarations((Node) decl);
+        for (var sonctx : ctx.getRuleContexts(ParserRuleContext.class)) {
+            var tmp=values.get(sonctx);
+            if (tmp instanceof ArrayList) {
+                for (Object decl : (ArrayList) tmp) {
+                    compilationUnit.addDeclarations((Node) decl);
+                }
+            } else {
+                compilationUnit.addDeclarations(((Node)tmp));
             }
         }
+
     }
 
     @Override
     public void exitClassDeclaration(mxParser.ClassDeclarationContext ctx) {
         var classDeclaration=new ClassDecl(ctx.IDENTIFIER().getText());
+        var record=new RecordType(ctx.IDENTIFIER().getText());
+
         for(var i:ctx.classBody().classBodyDeclaration()){
             Object decl=values.get(i);
             if(decl instanceof  ArrayList){
                 for(var j: (ArrayList) decl){
                     classDeclaration.add((Node)j);
+                    VariableDeclStmt stmt=(VariableDeclStmt)j;
+                    String typename=stmt.getType().getTypename();
+                    SemanticType semanticType =typeTable.lookup(typename);
+                    if(semanticType !=null){
+                        record.addRecord(stmt.getName(), semanticType);
+                    }else {
+                        record.addRecord(stmt.getName(), new NameType(typename));
+                    }
                 }
             }else {
                 classDeclaration.add((Node) decl);
             }
+        }
+
+        try {
+            typeTable.enter(ctx.IDENTIFIER().getText(),record);
+        } catch (TypeChecker.semanticException e) {
+            e.printStackTrace();
         }
         values.put(ctx, classDeclaration);
     }
@@ -64,16 +88,19 @@ public class ASTBuilder extends mxBaseListener {
         }
         String name=ctx.IDENTIFIER().getText();
         BlockStmt stmt= (BlockStmt) values.get(ctx.block().blockStatement());
+        if (stmt.getStatements().isEmpty()|| !(stmt.getStatements().get(stmt.getStatements().size() - 1) instanceof ReturnStmt)) {
+            stmt.addStatement(new ReturnStmt(null));
+        }
         ArrayList<MethodDecl.parameter> parameters;
         if (ctx.parameters().parameterList() == null) {
-            parameters = null;
+            parameters = new ArrayList<>();
         } else {
             parameters= (ArrayList<MethodDecl.parameter>) values.get(ctx.parameters().parameterList());
         }
         values.put(ctx, new MethodDecl(name,returntype,stmt,parameters));
     }
 
-    class Variable {
+    static class Variable {
         String name;
         Expr init;
         Variable(String name, Expr init){
@@ -97,7 +124,7 @@ public class ASTBuilder extends mxBaseListener {
         if (ctx.expression() != null) {
             values.put(ctx, new Variable(ctx.IDENTIFIER().getText(), (Expr) values.get(ctx.expression())));
         } else {
-            values.put(ctx, new Variable(ctx.IDENTIFIER().getText(),null));
+            values.put(ctx, new Variable(ctx.IDENTIFIER().getText(), null));
         }
 
     }
@@ -144,9 +171,12 @@ public class ASTBuilder extends mxBaseListener {
         Type returntype= (Type) values.get(ctx.typeTypeOrVoid());
         String name=ctx.IDENTIFIER().getText();
         BlockStmt stmt= (BlockStmt) values.get(ctx.block().blockStatement());
+        if (stmt.getStatements().isEmpty()|| !(stmt.getStatements().get(stmt.getStatements().size() - 1) instanceof ReturnStmt)) {
+            stmt.addStatement(new ReturnStmt(new LiteralExpr(name.equals("main")?0:null)));
+        }
         ArrayList<MethodDecl.parameter> parameters;
         if (ctx.parameters().parameterList() == null) {
-            parameters = null;
+            parameters = new ArrayList<>();
         } else {
             parameters= (ArrayList<MethodDecl.parameter>) values.get(ctx.parameters().parameterList());
         }

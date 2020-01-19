@@ -1,6 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
+import semantic.TypeChecker;
 
 public class WhileStmt extends Stmt {
     public Expr getCondition() {
@@ -20,7 +21,7 @@ public class WhileStmt extends Stmt {
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitWhileStmt(this);
     }
 }

@@ -1,6 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
+import semantic.TypeChecker;
 
 import java.util.ArrayList;
 
@@ -31,7 +32,7 @@ public class NewExpr extends  Expr {
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitNewExpr(this);
     }
 }

@@ -1,6 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
+import semantic.TypeChecker;
 
 public class PrefixExpr extends Expr {
     Expr val;
@@ -20,7 +21,7 @@ public class PrefixExpr extends Expr {
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitPrefixExpr(this);
     }
 }

@@ -1,6 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
+import semantic.TypeChecker;
 
 import java.util.ArrayList;
 
@@ -25,7 +26,7 @@ public class MethodCallExpr extends Expr {
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitMethodCallExpr(this);
     }
 }

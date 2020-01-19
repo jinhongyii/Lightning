@@ -2,6 +2,7 @@ package ast;
 
 import frontend.ASTVisitor;
 import org.jetbrains.annotations.Nullable;
+import semantic.TypeChecker;
 
 public class ReturnStmt extends Stmt{
     Expr val;
@@ -15,7 +16,7 @@ public class ReturnStmt extends Stmt{
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitReturnStmt(this);
     }
 }

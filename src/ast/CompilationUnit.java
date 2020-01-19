@@ -1,6 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
+import semantic.TypeChecker;
 
 import java.util.ArrayList;
 
@@ -19,7 +20,7 @@ public class CompilationUnit implements Node{
     }
 
     @Override
-    public Object accept(ASTVisitor visitor) {
+    public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitCompilationUnit(this);
     }
 }
