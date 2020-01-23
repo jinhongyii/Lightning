@@ -7,10 +7,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import parser.mxLexer;
 import parser.mxParser;
-import semantic.NameEntry;
-import semantic.SemanticType;
-import semantic.SymbolTable;
-import semantic.TypeChecker;
+import semantic.*;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,6 +27,7 @@ public class Main {
         ASTBuilder builder=new ASTBuilder(typeTable);
         walker.walk(builder, tree);
         ASTPrinter printer=new ASTPrinter(builder.getASTStartNode());
+        FunctionScanner scanner=new FunctionScanner(typeTable,valTable,builder.getASTStartNode());
         TypeChecker typeChecker=new TypeChecker(typeTable,valTable,builder.getASTStartNode());
     }
 }

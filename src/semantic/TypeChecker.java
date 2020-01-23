@@ -4,7 +4,6 @@ import ast.*;
 import frontend.ASTVisitor;
 
 
-import java.util.ArrayList;
 
 public class TypeChecker implements ASTVisitor {
     public static class semanticException extends Exception{
@@ -18,96 +17,27 @@ public class TypeChecker implements ASTVisitor {
     private int inLoop;
     private ClassDecl inclassDecl;
     private MethodDecl inMethodDecl;
-    private int iterationTimes=0;
     public TypeChecker(SymbolTable<SemanticType> typeTable, SymbolTable<NameEntry> valTable,Node startNode) throws semanticException {
         this.typeTable=typeTable;
         this.valTable=valTable;
-        preprocessTypeTable();
-        preprocessBuiltinMethods();
-        visit(startNode);
-        NameEntry main=valTable.lookup("main");
-        if (main == null || main instanceof VarEntry || !((FuncEntry)main).returnType.isIntType()) {
-            throw new semanticException("no main function");
-        }
-        iterationTimes++;
         visit(startNode);
     }
-    private void preprocessTypeTable() throws semanticException {
-        for (var entry : typeTable) {
-            if (entry.isRecordType()) {
-                for (int i=0;i<((RecordType) entry).getFieldName().size();i++) {
-                    var fieldName=((RecordType) entry).getFieldName();
-                    var fieldType=((RecordType) entry).getFieldType();
-                    if (((RecordType) entry).getFieldType().get(i).isNameType()) {
-                        var bindType=typeTable.lookup(fieldName.get(i));
-                        if (bindType == null) {
-                            throw new semanticException("type not declared");
-                        }
-                        ((NameType) fieldType.get(i)).bind(bindType);
-                    }
-                }
-            }
-        }
-    }
-    private SemanticType getbasicType(SemanticType.kind kind)  {
-        switch (kind){
-            case nil:
-                return new NullType();
-            case bool:
-                return new BoolType();
-            case string:
-                return new StringType();
-            case integer:
-                return new IntType();
-            case voidType:
-                return new VoidType();
-            default:
-                return null;
-        }
-    }
-    //used to add library functions
-    private void addSingleParamFunc(SemanticType.kind paramKind, SemanticType.kind returnKind, String name) throws semanticException {
-        ArrayList<SemanticType>params=new ArrayList<>();
-        if(paramKind!= SemanticType.kind.nil) {
-            params.add(getbasicType(paramKind));
-        }
-        valTable.enter(name,new FuncEntry(getbasicType(returnKind),params));
-    }
-    private void  addDoubleParamFunc(SemanticType.kind paramKind1,SemanticType.kind paramKind2,SemanticType.kind returnKind,String name) throws semanticException {
-        ArrayList<SemanticType>params=new ArrayList<>();
-        params.add(getbasicType(paramKind1));
-        params.add(getbasicType(paramKind2));
-        valTable.enter(name,new FuncEntry(getbasicType(returnKind),params));
-    }
-    private void preprocessBuiltinMethods() throws semanticException {
-        addSingleParamFunc(SemanticType.kind.nil, SemanticType.kind.integer,"[]@size");
-        addSingleParamFunc(SemanticType.kind.string, SemanticType.kind.voidType,"print");
-        addSingleParamFunc(SemanticType.kind.string, SemanticType.kind.voidType,"println");
-        addSingleParamFunc(SemanticType.kind.integer, SemanticType.kind.voidType,"printInt");
-        addSingleParamFunc(SemanticType.kind.integer, SemanticType.kind.voidType,"printlnInt");
-        addSingleParamFunc(SemanticType.kind.nil, SemanticType.kind.string,"getString");
-        addSingleParamFunc(SemanticType.kind.nil, SemanticType.kind.integer,"getInt");
-        addSingleParamFunc(SemanticType.kind.integer, SemanticType.kind.string,"toString");
-        addSingleParamFunc(SemanticType.kind.nil, SemanticType.kind.integer,"string@length");
-        addDoubleParamFunc(SemanticType.kind.integer, SemanticType.kind.integer, SemanticType.kind.string,"string@substring");
-        addSingleParamFunc(SemanticType.kind.nil, SemanticType.kind.integer,"string@parseInt");
-        addSingleParamFunc(SemanticType.kind.integer, SemanticType.kind.integer,"string@ord");
-    }
+
     @Override
     public Object visitAssignmentExpr(AssignmentExpr node) throws semanticException {
-       if(iterationTimes==1) {
-           if(!(node.getLval() instanceof NameExpr || node.getLval() instanceof MemberExpr
-           || node.getLval() instanceof SubscriptorExpr)){
-               throw new semanticException("lvalue not assignable");
-           }
-            var ltype=(SemanticType)visit(node.getLval());
-            var rtype=(SemanticType)visit(node.getRval());
-            if (!rtype.canAssignTo(ltype)) {
-                throw new semanticException("assignment type not match") ;
-            }
-            return ltype;
+
+       if(!(node.getLval() instanceof NameExpr || node.getLval() instanceof MemberExpr
+       || node.getLval() instanceof SubscriptorExpr)){
+           throw new semanticException("lvalue not assignable");
+       }
+        var ltype=(SemanticType)visit(node.getLval());
+        var rtype=(SemanticType)visit(node.getRval());
+        if (!rtype.canAssignTo(ltype)) {
+            throw new semanticException("assignment type not match") ;
         }
-        return null;
+        return ltype;
+
+
     }
 
     @Override
@@ -130,41 +60,26 @@ public class TypeChecker implements ASTVisitor {
 
     @Override
     public Object visitClassDecl(ClassDecl node) throws semanticException {
-        if (iterationTimes == 0) {
-            for (var method : node.getMethods()) {
-                ArrayList<SemanticType> paramTypes = new ArrayList<>();
-                for (var param : method.getParameters()) {
-                    paramTypes.add(convert(param.getType()));
-                }
-                valTable.enter(node.getName() + "@" + method.getName(), new FuncEntry(convert((method.getReturnType())), paramTypes));
-            }
 
-        } else {
-            inclassDecl=node;
-            for (var vardecl : node.getVariables()) {
-                valTable.enter(node.getName()+"@"+vardecl.getName(),new VarEntry(convert(vardecl.getType())));
-            }
-            for (var method : node.getMethods()) {
-                visit(method);
-            }
-            inclassDecl=null;
+        inclassDecl=node;
+        for (var vardecl : node.getVariables()) {
+            valTable.enter(node.getName()+"@"+vardecl.getName(),new VarEntry(convert(vardecl.getType())));
         }
+        for (var method : node.getMethods()) {
+            visit(method);
+        }
+        inclassDecl=null;
+
         return null;
     }
 
     @Override
     public Object visitCompilationUnit(CompilationUnit node) throws semanticException {
-        if (iterationTimes == 0) {
-            for (var son : node.getDeclarations()) {
-                if (!(son instanceof VariableDeclStmt)) {
-                    visit(son);
-                }
-            }
-        } else {
-            for (var son : node.getDeclarations()) {
-                visit(son);
-            }
+
+        for (var son : node.getDeclarations()) {
+            visit(son);
         }
+
         return null;
     }
     @Override
@@ -331,22 +246,16 @@ public class TypeChecker implements ASTVisitor {
     }
     @Override
     public Object visitMethodDecl(MethodDecl node) throws semanticException {
-        if (iterationTimes == 0) {
-            ArrayList<SemanticType> paramTypes=new ArrayList<>();
-            for (var param : node.getParameters()) {
-                paramTypes.add(convert(param.getType()));
-            }
-            valTable.enter(node.getName(), new FuncEntry(convert(node.getReturnType()),paramTypes));
-        }else {
-            inMethodDecl=node;
-            valTable.beginScope();
-            for (var param : node.getParameters()) {
-                valTable.enter(param.getName(), new VarEntry(convert(param.getType())));
-            }
-            visit(node.getStmt());
-            valTable.endScope();
-            inMethodDecl=null;
+
+        inMethodDecl=node;
+        valTable.beginScope();
+        for (var param : node.getParameters()) {
+            valTable.enter(param.getName(), new VarEntry(convert(param.getType())));
         }
+        visit(node.getStmt());
+        valTable.endScope();
+        inMethodDecl=null;
+
         return null;
     }
 
