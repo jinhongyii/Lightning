@@ -2,8 +2,6 @@ package IR.Types;
 
 import IR.Type;
 
-import java.util.IdentityHashMap;
-
 public class IntType extends Type {
     public IntType(String name, TypeID id) {
         super(name, id);

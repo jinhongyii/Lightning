@@ -25,7 +25,7 @@ public class IRBuilder implements ASTVisitor {
     private BasicBlock curBB;
     private BasicBlock curLoopBB;
     private BasicBlock curAfterLoopBB;
-    private BasicBlock InitializerBB=new BasicBlock("initializer");
+    private Function InitializerFunc=new Function(".initializer",topModule,false,Type.theVoidType,new ArrayList<>(),new ArrayList<>());
     boolean lhs=false;
 
     public Module getTopModule() {
@@ -35,16 +35,18 @@ public class IRBuilder implements ASTVisitor {
     public IRBuilder(semantic.SymbolTable<SemanticType> typeTable, SymbolTable<NameEntry> valTable,CompilationUnit compilationUnit) throws TypeChecker.semanticException {
         this.typeTable = typeTable;
         this.valTable=valTable;
+        addInitializer();
         initializeSymTab();
         visit(compilationUnit);
-        addInitializer();
+        InitializerFunc.getLastBB().addInst(new ReturnInst(null));
+        Function main= (Function) topModule.getSymbolTable().get("main");
+        main.getEntryBB().addInstToFirst(new CallInst("initializer_func", InitializerFunc,new ArrayList<>()));
     }
     private void addInitializer(){
-        Function function= (Function) topModule.getSymbolTable().get("main");
-        LinkedList<Instruction> instructions=InitializerBB.getInstructionList();
-        while (!instructions.isEmpty()) {
-            function.getEntryBB().addInst(instructions.pollLast());
-        }
+        topModule.addFunction(InitializerFunc);
+        InitializerFunc.addBB("entry");
+        curFunc=InitializerFunc;
+        curBB=InitializerFunc.getEntryBB();
     }
     private void initializeSymTab(){
         topModule.getSymbolTable().put("int", IR.Type.TheInt64);
@@ -112,11 +114,15 @@ public class IRBuilder implements ASTVisitor {
             var methodName=name.split("@")[1];
             if (className.equals("[]")) {
                 paramTypes.add(new PointerType(Type.TheInt8));
-                className=".array";
+                className="_array";
             }else {
-                paramTypes.add(new PointerType(convertTypeLookUp(typeTable.lookup(className))));
+                if (className.equals("string")) {
+                    paramTypes.add(new PointerType(Type.TheInt8));
+                }else {
+                    paramTypes.add(new PointerType(convertTypeLookUp(typeTable.lookup(className))));
+                }
             }
-            name=className+"."+methodName;
+            name=className+"_"+methodName;
             paramNames.add("thisptr");
         }
         return new Function(name,topModule,true,convertTypeLookUp(funcEntry.getReturnType()), paramTypes,paramNames);
@@ -222,9 +228,17 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public Object visitCompilationUnit(CompilationUnit node) throws TypeChecker.semanticException {
+        isglobal=true;
         for (var decl : node.getDeclarations()) {
-            isglobal = decl instanceof VariableDeclStmt;
-            visit(decl);
+            if (decl instanceof VariableDeclStmt) {
+                visit(decl);
+            }
+        }
+        isglobal=false;
+        for (var decl : node.getDeclarations()) {
+            if(!(decl instanceof VariableDeclStmt)){
+                visit(decl);
+            }
         }
         return null;
     }
@@ -428,8 +442,8 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public Object visitLogicAndExpr(LogicAndExpr node) throws TypeChecker.semanticException {
-        var originalBB=curBB;
         Value test1 = (Value) visit(node.getLoperand());
+        var originalBB=curBB;
         var firstTrueBB=curFunc.addBB("land.true");
         var mergeBB=new BasicBlock("land.merge");
         curBB.addInst(new BranchInst(firstTrueBB,mergeBB,test1));
@@ -447,8 +461,9 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public Object visitLogicOrExpr(LogicOrExpr node) throws TypeChecker.semanticException {
-        var originalBB=curBB;
+
         Value test1 = (Value) visit(node.getLoperand());
+        var originalBB=curBB;
         var firstFalseBB=curFunc.addBB("lor.false");
         var mergeBB=new BasicBlock("lor.merge");
         curBB.addInst(new BranchInst(mergeBB,firstFalseBB,test1));
@@ -504,14 +519,16 @@ public class IRBuilder implements ASTVisitor {
             var instanceV = (Value) visit(((MemberExpr) node.getName()).getInstance_name());
             SemanticType instanceType = ((MemberExpr) node.getName()).getInstanceType();
             String className = "";
-            if(instanceType.isRecordType()) {
+            if(instanceType.isRecordType() ) {
                 className = ((RecordType) instanceType).getRecordName();
             } else if (instanceType.isArrayType()) {
-                className=".array";
+                className="_array";
                 instanceV=new CastInst("cast", new PointerType(Type.TheInt8), instanceV);
                 curBB.addInst((Instruction) instanceV);
+            } else if (instanceType.isStringType()) {
+                className="string";
             }
-            Function function = (Function) topModule.getSymbolTable().get(className + "." + ((MemberExpr) node.getName()).getMember_name());
+            Function function = (Function) topModule.getSymbolTable().get(className + "_" + ((MemberExpr) node.getName()).getMember_name());
             ArrayList<Value> arguments = new ArrayList<>();
             for (var arg : node.getArguments()) {
                 Value argV = (Value) visit(arg);
@@ -531,7 +548,7 @@ public class IRBuilder implements ASTVisitor {
             }
             Function function= (Function) topModule.getSymbolTable().get(funcName);
             if (function == null) {
-                function=(Function)topModule.getSymbolTable().get(curClass.getName()+"."+funcName);
+                function=(Function)topModule.getSymbolTable().get(curClass.getName()+"_"+funcName);
                 arguments.add(curFunc.getThisPtr());
             }
             var callInst=new CallInst("calltmp",function,arguments);
@@ -555,7 +572,7 @@ public class IRBuilder implements ASTVisitor {
         Function newfunc;
         if (curClass != null) {
             paramTypes.add(new PointerType(convertTypeLookUp(curClass.getSemanticType())));
-            funcName=curClass.getName() + "." + node.getName();
+            funcName=curClass.getName() + "_" + node.getName();
             paramNames.add("this_ptr");
         } else {
             funcName=node.getName();
@@ -647,7 +664,7 @@ public class IRBuilder implements ASTVisitor {
         curBB.addInst(cast_PrepareForSize);
         curBB.addInst(storeInst);
         curBB.addInst(arrayBase);
-        if (totdim == 1) {
+        if (dims.isEmpty()) {
             return arrayBase;
         }
         var condBB=curFunc.addBB("for_cond");
@@ -709,7 +726,7 @@ public class IRBuilder implements ASTVisitor {
             params.add(new ConstantInt(getRecordMallocSize(node.getSemanticType())));
             var newInstance=new CallInst("malloc",mallocFunc,params);
             curBB.addInst(newInstance);
-            Function ctor=(Function)topModule.getSymbolTable().get(node.getTypename()+"."+node.getTypename());
+            Function ctor=(Function)topModule.getSymbolTable().get(node.getTypename()+"_"+node.getTypename());
             if(ctor!=null) {
                 ArrayList<Value> params2 = new ArrayList<>();
                 params2.add(newInstance);
@@ -809,14 +826,16 @@ public class IRBuilder implements ASTVisitor {
     public Object visitVariableDeclStmt(VariableDeclStmt node) throws TypeChecker.semanticException {
         Type type= convertTypeLookUp(node.getSemanticType());
         if (isglobal) {
-            Value initCode=null;
+            var globalV=new GlobalVariable(node.getName(),type,topModule);
+            topModule.addGlobalVariable(globalV);
             if (node.getInit() != null) {
-                var prevCurBB=curBB;
-                curBB=InitializerBB;
-                initCode = (Value) visit(node.getInit());
-                curBB=prevCurBB;
+                 Value initV= (Value) visit(node.getInit());
+                if (initV.getValueType() == Value.ValueType.ConstantVal) {
+                    globalV.setInitializer(initV);
+                }else {
+                    curBB.addInst(new StoreInst(initV, globalV));
+                }
             }
-            topModule.addGlobalVariable(new GlobalVariable(node.getName(),type,initCode,topModule));
             return null;
         } else {
             if (node.getSemanticType().actual().isRecordType()) {

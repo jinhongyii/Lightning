@@ -11,7 +11,7 @@ public class Type extends Value {
     public enum TypeID {
         Int64,Int1,Int8,Typetype,LabelType,FunctionType,StructType,PointerType,ArrayType,VoidType
     }
-    public static IntType TheInt64=new IntType("int64",TypeID.Int64);
+    public static IntType TheInt64 =new IntType("int64",TypeID.Int64);
     public static IntType TheInt8=new IntType("int8", TypeID.Int8);
 
     public TypeID getId() {

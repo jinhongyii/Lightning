@@ -28,7 +28,7 @@ public class Main {
         SymbolTable<NameEntry> valTable=new SymbolTable<>();
         ASTBuilder builder=new ASTBuilder(typeTable);
         walker.walk(builder, tree);
-        ASTPrinter printer=new ASTPrinter(builder.getASTStartNode());
+//        ASTPrinter printer=new ASTPrinter(builder.getASTStartNode());
         FunctionScanner scanner=new FunctionScanner(typeTable,valTable,builder.getASTStartNode());
         TypeChecker typeChecker=new TypeChecker(typeTable,valTable,builder.getASTStartNode());
         IRBuilder irBuilder=new IRBuilder(typeTable,valTable,builder.getASTStartNode());

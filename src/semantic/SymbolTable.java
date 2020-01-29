@@ -109,7 +109,7 @@ public class SymbolTable<Type> implements Iterable<Type>{
     }
     public void endScope(){
         for (String sym : stack.peek()) {
-            int idx=sym.hashCode()%1023;
+            int idx=abs(sym.hashCode()%1023);
             hashtable[idx]=hashtable[idx].next;
         }
         stack.pop();

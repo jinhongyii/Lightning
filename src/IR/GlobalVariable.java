@@ -5,10 +5,13 @@ import IR.Types.PointerType;
 public class GlobalVariable extends User{
     Module parent;
     Value initializer;
-    public GlobalVariable(String name, Type type,Value initializer,Module parent) {
+    public GlobalVariable(String name, Type type,Module parent) {
         super(name, new PointerType(type),ValueType.GlobalVariableVal);
-        this.initializer=initializer;
         this.parent=parent;
+    }
+
+    public void setInitializer(Value initializer) {
+        this.initializer = initializer;
     }
 
     @Override
@@ -18,6 +21,6 @@ public class GlobalVariable extends User{
 
     @Override
     public String toString() {
-        return (((PointerType)getType()).getPtrType().equals(Type.TheTypeType)?"%":"@")+getName();
+        return "@"+getName();
     }
 }

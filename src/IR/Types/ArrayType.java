@@ -38,6 +38,6 @@ public class ArrayType extends CompositeType {
 
     @Override
     public String toString() {
-        return  "["+length+"x"+type.toString()+"]";
+        return  "["+length+" x "+type.toString()+"]";
     }
 }

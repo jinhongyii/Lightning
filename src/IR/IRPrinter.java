@@ -17,6 +17,9 @@ public class IRPrinter implements IRVisitor {
     public Object visitModule(Module module) {
         print("target datalayout = \"e-m:e-i64:64-f80:128-n8:16:32:64-S128\"\n" +
                 "target triple = \"x86_64-pc-linux-gnu\"");
+        for (var i : module.structMap.entrySet()) {
+            print("%"+i.getKey()+" = type "+i.getValue());
+        }
         for (var i : module.getGlobalList()) {
             visit(i);
         }
@@ -74,11 +77,12 @@ public class IRPrinter implements IRVisitor {
     @Override
     public Object visitGlobalVariable(GlobalVariable globalVariable) {
 //        assert globalVariable.initializer.getValueType()== Value.ValueType.ConstantVal ;
-        String tmp="";
-        if (((PointerType)globalVariable.getType()).getPtrType().equals(Type.TheTypeType)) {
-            tmp="type";
+        var eleType=((PointerType)globalVariable.getType()).getPtrType();
+        if (globalVariable.initializer != null) {
+            print(globalVariable.toString() + " =" + "global" + " " + eleType + " " + globalVariable.initializer.toString());
+        } else {
+            print(globalVariable.toString() + " =" + "global" + " " + eleType+(eleType.getId()==Type.TypeID.PointerType?" null":" 0"));
         }
-        print(globalVariable.toString()+" =" +tmp+" "+globalVariable.initializer.toString());
         return null;
     }
 
@@ -94,14 +98,14 @@ public class IRPrinter implements IRVisitor {
         switch (binaryOpInst.getOpcode()) {
             case add: op="add";break;
             case sub: op="sub" ;break;
-            case div: op="div";break;
+            case div: op="sdiv";break;
             case mul: op="mul";break;
-            case rem: op="rem";break;
+            case rem: op="srem";break;
             case and: op="and";break;
             case or: op="or";break;
             case xor: op="xor";break;
             case shl:op="shl";break;
-            case shr:op="shr";break;
+            case shr:op="ashr";break;
             default:op=null;
         }
         print(binaryOpInst.toString()+" = "+op+" "+binaryOpInst.getType()+" "+binaryOpInst.operands.get(0).val+", "+binaryOpInst.operands.get(1).val);
@@ -190,7 +194,7 @@ public class IRPrinter implements IRVisitor {
         boolean flag=false;
         for (int i = 0; i < phiNode.operands.size(); i+=2) {
             builder.append("[").append(phiNode.operands.get(i).val).append(", ").append(phiNode.operands.get(i + 1).val).append("]");
-            builder.append(", ");
+            builder.append(",");
             flag=true;
         }
         if(flag) {

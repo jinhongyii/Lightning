@@ -52,7 +52,7 @@ public class Function extends User{
     public BasicBlock getEntryBB(){
         return basicBlockList.get(0);
     }
-
+    public BasicBlock getLastBB(){return basicBlockList.get(basicBlockList.size()-1);}
     @Override
     public Object accept(IRVisitor visitor) {
         return visitor.visitFunction(this);
@@ -66,4 +66,5 @@ public class Function extends User{
     public ArrayList<BasicBlock> getBasicBlockList() {
         return basicBlockList;
     }
+
 }

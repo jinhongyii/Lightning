@@ -43,7 +43,7 @@ public class StructType extends CompositeType{
         StringBuilder str= new StringBuilder("{");
         boolean flag=false;
         for (var i : recordTypes) {
-            str.append(recordTypes.toString()).append(",");
+            str.append(i).append(",");
             flag=true;
         }
         if(flag) {
