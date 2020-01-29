@@ -1,4 +1,6 @@
+import IR.IRPrinter;
 import ast.Type;
+import backend.IRBuilder;
 import frontend.ASTBuilder;
 import frontend.ASTPrinter;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -29,5 +31,8 @@ public class Main {
         ASTPrinter printer=new ASTPrinter(builder.getASTStartNode());
         FunctionScanner scanner=new FunctionScanner(typeTable,valTable,builder.getASTStartNode());
         TypeChecker typeChecker=new TypeChecker(typeTable,valTable,builder.getASTStartNode());
+        IRBuilder irBuilder=new IRBuilder(typeTable,valTable,builder.getASTStartNode());
+        IRPrinter irPrinter=new IRPrinter(irBuilder.getTopModule());
+
     }
 }

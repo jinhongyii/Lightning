@@ -199,6 +199,7 @@ public class TypeChecker implements ASTVisitor {
     @Override
     public Object visitMemberExpr(MemberExpr node) throws semanticException {
         SemanticType ltype=(SemanticType) visit(node.getInstance_name());
+        node.setInstanceType(ltype);
         NameEntry entry;
         String name;
         if(ltype.isRecordType()){
@@ -220,6 +221,7 @@ public class TypeChecker implements ASTVisitor {
     @Override
     public Object visitMethodCallExpr(MethodCallExpr node) throws semanticException {
         NameEntry entry= (NameEntry) visit(node.getName());
+
         if (entry instanceof VarEntry) {
             throw new semanticException("not a method");
         } else {
@@ -282,6 +284,7 @@ public class TypeChecker implements ASTVisitor {
             }
         }
         var newBaseType=typeTable.lookup(node.getTypename());
+        node.setSemanticType(newBaseType);
         if (newBaseType == null) {
             throw new semanticException("type not defined");
         }
@@ -338,11 +341,14 @@ public class TypeChecker implements ASTVisitor {
         } else if (!indexType.isIntType()) {
             throw new semanticException("index not int type");
         } else {
+            SemanticType type;
             if (((ArrayType) mainType).getDims() == 1) {
-                return ((ArrayType)mainType).getElementType();
+                type=((ArrayType)mainType).getElementType();
             }else {
-                return new ArrayType(((ArrayType)mainType).getElementType(),((ArrayType) mainType).getDims()-1);
+                type= new ArrayType(((ArrayType)mainType).getElementType(),((ArrayType) mainType).getDims()-1);
             }
+            node.setElementType(type);
+            return type;
         }
     }
 
@@ -354,6 +360,7 @@ public class TypeChecker implements ASTVisitor {
     @Override
     public Object visitVariableDeclStmt(VariableDeclStmt node) throws semanticException {
         SemanticType type=convert(node.getType());
+        node.setSemanticType(type);
         valTable.enter(node.getName(), new VarEntry(type));
         if (node.getInit() != null) {
             SemanticType initType = (SemanticType) visit(node.getInit());

@@ -1,6 +1,7 @@
 package frontend;
 
 import ast.*;
+import backend.IRBuilder;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
 import parser.mxBaseListener;
@@ -62,6 +63,7 @@ public class ASTBuilder extends mxBaseListener {
 
         try {
             typeTable.enter(ctx.IDENTIFIER().getText(),record);
+            classDeclaration.setSemanticType(record);
         } catch (TypeChecker.semanticException e) {
             e.printStackTrace();
         }
@@ -172,7 +174,7 @@ public class ASTBuilder extends mxBaseListener {
         String name=ctx.IDENTIFIER().getText();
         BlockStmt stmt= (BlockStmt) values.get(ctx.block().blockStatement());
         if (stmt.getStatements().isEmpty()|| !(stmt.getStatements().get(stmt.getStatements().size() - 1) instanceof ReturnStmt)) {
-            stmt.addStatement(new ReturnStmt(new LiteralExpr(name.equals("main")?0:null)));
+            stmt.addStatement(new ReturnStmt(name.equals("main")?new LiteralExpr(0):null));
         }
         ArrayList<MethodDecl.parameter> parameters;
         if (ctx.parameters().parameterList() == null) {

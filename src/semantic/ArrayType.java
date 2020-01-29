@@ -7,7 +7,13 @@ public class ArrayType extends SemanticType {
     public SemanticType getElementType() {
         return elementType;
     }
-
+    public SemanticType getRealElementType(){
+        if (dims > 1) {
+            return new ArrayType(elementType, dims - 1);
+        } else {
+            return elementType;
+        }
+    }
     public int getDims() {
         return dims;
     }

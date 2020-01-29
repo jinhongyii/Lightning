@@ -1,6 +1,6 @@
 package semantic;
 
-import ast.Type;
+
 
 public class IntType extends SemanticType {
     @Override

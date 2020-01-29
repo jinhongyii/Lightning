@@ -15,6 +15,7 @@ public class SymbolTable<Type> implements Iterable<Type>{
     @Override
     public Iterator<Type> iterator() {
         int i=0;
+
         for (i = 0; i < 1024; i++) {
             if (hashtable[i] != null) {
                 break;
@@ -41,7 +42,8 @@ public class SymbolTable<Type> implements Iterable<Type>{
             if (now.next != null) {
                 now = now.next;
             } else {
-                for(;hashtable[idx]==null;idx++);
+                idx++;
+                for(;idx<1022 && hashtable[idx]==null;idx++);
                 now=hashtable[idx];
             }
             return (Type) now.type;
@@ -71,7 +73,14 @@ public class SymbolTable<Type> implements Iterable<Type>{
     public SymbolTable() {
         stack.push(new HashSet<>());
     }
-    public int size(){return stack.size();}
+    public int size(){
+        int cnt=0;
+        for (var level : stack) {
+            cnt+=level.size();
+        }
+        return cnt;
+
+    }
     public void enter(String sym,Type type) throws TypeChecker.semanticException {
         int idx=abs(sym.hashCode()%1023);
         hashtable[idx]=new Entry<>(sym,type,hashtable[idx]);

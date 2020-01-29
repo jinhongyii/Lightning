@@ -7,7 +7,7 @@ public class NameType extends SemanticType{
     private SemanticType binding;
 
     @Override
-    protected SemanticType actual() {
+    public SemanticType actual() {
         return binding;
     }
     @Override

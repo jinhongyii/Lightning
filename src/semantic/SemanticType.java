@@ -6,7 +6,7 @@ import java.util.ArrayList;
 abstract public class SemanticType {
     public enum kind{record,nil,integer,string,array,bool,voidType,name} ;
     protected kind typekind;
-    protected SemanticType actual(){
+    public SemanticType actual(){
         return this;
     }
     public boolean canAssignTo(SemanticType other){
@@ -46,27 +46,8 @@ abstract public class SemanticType {
     public boolean equals(Object obj) {
         return this.typekind==((SemanticType)obj).typekind;
     }
-    //    ArrayList<SemanticType> record=new ArrayList<>();
-//    SemanticType array;
-//    int arrayDim;
-//    String name;
-//    SemanticType binding;
-//    public void addRecord(SemanticType semanticType){
-//        record.add(semanticType);
-//    }
-//    public SemanticType(kind kind){
-//        this.typekind=kind;
-//    }
-//    public SemanticType(kind kind, SemanticType array, int arrayDim){
-//        this.typekind=kind;
-//        this.array=array;
-//        this.arrayDim=arrayDim;
-//    }
-//    public SemanticType(kind kind, String name){
-//        this.typekind=kind;
-//        this.name=name;
-//        this.binding=null;
-//    }
-
+    public boolean isPrimitiveType(){
+        return this.actual().isIntType() || this.actual().isBoolType() ;
+    }
 
 }

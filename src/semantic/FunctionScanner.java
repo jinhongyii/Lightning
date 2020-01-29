@@ -105,11 +105,14 @@ public class FunctionScanner implements ASTVisitor {
     @Override
     public Object visitClassDecl(ClassDecl node) throws TypeChecker.semanticException {
         for (var method : node.getMethods()) {
-            ArrayList<SemanticType> paramTypes = new ArrayList<>();
+            ArrayList<SemanticType> convertedParamTypes = new ArrayList<>();
             for (var param : method.getParameters()) {
-                paramTypes.add(convert(param.getType()));
+                convertedParamTypes.add(convert(param.getType()));
             }
-            valTable.enter(node.getName() + "@" + method.getName(), new FuncEntry(convert((method.getReturnType())), paramTypes));
+            var convertedReturnType=convert(method.getReturnType());
+            method.setSemanticReturnType(convertedReturnType);
+            method.setSemanticParamTypes(convertedParamTypes);
+            valTable.enter(node.getName() + "@" + method.getName(), new FuncEntry(convertedReturnType, convertedParamTypes));
         }
         return null;
     }
@@ -180,7 +183,10 @@ public class FunctionScanner implements ASTVisitor {
         for (var param : node.getParameters()) {
             paramTypes.add(convert(param.getType()));
         }
-        valTable.enter(node.getName(), new FuncEntry(convert(node.getReturnType()),paramTypes));
+        var convertedReturnType=convert(node.getReturnType());
+        node.setSemanticParamTypes(paramTypes);
+        node.setSemanticReturnType(convertedReturnType);
+        valTable.enter(node.getName(), new FuncEntry(convertedReturnType,paramTypes));
         return null;
     }
 

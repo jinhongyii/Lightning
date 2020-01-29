@@ -2,6 +2,7 @@ package ast;
 
 import frontend.ASTVisitor;
 import org.jetbrains.annotations.Nullable;
+import semantic.SemanticType;
 import semantic.TypeChecker;
 
 public class VariableDeclStmt extends Stmt{
@@ -9,6 +10,15 @@ public class VariableDeclStmt extends Stmt{
     Type type;
     Expr init;
 
+    public SemanticType getSemanticType() {
+        return semanticType;
+    }
+
+    public void setSemanticType(SemanticType semanticType) {
+        this.semanticType = semanticType;
+    }
+
+    SemanticType semanticType;
     public String getName() {
         return name;
     }

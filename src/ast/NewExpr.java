@@ -1,12 +1,23 @@
 package ast;
 
 import frontend.ASTVisitor;
+import semantic.SemanticType;
 import semantic.TypeChecker;
 
 import java.util.ArrayList;
 
 public class NewExpr extends  Expr {
     String typename;
+    SemanticType semanticType;
+
+    public SemanticType getSemanticType() {
+        return semanticType;
+    }
+
+    public void setSemanticType(SemanticType semanticType) {
+        this.semanticType = semanticType;
+    }
+
     ArrayList<Expr> dims;
     int totDim;
 

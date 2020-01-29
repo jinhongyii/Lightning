@@ -3,6 +3,7 @@ package ast;
 
 
 import frontend.ASTVisitor;
+import semantic.SemanticType;
 import semantic.TypeChecker;
 
 import java.util.ArrayList;
@@ -11,6 +12,16 @@ public class ClassDecl implements Node {
     private ArrayList<MethodDecl> methods=new ArrayList<>();
     private ArrayList<VariableDeclStmt> variables=new ArrayList<>();
     private String name;
+    private SemanticType semanticType;
+
+    public SemanticType getSemanticType() {
+        return semanticType;
+    }
+
+    public void setSemanticType(SemanticType semanticType) {
+        this.semanticType = semanticType;
+    }
+
     public ArrayList<MethodDecl> getMethods() {
         return methods;
     }

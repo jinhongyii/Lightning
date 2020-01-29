@@ -3,6 +3,14 @@ package semantic;
 import java.util.ArrayList;
 
 public class FuncEntry extends NameEntry{
+    public ArrayList<SemanticType> getParams() {
+        return params;
+    }
+
+    public SemanticType getReturnType() {
+        return returnType;
+    }
+
     SemanticType returnType;
     ArrayList<SemanticType> params=new ArrayList<>();
 

@@ -2,6 +2,7 @@ package ast;
 
 
 import frontend.ASTVisitor;
+import semantic.SemanticType;
 import semantic.TypeChecker;
 
 import java.util.ArrayList;
@@ -33,6 +34,25 @@ public class MethodDecl implements Node {
     private Type returnType;
     private ArrayList<parameter> parameters;
     private Stmt stmt;
+
+    public SemanticType getSemanticReturnType() {
+        return SemanticReturnType;
+    }
+
+    public void setSemanticReturnType(SemanticType semanticReturnType) {
+        this.SemanticReturnType = semanticReturnType;
+    }
+
+    public ArrayList<SemanticType> getSemanticParamTypes() {
+        return SemanticParamTypes;
+    }
+
+    public void setSemanticParamTypes(ArrayList<SemanticType> semanticParamTypes) {
+        this.SemanticParamTypes = semanticParamTypes;
+    }
+
+    private SemanticType SemanticReturnType;
+    private ArrayList<SemanticType> SemanticParamTypes;
 
     public String getName() {
         return name;
