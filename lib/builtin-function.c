@@ -10,12 +10,12 @@ void print(char* str){
 void println(char* str){
     printf("%s\n",str);
 }
-void printInt(int a){
-    printf("%d",a);
+void printInt(long long a){
+    printf("%lld",a);
 }
 
-void printlnInt(int a){
-    printf("%d\n",a);
+void printlnInt(long long a){
+    printf("%lld\n",a);
 }
 
 char* getString(){
@@ -23,44 +23,44 @@ char* getString(){
     scanf("%s",buffer);
     return buffer;
 }
-int getInt(){
-    int tmp;
-    scanf("%d",&tmp);
+long long getInt(){
+    long long tmp;
+    scanf("%lld",&tmp);
     return tmp;
 }
-char* toString(int  a){
+char* toString(long long  a){
     char* newstr=malloc(30);
-    sprintf(newstr,"%d",a);
+    sprintf(newstr,"%lld",a);
     return newstr;
 }
 
-int string_length (char *string){
+long long string_length (char *string){
     return strlen(string);
 }
 
-char* string_substring(int left,int right,char* string){
+char* string_substring(long long left,long long right,char* string){
     char* newstr=malloc(right-left+1);
     memcpy(newstr,string+left,right-left);
     newstr[right-left]=0;
     return newstr;
 }
 
-int string_parseInt(char* str){
+long long string_parseInt(char* str){
     char **aa = NULL;
-    return strtol(str,aa,10);
+    return strtoll(str,aa,10);
 }
 
-int string_ord(int index,char* string){
+long long string_ord(long long index,char* string){
     return string[index];
 }
 
-int _array_size(char* array){
-    return *(((int*)array)-1);
+long long _array_size(char* array){
+    return *(((long long*)array)-1);
 }
 
 char* string_add(char* str1,char* str2){
-    int len1=strlen(str1);
-    int len2=strlen(str2);
+    long long len1=strlen(str1);
+    long long len2=strlen(str2);
     char* newstr=malloc(len1+len2+1);
     strcpy(newstr,str1);
     strcat(newstr,str2);

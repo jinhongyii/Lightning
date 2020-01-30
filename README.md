@@ -10,7 +10,7 @@
 
 3 pass
 
-4 semantic fail
+4 pass
 
 5 unknown
 
