@@ -10,6 +10,11 @@ public class NameExpr extends  Expr {
     }
 
     String name;
+    VariableDeclStmt declStmt;
+
+    public void setDeclStmt(VariableDeclStmt declStmt) {
+        this.declStmt = declStmt;
+    }
 
     public NameExpr(String name){
         this.name=name;
@@ -18,5 +23,9 @@ public class NameExpr extends  Expr {
     @Override
     public Object accept(ASTVisitor visitor) throws TypeChecker.semanticException {
         return visitor.visitNameExpr(this);
+    }
+
+    public VariableDeclStmt getDeclStmt() {
+        return declStmt;
     }
 }

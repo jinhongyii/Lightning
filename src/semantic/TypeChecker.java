@@ -3,6 +3,7 @@ package semantic;
 import ast.*;
 import frontend.ASTVisitor;
 
+import java.util.ArrayList;
 
 
 public class TypeChecker implements ASTVisitor {
@@ -13,7 +14,7 @@ public class TypeChecker implements ASTVisitor {
     }
     private SymbolTable<SemanticType> typeTable;
     private SymbolTable<NameEntry> valTable;
-
+    ArrayList<MethodDecl.parameter> parameters=new ArrayList<>();
     private int inLoop;
     private ClassDecl inclassDecl;
     private MethodDecl inMethodDecl;
@@ -42,11 +43,15 @@ public class TypeChecker implements ASTVisitor {
 
     @Override
     public Object visitBlockStmt(BlockStmt node) throws semanticException {
-//        valTable.beginScope();
+        valTable.beginScope();
+        for(var param:parameters){
+            valTable.enter(param.getName(), new VarEntry(convert(param.getType())));
+        }
+        parameters.clear();
         for (var stmt : node.getStatements()) {
             visit(stmt);
         }
-//        valTable.beginScope();
+        valTable.endScope();
         return null;
     }
 
@@ -250,12 +255,11 @@ public class TypeChecker implements ASTVisitor {
     public Object visitMethodDecl(MethodDecl node) throws semanticException {
 
         inMethodDecl=node;
-        valTable.beginScope();
-        for (var param : node.getParameters()) {
-            valTable.enter(param.getName(), new VarEntry(convert(param.getType())));
-        }
+//        valTable.beginScope();
+        //            valTable.enter(param.getName(), new VarEntry(convert(param.getType())));
+        parameters.addAll(node.getParameters());
         visit(node.getStmt());
-        valTable.endScope();
+//        valTable.endScope();
         inMethodDecl=null;
 
         return null;
@@ -265,7 +269,12 @@ public class TypeChecker implements ASTVisitor {
     public Object visitNameExpr(NameExpr node) throws semanticException {
         var entry = valTable.lookup(node.getName());
         if (entry != null) {
-            return entry instanceof VarEntry?((VarEntry) entry).type:entry;
+            if (entry instanceof VarEntry) {
+                node.setDeclStmt(((VarEntry) entry).declStmt);
+                return ((VarEntry) entry).type;
+            } else {
+                return entry;
+            }
         } else if(inclassDecl!=null){
             var entry2=valTable.lookup(inclassDecl.getName()+"@"+node.getName());
             if (entry2 != null) {
@@ -361,7 +370,7 @@ public class TypeChecker implements ASTVisitor {
     public Object visitVariableDeclStmt(VariableDeclStmt node) throws semanticException {
         SemanticType type=convert(node.getType());
         node.setSemanticType(type);
-        valTable.enter(node.getName(), new VarEntry(type));
+        valTable.enter(node.getName(), new VarEntry(type,node));
         if (node.getInit() != null) {
             SemanticType initType = (SemanticType) visit(node.getInit());
             if (!initType.canAssignTo(type)) {

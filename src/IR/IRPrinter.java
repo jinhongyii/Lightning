@@ -2,23 +2,43 @@ package IR;
 
 import IR.Types.FunctionType;
 import IR.Types.PointerType;
+import IR.Types.StructType;
 import IR.instructions.*;
 import semantic.NullType;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class IRPrinter implements IRVisitor {
     private String prefix="";
+    FileWriter writer=new FileWriter("tmp/main.ll");
+    BufferedWriter bufferedWriter=new BufferedWriter(writer,8096);
     private void indent(){prefix+="\t";}
     private void dedent(){prefix=prefix.substring(0,prefix.length()-1);}
-    private void print(String str){System.out.println(prefix+str);}
-    public IRPrinter(Module module){
+    private void print(String str){
+        System.out.println(prefix+str);
+        try {
+            bufferedWriter.write(prefix + str + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+    public IRPrinter(Module module) throws IOException {
         visitModule(module);
+        bufferedWriter.flush();
     }
     @Override
     public Object visitModule(Module module) {
         print("target datalayout = \"e-m:e-i64:64-f80:128-n8:16:32:64-S128\"\n" +
                 "target triple = \"x86_64-pc-linux-gnu\"");
         for (var i : module.structMap.entrySet()) {
-            print("%"+i.getKey()+" = type "+i.getValue());
+            if (i.getValue() instanceof StructType) {
+                print("%" + i.getKey() + " = type " + ((StructType) i.getValue()).getDetailedText());
+            } else {
+                print("%" + i.getKey() + " = type " + i.getValue());
+            }
         }
         for (var i : module.getGlobalList()) {
             visit(i);
@@ -157,7 +177,7 @@ public class IRPrinter implements IRVisitor {
         var ptr=GEPInst.operands.get(0).val;
         StringBuilder tmp= new StringBuilder(GEPInst.toString() + "= getelementptr " + ((PointerType)ptr.getType()).getPtrType() + " ," + ptr.getType() + " " + ptr);
         for (int i = 1; i < GEPInst.operands.size(); i++) {
-            tmp.append(",i64 ").append(GEPInst.operands.get(i).val);
+            tmp.append(GEPInst.operands.get(i).val.getValueType()== Value.ValueType.ConstantVal?",i32 ":",i64 ").append(GEPInst.operands.get(i).val);
         }
         print(tmp.toString());
         return null;

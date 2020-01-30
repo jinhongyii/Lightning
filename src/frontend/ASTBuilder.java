@@ -173,7 +173,7 @@ public class ASTBuilder extends mxBaseListener {
         Type returntype= (Type) values.get(ctx.typeTypeOrVoid());
         String name=ctx.IDENTIFIER().getText();
         BlockStmt stmt= (BlockStmt) values.get(ctx.block().blockStatement());
-        if (stmt.getStatements().isEmpty()|| !(stmt.getStatements().get(stmt.getStatements().size() - 1) instanceof ReturnStmt)) {
+        if ((stmt.getStatements().isEmpty()|| !(stmt.getStatements().get(stmt.getStatements().size() - 1) instanceof ReturnStmt)) && (returntype.getTypename().equals("void") || name.equals("main"))) {
             stmt.addStatement(new ReturnStmt(name.equals("main")?new LiteralExpr(0):null));
         }
         ArrayList<MethodDecl.parameter> parameters;

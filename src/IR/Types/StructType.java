@@ -13,8 +13,8 @@ public class StructType extends CompositeType{
 
     ArrayList<Type> recordTypes;
 
-    public StructType(ArrayList<Type> recordTypes) {
-        super("",TypeID.StructType);
+    public StructType(String name,ArrayList<Type> recordTypes) {
+        super(name,TypeID.StructType);
         this.recordTypes=recordTypes;
     }
 
@@ -40,6 +40,9 @@ public class StructType extends CompositeType{
 
     @Override
     public String toString() {
+        return "%"+getName();
+    }
+    public String getDetailedText(){
         StringBuilder str= new StringBuilder("{");
         boolean flag=false;
         for (var i : recordTypes) {

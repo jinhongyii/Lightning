@@ -47,7 +47,7 @@ abstract public class SemanticType {
         return this.typekind==((SemanticType)obj).typekind;
     }
     public boolean isPrimitiveType(){
-        return this.actual().isIntType() || this.actual().isBoolType() ;
+        return this.actual().isIntType() || this.actual().isBoolType() ||this.actual().isStringType();
     }
 
 }

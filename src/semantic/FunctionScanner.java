@@ -21,12 +21,12 @@ public class FunctionScanner implements ASTVisitor {
     }
     private void preprocessTypeTable() throws TypeChecker.semanticException {
         for (var entry : typeTable) {
-            if (entry.isRecordType()) {
-                for (int i=0;i<((RecordType) entry).getFieldName().size();i++) {
-                    var fieldName=((RecordType) entry).getFieldName();
-                    var fieldType=((RecordType) entry).getFieldType();
-                    if (((RecordType) entry).getFieldType().get(i).isNameType()) {
-                        var bindType=typeTable.lookup(fieldName.get(i));
+            if (entry.type.isRecordType()) {
+                for (int i=0;i<((RecordType) entry.type).getFieldName().size();i++) {
+                    var fieldName=((RecordType) entry.type).getFieldName();
+                    var fieldType=((RecordType) entry.type).getFieldType();
+                    if (((RecordType) entry.type).getFieldType().get(i).isNameType()) {
+                        var bindType=typeTable.lookup(((NameType)fieldType.get(i)).getName());
                         if (bindType == null) {
                             throw new TypeChecker.semanticException("type not declared");
                         }

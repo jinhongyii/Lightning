@@ -29,4 +29,9 @@ public class SymbolTable extends HashMap<String,Value> {
     public void remove(Value value) {
         super.remove(value.getName());
     }
+
+
+    public void _replace(String key, Value value) {
+        super.put(key,value);
+    }
 }

@@ -3,7 +3,7 @@ package IR;
 public class ConstantBool extends Value{
     boolean val;
 
-    public boolean isVal() {
+    public boolean isTrue() {
         return val;
     }
 

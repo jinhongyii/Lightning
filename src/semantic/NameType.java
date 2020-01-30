@@ -66,4 +66,8 @@ public class NameType extends SemanticType{
     public boolean looseComparable(SemanticType other) {
         return binding!=null && binding.looseComparable(other);
     }
+
+    public String getName() {
+        return name;
+    }
 }

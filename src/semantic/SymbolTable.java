@@ -3,17 +3,14 @@ package semantic;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 import static java.lang.Math.abs;
 
-public class SymbolTable<Type> implements Iterable<Type>{
+public class SymbolTable<Type> implements Iterable<SymbolTable.Entry<Type>>{
     @NotNull
     @Override
-    public Iterator<Type> iterator() {
+    public Iterator<Entry<Type>> iterator() {
         int i=0;
 
         for (i = 0; i < 1024; i++) {
@@ -24,7 +21,7 @@ public class SymbolTable<Type> implements Iterable<Type>{
         return new tableIterator(0,i==1023?null:hashtable[i]);
     }
 
-    public class tableIterator implements Iterator<Type>{
+    public class tableIterator implements Iterator<Entry<Type>>{
         int idx;
         int iterated=0;
         Entry now;
@@ -34,10 +31,10 @@ public class SymbolTable<Type> implements Iterable<Type>{
         }
         @Override
         public boolean hasNext() {
-            return iterated+1<size();
+            return iterated<size();
         }
         @Override
-        public Type next() {
+        public Entry<Type> next() {
             iterated++;
             if (now.next != null) {
                 now = now.next;
@@ -46,15 +43,24 @@ public class SymbolTable<Type> implements Iterable<Type>{
                 for(;idx<1022 && hashtable[idx]==null;idx++);
                 now=hashtable[idx];
             }
-            return (Type) now.type;
+            return now;
         }
     }
 
 
-    private static class Entry<Type>{
+    public static class Entry<Type>{
         String sym;
         Type type;
         Entry next;
+
+        public String getSym() {
+            return sym;
+        }
+
+        public Type getType() {
+            return type;
+        }
+
         Entry(){
             this.sym="";
             this.type=null;
@@ -118,3 +124,35 @@ public class SymbolTable<Type> implements Iterable<Type>{
     }
 
 }
+//public class SymbolTable<Type> extends ArrayList<HashMap<String,Type>>{
+//    public SymbolTable(){
+//        add(new HashMap<>());
+//    }
+//
+//    @Override
+//    public synchronized int size() {
+//        int cnt=0;
+//        for (var level : this) {
+//            cnt+=level.size();
+//        }
+//        return cnt;
+//    }
+//
+//    public void enter(String sym,Type type) throws TypeChecker.semanticException {
+//            if (get(super.size()-1).containsKey(sym)) {
+//                throw new TypeChecker.semanticException("redefinition");
+//            }
+//            get(super.size()-1).put(sym,type);
+//
+//    }
+//    public Type lookup(String sym){
+//        for (int i = super.size() - 1; i >= 0; i--) {
+//            var tmp=get(i).get(sym);
+//            if ( tmp != null) {
+//                return tmp;
+//            }
+//        }
+//        return null;
+//    }
+//    public void beginScope(String)
+//}

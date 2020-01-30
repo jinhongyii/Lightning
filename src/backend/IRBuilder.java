@@ -3,6 +3,7 @@ package backend;
 import IR.*;
 import IR.Module;
 import IR.Type;
+import IR.Types.FunctionType;
 import IR.Types.PointerType;
 import IR.Types.StructType;
 import IR.instructions.*;
@@ -12,6 +13,7 @@ import semantic.*;
 import semantic.SymbolTable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 
@@ -25,7 +27,8 @@ public class IRBuilder implements ASTVisitor {
     private BasicBlock curBB;
     private BasicBlock curLoopBB;
     private BasicBlock curAfterLoopBB;
-    private Function InitializerFunc=new Function(".initializer",topModule,false,Type.theVoidType,new ArrayList<>(),new ArrayList<>());
+    private HashMap<VariableDeclStmt,Value> varResolveMap=new HashMap<>();
+    private Function InitializerFunc=new Function(".initializer",topModule, Type.theVoidType,new ArrayList<>(),new ArrayList<>());
     boolean lhs=false;
 
     public Module getTopModule() {
@@ -38,13 +41,15 @@ public class IRBuilder implements ASTVisitor {
         addInitializer();
         initializeSymTab();
         visit(compilationUnit);
-        InitializerFunc.getLastBB().addInst(new ReturnInst(null));
+        for (var func : topModule.getFunctionList()) {
+            func.updateReturnBB();
+        }
         Function main= (Function) topModule.getSymbolTable().get("main");
         main.getEntryBB().addInstToFirst(new CallInst("initializer_func", InitializerFunc,new ArrayList<>()));
     }
     private void addInitializer(){
         topModule.addFunction(InitializerFunc);
-        InitializerFunc.addBB("entry");
+        InitializerFunc.internalLinkage();
         curFunc=InitializerFunc;
         curBB=InitializerFunc.getEntryBB();
     }
@@ -55,23 +60,24 @@ public class IRBuilder implements ASTVisitor {
         topModule.getSymbolTable().put("void", IR.Type.theVoidType);
         topModule.getSymbolTable().put("string", new PointerType(Type.TheInt8));
         for (var i : typeTable) {
-            if (i.isRecordType()) {
-                Type type= convertTypeInitialize(i);
-                topModule.addStruct(((RecordType)i).getRecordName(),type);
+            if (i.getType().isRecordType()) {
+                convertTypeInitialize(i.getType());
+//                topModule.addStruct(((RecordType)i).getRecordName(),type);
             }
         }
-        topModule.addFunction(convertExternalFunction("print"));
-        topModule.addFunction(convertExternalFunction("println"));
-        topModule.addFunction(convertExternalFunction("printInt"));
-        topModule.addFunction(convertExternalFunction("printlnInt"));
-        topModule.addFunction(convertExternalFunction("getString"));
-        topModule.addFunction(convertExternalFunction("getInt"));
-        topModule.addFunction(convertExternalFunction("toString"));
-        topModule.addFunction(convertExternalFunction("string@length"));
-        topModule.addFunction(convertExternalFunction("string@substring"));
-        topModule.addFunction(convertExternalFunction("string@parseInt"));
-        topModule.addFunction(convertExternalFunction("string@ord"));
-        topModule.addFunction(convertExternalFunction("[]@size"));
+//        topModule.addFunction(convertExternalFunction("print"));
+//        topModule.addFunction(convertExternalFunction("println"));
+//        topModule.addFunction(convertExternalFunction("printInt"));
+//        topModule.addFunction(convertExternalFunction("printlnInt"));
+//        topModule.addFunction(convertExternalFunction("getString"));
+//        topModule.addFunction(convertExternalFunction("getInt"));
+//        topModule.addFunction(convertExternalFunction("toString"));
+//        topModule.addFunction(convertExternalFunction("string@length"));
+//        topModule.addFunction(convertExternalFunction("string@substring"));
+//        topModule.addFunction(convertExternalFunction("string@parseInt"));
+//        topModule.addFunction(convertExternalFunction("string@ord"));
+//        topModule.addFunction(convertExternalFunction("[]@size"));
+        convertExternalFunction();
         topModule.addFunction(createMalloc());
         topModule.addFunction(createExternalStringOpFunc("string_add", new PointerType(Type.TheInt8)));
         topModule.addFunction(createExternalStringOpFunc("string_eq", Type.TheInt1));
@@ -81,7 +87,6 @@ public class IRBuilder implements ASTVisitor {
         topModule.addFunction(createExternalStringOpFunc("string_gt", Type.TheInt1));
         topModule.addFunction(createExternalStringOpFunc("string_ge", Type.TheInt1));
 
-
     }
     private Function createExternalStringOpFunc(String name,Type returnType){
         ArrayList<Type> paramType=new ArrayList<>();
@@ -90,42 +95,49 @@ public class IRBuilder implements ASTVisitor {
         ArrayList<String>paramNames=new ArrayList<>();
         paramNames.add("lhs");
         paramNames.add("rhs");
-        return new Function(name, topModule,true,returnType,paramType,paramNames);
+        return new Function(name, topModule, returnType,paramType,paramNames);
     }
     private Function createMalloc(){
         ArrayList<Type> paramType=new ArrayList<>();
         paramType.add(Type.TheInt64);
         ArrayList<String>paramNames=new ArrayList<>();
         paramNames.add("size");
-        return new Function("malloc", topModule, true, new PointerType(Type.TheInt8), paramType,paramNames);
+        return new Function("malloc", topModule, new PointerType(Type.TheInt8), paramType,paramNames);
     }
-    private Function convertExternalFunction(String name){
-        FuncEntry funcEntry= (FuncEntry) valTable.lookup(name);
-        ArrayList<Type> paramTypes=new ArrayList<>();
-        ArrayList<String> paramNames=new ArrayList<>();
-        int cnt=0;
-        for (var semanticType : funcEntry.getParams()) {
-            paramTypes.add(convertTypeLookUp(semanticType));
-            paramNames.add("arg"+cnt);
-            cnt++;
-        }
-        if (name.contains("@")) {
-            var className=name.split("@")[0];
-            var methodName=name.split("@")[1];
-            if (className.equals("[]")) {
-                paramTypes.add(new PointerType(Type.TheInt8));
-                className="_array";
-            }else {
-                if (className.equals("string")) {
-                    paramTypes.add(new PointerType(Type.TheInt8));
-                }else {
-                    paramTypes.add(new PointerType(convertTypeLookUp(typeTable.lookup(className))));
+    private void convertExternalFunction(){
+        for(var entry :valTable){
+            if (entry.getType() instanceof  FuncEntry) {
+                FuncEntry funcEntry = (FuncEntry) entry.getType();
+                ArrayList<Type> paramTypes = new ArrayList<>();
+                ArrayList<String> paramNames = new ArrayList<>();
+                int cnt = 0;
+                for (var semanticType : funcEntry.getParams()) {
+                    paramTypes.add(convertTypeLookUp(semanticType));
+                    paramNames.add("arg" + cnt);
+                    cnt++;
                 }
+                String name=entry.getSym();
+                if (name.contains("@")) {
+                    var className = name.split("@")[0];
+                    var methodName = name.split("@")[1];
+                    if (className.equals("[]")) {
+                        paramTypes.add(new PointerType(Type.TheInt8));
+                        className = "_array";
+                    } else {
+                        if (className.equals("string")) {
+                            paramTypes.add(new PointerType(Type.TheInt8));
+                        } else {
+                            paramTypes.add(convertTypeLookUp(typeTable.lookup(className)));
+                        }
+                    }
+                    name = className + "_" + methodName;
+                    paramNames.add("thisptr");
+                }
+                topModule.addFunction( new Function(name,topModule, convertTypeLookUp(funcEntry.getReturnType()), paramTypes,paramNames));
             }
-            name=className+"_"+methodName;
-            paramNames.add("thisptr");
+
         }
-        return new Function(name,topModule,true,convertTypeLookUp(funcEntry.getReturnType()), paramTypes,paramNames);
+
     }
 
     //string can not  malloc
@@ -144,21 +156,24 @@ public class IRBuilder implements ASTVisitor {
             return 0;
         }
     }
-    private int getArrayMallocSize(SemanticType type,int size){
-        ArrayType arrayType=(ArrayType)type;
-        return (arrayType.getRealElementType().actual().isBoolType()?1:8)*size+8;
-    }
     private Type convertTypeInitialize(SemanticType type) {
         if (type.actual().isIntType()) {
             return Type.TheInt64;
         }else if(type.actual().isVoidType()){
             return Type.theVoidType;
         } else if (type.actual().isRecordType()) {
-            ArrayList<Type> tmp=new ArrayList<>();
-            for (var i : ((RecordType) type.actual()).getFieldType()) {
-                tmp.add(convertTypeInitialize(i));
+            String typename=((RecordType)type.actual()).getRecordName();
+            var lookup=topModule.getSymbolTable().get(typename);
+            if ( lookup!= null) {
+                return new PointerType((Type) lookup);
             }
-            return new StructType(tmp);
+            ArrayList<Type> tmp=new ArrayList<>();
+            var newStruct=new StructType(typename, tmp);
+            topModule.addStruct(typename,newStruct );
+            for (var i : ((RecordType) type.actual()).getFieldType()) {
+                tmp.add(convertTypeInitialize(i.actual()));
+            }
+            return  new PointerType(newStruct);
         } else if (type.actual().isStringType()) {
             return new PointerType(Type.TheInt8);
         } else if (type.actual().isArrayType()) {
@@ -170,6 +185,7 @@ public class IRBuilder implements ASTVisitor {
         }
         return null;
     }
+
     private Type convertTypeLookUp(SemanticType type){
         if (type.actual().isIntType()) {
             return Type.TheInt64;
@@ -180,7 +196,7 @@ public class IRBuilder implements ASTVisitor {
         } else if (type.actual().isNullType()) {
             return new PointerType(Type.theVoidType);
         } else if(type.actual().isRecordType()){
-            return (Type) topModule.getSymbolTable().get(((RecordType)type).getRecordName());
+            return new PointerType((Type) topModule.getSymbolTable().get(((RecordType)type).getRecordName()));
         } else if (type.actual().isArrayType()) {
             var eleType=convertTypeLookUp(((ArrayType) type.actual()).getElementType());
             for (int i = 0; i < ((ArrayType) type.actual()).getDims();i++) {
@@ -488,9 +504,9 @@ public class IRBuilder implements ASTVisitor {
             instanceV = (Value) visit(node.getInstance_name());
             lhs = true;
         } else {
-            lhs = false;
+//            lhs = true;
             instanceV = (Value) visit(node.getInstance_name());
-            lhs = true;
+//            lhs = false;
         }
         int i;
         for (i = 0; i < ((RecordType) node.getInstanceType()).getFieldName().size(); i++) {
@@ -559,30 +575,13 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public Object visitMethodDecl(MethodDecl node) throws TypeChecker.semanticException {
-        ArrayList<Type> paramTypes=new ArrayList<>();
-        ArrayList<String> paramNames=new ArrayList<>();
-        int cnt=0;
-        for (var i : node.getSemanticParamTypes()) {
-            paramTypes.add(convertTypeLookUp(i));
-            paramNames.add(node.getParameters().get(cnt).getName());
-            cnt++;
-        }
-        var ReturnType=convertTypeLookUp(node.getSemanticReturnType());
-        String funcName;
-        Function newfunc;
-        if (curClass != null) {
-            paramTypes.add(new PointerType(convertTypeLookUp(curClass.getSemanticType())));
-            funcName=curClass.getName() + "_" + node.getName();
-            paramNames.add("this_ptr");
-        } else {
-            funcName=node.getName();
-        }
-        newfunc=new Function(funcName, topModule, false,ReturnType , paramTypes,paramNames);
+        Function newfunc= (Function) topModule.getSymbolTable().get(node.getName());
+        newfunc.internalLinkage();
         curFunc=newfunc;
-        topModule.addFunction(newfunc);
-        curBB=newfunc.addBB("entry");
+//        topModule.addFunction(newfunc);
+        curBB=newfunc.getEntryBB();
         for (int i = 0; i < node.getParameters().size(); i++) {
-            var arg=new AllocaInst(node.getParameters().get(i).getName(), paramTypes.get(i));
+            var arg=new AllocaInst(node.getParameters().get(i).getName(),((FunctionType)newfunc.getType()).getParamTypes().get(i));
             curBB.addInstToFirst(arg);
             curBB.addInst(new StoreInst(curFunc.getArguments().get(i), arg));
             curFunc.getSymtab().put(node.getParameters().get(i).getName(),arg);
@@ -591,24 +590,24 @@ public class IRBuilder implements ASTVisitor {
 
     }
 
-    private Value getIRRepresentation(String name) {
-        var local=curFunc.getSymtab().get(name);
-        if (local != null) {
-            return local;
+    private Value getIRRepresentation(NameExpr node) {
+        var tmp=varResolveMap.get(node.getDeclStmt());
+        if ( tmp!= null) {
+            return tmp;
         }
-        return topModule.getSymbolTable().get(name);//todo:maybe wrong
+        return curFunc.getSymtab().get(node.getName());
     }
     private Value ptr;
     @Override
     public Object visitNameExpr(NameExpr node) throws TypeChecker.semanticException {
-        if (curClass == null || getIRRepresentation(node.getName()) != null) {
+        if (curClass == null || getIRRepresentation(node) != null) {
             if (!lhs) {
-                ptr=getIRRepresentation(node.getName());
+                ptr=getIRRepresentation(node);
                 var newInst = new LoadInst("load", ptr);
                 curBB.addInst(newInst);
                 return newInst;
             } else {
-                return getIRRepresentation(node.getName());
+                return getIRRepresentation(node);
             }
         } else {
             var thisV=curFunc.getThisPtr();
@@ -677,7 +676,7 @@ public class IRBuilder implements ASTVisitor {
         curBB.addInst(arrayEnd);
         var looptmp=new AllocaInst("looptmp", typePtrToArray);
         curFunc.getEntryBB().addInstToFirst(looptmp);
-        curBB.addInst(new StoreInst(arrayEnd,looptmp));
+        curBB.addInst(new StoreInst(arrayBase,looptmp));
         curBB.addInst(new BranchInst(condBB,null,null));
 
         curBB=condBB;
@@ -696,7 +695,7 @@ public class IRBuilder implements ASTVisitor {
         curFunc.addBB(stepBB);
         curBB=stepBB;
         var gepindex3=new ArrayList<Value>();
-        gepindex3.add(new ConstantInt(size));
+        gepindex3.add(new ConstantInt(1));
         var nextLoop=new GetElementPtrInst("nextLoop", loadtmp,gepindex3 );
         curBB.addInst(nextLoop);
         curBB.addInst(new StoreInst(nextLoop,looptmp));
@@ -733,7 +732,7 @@ public class IRBuilder implements ASTVisitor {
                 var ctorCall = new CallInst(node.getTypename() + ".ctor", ctor, params2);
                 curBB.addInst(ctorCall);
             }
-            var cast=new CastInst("cast", new PointerType(convertTypeLookUp(node.getSemanticType())), newInstance);
+            var cast=new CastInst("cast", convertTypeLookUp(node.getSemanticType()), newInstance);
             curBB.addInst(cast);
             return cast;
         }
@@ -766,22 +765,46 @@ public class IRBuilder implements ASTVisitor {
             curBB.addInst(tmpInst);
             curBB.addInst(storeInst);
             return tmpInst;
-        } else {
+        } else if(node.getOperator().equals("--")){
             Instruction tmpInst = new BinaryOpInst("postfix_sub", Instruction.Opcode.sub, originalV_rhs, new ConstantInt(1));
             Instruction storeInst = new StoreInst(tmpInst, ptr);
             curBB.addInst(tmpInst);
             curBB.addInst(storeInst);
             return tmpInst;
+        } else if (node.getOperator().equals("+")) {
+            return originalV_rhs;
+        }else if(node.getOperator().equals("-")){
+            if (originalV_rhs.getValueType() == Value.ValueType.ConstantVal) {
+                return new ConstantInt(-((ConstantInt) originalV_rhs).getVal());
+            } else {
+                var minusInst=new BinaryOpInst("minus", Instruction.Opcode.sub,new ConstantInt(0),originalV_rhs);
+                curBB.addInst(minusInst);
+                return minusInst;
+            }
+        } else if (node.getOperator().equals("!")) {
+            if (originalV_rhs.getValueType() == Value.ValueType.ConstantVal) {
+                return new ConstantBool(!((ConstantBool) originalV_rhs).isTrue());
+            } else {
+                var xorInst=new BinaryOpInst("not", Instruction.Opcode.xor,new ConstantBool(true),originalV_rhs );
+                curBB.addInst(xorInst);
+                return xorInst;
+            }
+        } else if (node.getOperator().equals("~")) {
+            var xorInst=new BinaryOpInst("not", Instruction.Opcode.xor,new ConstantInt(-1),originalV_rhs);
+            curBB.addInst(xorInst);
+            return xorInst;
         }
+        return null;
     }
 
     @Override
     public Object visitReturnStmt(ReturnStmt node) throws TypeChecker.semanticException {
-        Value returnV = null;
+        Value returnV;
         if (node.getVal() != null) {
              returnV= (Value) visit(node.getVal());
+             curBB.addInst(new StoreInst(returnV,curFunc.getReturnV()));
         }
-        curBB.addInst(new ReturnInst(returnV));
+        curBB.addInst(new BranchInst(curFunc.getReturnBB(), null,null));
         return null;
     }
 
@@ -827,6 +850,7 @@ public class IRBuilder implements ASTVisitor {
         Type type= convertTypeLookUp(node.getSemanticType());
         if (isglobal) {
             var globalV=new GlobalVariable(node.getName(),type,topModule);
+            varResolveMap.put(node,globalV);
             topModule.addGlobalVariable(globalV);
             if (node.getInit() != null) {
                  Value initV= (Value) visit(node.getInit());
@@ -838,10 +862,8 @@ public class IRBuilder implements ASTVisitor {
             }
             return null;
         } else {
-            if (node.getSemanticType().actual().isRecordType()) {
-                type=new PointerType(type);
-            }
             var newInst=new AllocaInst(node.getName(), type);
+            varResolveMap.put(node,newInst);
             curFunc.getEntryBB().addInstToFirst(newInst);
 
             if (node.getInit() != null) {
