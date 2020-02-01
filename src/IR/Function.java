@@ -10,7 +10,19 @@ import java.util.ArrayList;
 
 public class Function extends User{
     boolean externalLinkage;
-    ArrayList<BasicBlock> basicBlockList=new ArrayList<>();
+    BasicBlock head;
+
+    public BasicBlock getHead() {
+        return head;
+    }
+
+    public BasicBlock getTail() {
+        return tail;
+    }
+
+    BasicBlock tail;
+
+//    ArrayList<BasicBlock> basicBlockList=new ArrayList<>();
     BasicBlock returnBB=new BasicBlock("return");
 
     public BasicBlock getReturnBB() {
@@ -60,26 +72,41 @@ public class Function extends User{
     }
     public void updateReturnBB(){
         if(!externalLinkage) {
-            basicBlockList.get(basicBlockList.size() - 1).addInst(new BranchInst(returnBB, null, null));
+            tail.addInst(new BranchInst(returnBB, null, null));
             addBB(returnBB);
         }
 
     }
     public BasicBlock addBB(String name){
         BasicBlock newBB=new BasicBlock(name);
-        basicBlockList.add(newBB);
+        if (tail == null) {
+            head=tail=newBB;
+        }else {
+            tail.setNextBB(newBB);
+            tail=newBB;
+//            basicBlockList.add(newBB);
+        }
         newBB.setParent(this);
         symtab.put(name, newBB);
         return newBB;
     }
 
     public void addBB(BasicBlock basicBlock) {
-        basicBlockList.add(basicBlock);
+        if(tail==null){
+            head=tail=basicBlock;
+        }else {
+//            basicBlockList.add(basicBlock);
+            tail.setNextBB(basicBlock);
+            tail=basicBlock;
+        }
         basicBlock.setParent(this);
         symtab.put(basicBlock.getName(),basicBlock);
-        for (var inst : basicBlock.instructionList) {
-            symtab.put(inst.getName(),inst);
+        for (var i = basicBlock.head; i !=null;i = i.next) {
+            symtab.put(i.getName(),i);
         }
+//        for (var inst : basicBlock.instructionList) {
+//            symtab.put(inst.getName(),inst);
+//        }
     }
 
 
@@ -91,9 +118,9 @@ public class Function extends User{
         return symtab;
     }
     public BasicBlock getEntryBB(){
-        return basicBlockList.get(0);
+        return head;
     }
-    public BasicBlock getLastBB(){return basicBlockList.get(basicBlockList.size()-1);}
+    public BasicBlock getLastBB(){return tail;}
     @Override
     public Object accept(IRVisitor visitor) {
         return visitor.visitFunction(this);
@@ -104,8 +131,6 @@ public class Function extends User{
         return "@"+getName();
     }
 
-    public ArrayList<BasicBlock> getBasicBlockList() {
-        return basicBlockList;
-    }
+
 
 }

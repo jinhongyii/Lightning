@@ -72,8 +72,11 @@ public class IRPrinter implements IRVisitor {
             signature.append(" {");
             print(signature.toString());
             indent();
-            for (var bb : function.getBasicBlockList()) {
-                visitBasicBlock(bb);
+//            for (var bb : function.getBasicBlockList()) {
+//                visitBasicBlock(bb);
+//            }
+            for (var bb = function.getEntryBB(); bb != null; bb = bb.next) {
+                visit(bb);
             }
             dedent();
             print("}");
@@ -87,8 +90,11 @@ public class IRPrinter implements IRVisitor {
     public Object visitBasicBlock(BasicBlock basicBlock) {
         print(basicBlock.getName()+":");
         indent();
-        for (var inst : basicBlock.instructionList) {
-            visit(inst);
+//        for (var inst : basicBlock.instructionList) {
+//            visit(inst);
+//        }
+        for (var i = basicBlock.head; i != null; i = i.next) {
+            visit(i);
         }
         dedent();
         return null;

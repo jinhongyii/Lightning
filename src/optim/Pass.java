@@ -1,4 +1,4 @@
 package optim;
 
-public class Pass {
+public interface Pass {
 }
