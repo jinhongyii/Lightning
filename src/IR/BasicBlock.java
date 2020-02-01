@@ -12,9 +12,11 @@ public class BasicBlock extends  Value {
 
     }
     public void addInst(Instruction inst){
-        instructionList.add(inst);
-        if(parent!=null) {
-            parent.symtab.put(inst.getName(), inst);
+        if(!(inst.isTerminator() && instructionList.getLast().isTerminator())){
+            instructionList.add(inst);
+            if(parent!=null) {
+                parent.symtab.put(inst.getName(), inst);
+            }
         }
     }
     public void addInstToFirst(Instruction inst){

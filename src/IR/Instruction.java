@@ -27,4 +27,8 @@ public class Instruction extends User {
     public Object accept(IRVisitor visitor) {
         return null;
     }
+
+    public boolean isTerminator(){
+        return opcode==Opcode.ret || opcode==Opcode.br;
+    }
 }
