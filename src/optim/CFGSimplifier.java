@@ -20,16 +20,28 @@ public class CFGSimplifier extends FunctionPass {
     }
     @Override
     void run() {
-        for (var bb = function.getHead(); bb != null;) {
-            var tmp=bb.getNext();
-            simplify(bb);
-            bb=tmp;
+        boolean changed=true;
+        while(changed) {
+            changed=false;
+            for (var bb = function.getHead(); bb != null; ) {
+                var tmp = bb.getNext();
+                changed|=simplify(bb);
+                bb = tmp;
+            }
         }
     }
-    private void simplify(BasicBlock basicBlock){
+    private boolean simplify(BasicBlock basicBlock){
+        boolean change=false;
+        change |= constantCondition(basicBlock);
         if (basicBlock.getPredecessors().isEmpty() && !basicBlock.getName().equals("entry")) {
             basicBlock.delete();
+            return true;
         }
+        return change;
+        //todo:merge bbs
+    }
+
+    private boolean constantCondition(BasicBlock basicBlock) {
         var terminator=basicBlock.getTerminator();
         if (terminator instanceof BranchInst) {
             if (((BranchInst) terminator).isConditional()) {
@@ -44,9 +56,10 @@ public class CFGSimplifier extends FunctionPass {
                 }
                 if (newdst != null) {
                     ((BranchInst) terminator).setUnconditional(newdst);
+                    return true;
                 }
             }
         }
-        //todo:merge bbs
+        return false;
     }
 }

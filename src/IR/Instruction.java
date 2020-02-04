@@ -45,6 +45,8 @@ public class Instruction extends User {
         this.next=instruction;
         instruction.prev=this;
     }
+
+    //must transfer use before delete
     public void delete(){
         if(this.parent!=null) {
             if (this.prev != null) {

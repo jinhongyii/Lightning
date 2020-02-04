@@ -67,7 +67,7 @@ public class Mem2reg extends FunctionPass {
             }
             vis.clear();
             renameVars(function.getEntryBB(), null,null,alloca);
-
+            //don't transfer use because load and stores have been deleted
             alloca.delete();
         }
 
@@ -89,13 +89,7 @@ public class Mem2reg extends FunctionPass {
                 for(int i=0;i<ops.size();i+=2){
                     //check whether this constant null fits type
                     if(ops.get(i).getVal() ==null){
-                        if (phi.getValue().getType().equals(Type.TheInt1)) {
-                            ops.get(i).setValue(new ConstantBool(false));
-                        } else if (phi.getValue().getType().equals(Type.TheInt64)) {
-                            ops.get(i).setValue(new ConstantInt(0));
-                        } else {
-                            ops.get(i).setValue(new ConstantNull());
-                        }
+                        ops.get(i).setValue(Type.getNull(phi.getValue().getType()));
                     }else {
                         notnullcnt++;
                         theOnlyNotNull = i;
@@ -142,6 +136,7 @@ public class Mem2reg extends FunctionPass {
                 inst.delete();
             } else if (inst instanceof StoreInst && ((StoreInst) inst).getPtr() == alloca) {
                 value=((StoreInst) inst).getStoreVal();
+                //no transfer use because there's no use
                 inst.delete();
             }
         }

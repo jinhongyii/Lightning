@@ -1,6 +1,7 @@
 package IR;
 
 import IR.instructions.BranchInst;
+import IR.instructions.PhiNode;
 import IR.instructions.ReturnInst;
 import edu.princeton.cs.algs4.In;
 
@@ -122,9 +123,44 @@ public class BasicBlock extends  Value {
         } else {
             parent.tail=this.prev;
         }
+        for (var suc : getSuccessors()) {
+            suc.notifyMissingPredecessor(this);
+        }
         for (var use = use_head; use != null; use = use.next) {
             use.delete();
         }
+        for (var inst = head; inst != null; inst = inst.next) {
+            inst.transferUses(Type.getNull(inst.getType()));
+            inst.delete();
+        }
 
+    }
+    public void notifyMissingPredecessor(BasicBlock pred){
+        var preds=getPredecessors();
+        int predNum=preds.size();
+        if (predNum == 2) {
+            BasicBlock bbKept=null;
+            if (preds.get(0) == pred) {
+                bbKept=preds.get(1);
+            }else if(preds.get(1)==pred){
+                bbKept=preds.get(0);
+            }
+            if (bbKept == this) {
+                predNum++;
+            }
+        }
+        if (predNum <= 2) {
+            while (head instanceof PhiNode) {
+                ((PhiNode) head).removeIncoming(pred);
+                if (predNum == 2) {
+                    head.transferUses(((PhiNode) head).getValue(0));
+                    head.delete();
+                }
+            }
+        } else {
+            for (var phi = head; phi instanceof PhiNode; phi = phi.next) {
+                ((PhiNode) phi).removeIncoming(pred);
+            }
+        }
     }
 }

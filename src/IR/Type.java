@@ -36,4 +36,13 @@ public class Type extends Value {
     public String toString() {
         return super.toString();
     }
+    public static Value getNull(Type type){
+        if (type.equals(TheInt1)) {
+            return new ConstantBool(false);
+        } else if (type.equals(TheInt64)) {
+            return new ConstantInt(0);
+        } else {
+            return new ConstantNull();
+        }
+    }
 }
