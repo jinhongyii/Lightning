@@ -6,6 +6,10 @@ public class User extends  Value{
     protected ArrayList<Use> operands=new ArrayList<>();
 
 
+    public ArrayList<Use> getOperands() {
+        return operands;
+    }
+
     public User(String name, Type type, ValueType valueType) {
         super(name, type, valueType);
     }

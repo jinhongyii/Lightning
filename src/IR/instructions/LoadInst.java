@@ -13,4 +13,7 @@ public class LoadInst extends Instruction {
     public Object accept(IRVisitor visitor) {
         return visitor.visitLoadInst(this);
     }
+    public Value getLoadTarget(){
+        return operands.get(0).getVal();
+    }
 }

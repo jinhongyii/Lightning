@@ -45,4 +45,24 @@ public class Instruction extends User {
         this.next=instruction;
         instruction.prev=this;
     }
+    public void delete(){
+        if(this.parent!=null) {
+            if (this.prev != null) {
+                this.prev.next = this.next;
+            } else {
+                parent.head = this.next;
+            }
+            if (this.next != null) {
+                this.next.prev = this.prev;
+            } else {
+                parent.tail = this.prev;
+            }
+        }
+        for (var use = use_head; use != null; use = use.next) {
+            use.delete();
+        }
+        for (var use : operands) {
+            use.delete();
+        }
+    }
 }

@@ -11,41 +11,13 @@ import java.util.ArrayList;
 public class Function extends User{
     boolean externalLinkage;
     BasicBlock head;
-
-    public BasicBlock getHead() {
-        return head;
-    }
-
-    public BasicBlock getTail() {
-        return tail;
-    }
-
     BasicBlock tail;
-
 //    ArrayList<BasicBlock> basicBlockList=new ArrayList<>();
     BasicBlock returnBB=new BasicBlock("return");
-
-    public BasicBlock getReturnBB() {
-        return returnBB;
-    }
-
-    public Instruction getReturnV() {
-        return returnV;
-    }
-
     Instruction returnV;
-    public ArrayList<Argument> getArguments() {
-        return arguments;
-    }
-
     ArrayList<Argument> arguments=new ArrayList<>();
     SymbolTable symtab=new SymbolTable();
     Module parent;
-
-    public void setExternalLinkage(boolean externalLinkage) {
-        this.externalLinkage = externalLinkage;
-    }
-
 
     public Function(String name, Module parent, Type returnType, ArrayList<Type> paramTypes, ArrayList<String> paramNames) {
         super(name, new FunctionType(returnType,paramTypes), ValueType.FunctionVal);
@@ -57,6 +29,35 @@ public class Function extends User{
         this.parent=parent;
         this.externalLinkage=true;
     }
+
+    public BasicBlock getHead() {
+        return head;
+    }
+
+    public BasicBlock getTail() {
+        return tail;
+    }
+
+    public boolean isExternalLinkage() {
+        return externalLinkage;
+    }
+
+    public BasicBlock getReturnBB() {
+        return returnBB;
+    }
+
+    public Instruction getReturnV() {
+        return returnV;
+    }
+
+    public ArrayList<Argument> getArguments() {
+        return arguments;
+    }
+
+    public void setExternalLinkage(boolean externalLinkage) {
+        this.externalLinkage = externalLinkage;
+    }
+
     public void internalLinkage(){
         this.externalLinkage=false;
         addBB("entry");

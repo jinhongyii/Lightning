@@ -25,6 +25,8 @@ public class BasicBlock extends  Value {
 //            instructionList.add(inst);
             tail.setNextInstruction(inst);
             tail = inst;
+        }else {
+            inst.delete();;
         }
         if(parent!=null) {
             parent.symtab.put(inst.getName(), inst);
@@ -86,8 +88,10 @@ public class BasicBlock extends  Value {
 
     public ArrayList<BasicBlock> getPredecessors(){
         ArrayList<BasicBlock> bbs=new ArrayList<>();
-        for (var use : uses) {
-            bbs.add(((Instruction)use.user).parent);
+        for (var use =use_head;use!=null;use=use.next) {
+            if(((Instruction)use.user).isTerminator()) {
+                bbs.add(((Instruction) use.user).parent);
+            }
         }
         return bbs;
     }
@@ -106,5 +110,21 @@ public class BasicBlock extends  Value {
             }
             return bbs;
         }
+    }
+    public void delete(){
+        if (this.prev != null) {
+            this.prev.next = this.next;
+        } else {
+            parent.head=this.next;
+        }
+        if (this.next != null) {
+            this.next.prev = this.prev;
+        } else {
+            parent.tail=this.prev;
+        }
+        for (var use = use_head; use != null; use = use.next) {
+            use.delete();
+        }
+
     }
 }

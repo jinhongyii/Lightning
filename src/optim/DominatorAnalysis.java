@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-public class DominatorAnalysis implements FunctionPass {
+public class DominatorAnalysis extends FunctionPass {
     public Node treeRoot;
-    public HashMap<BasicBlock,Node> DominantTree;
-    public HashMap<BasicBlock,HashSet<BasicBlock>> DominatorFrontier;
+    public HashMap<BasicBlock,Node> DominantTree=new HashMap<>();
+    public HashMap<BasicBlock,HashSet<BasicBlock>> DominatorFrontier=new HashMap<>();
     private BasicBlock[] vertex;
     private BasicBlock[] semi;
     private BasicBlock[] ancestor;
@@ -19,24 +19,24 @@ public class DominatorAnalysis implements FunctionPass {
     private BasicBlock[] samedom;
     private BasicBlock[] best;
     private HashSet<BasicBlock>[] bucket;
-    private int cnt=1;
+    private int cnt=0;
     private void dfs(BasicBlock p, BasicBlock n){
         if (n.dfsnum == 0) {
+            cnt++;
             n.dfsnum=cnt;
             vertex[cnt]=n;
             parent[n.dfsnum]=p;
-            cnt++;
             for (var suc : n.getSuccessors()) {
                 dfs(n,suc);
             }
         }
     }
 
-    public void link(BasicBlock p,BasicBlock n){
+    private void link(BasicBlock p, BasicBlock n){
         ancestor[n.dfsnum]=p;
         best[n.dfsnum]=n;
     }
-    public BasicBlock ancestorWithLowestSemi(BasicBlock v){
+    private BasicBlock ancestorWithLowestSemi(BasicBlock v){
         var a=ancestor[v.dfsnum];
         if (ancestor[a.dfsnum] != null) {
             var b=ancestorWithLowestSemi(a);
@@ -47,21 +47,23 @@ public class DominatorAnalysis implements FunctionPass {
         }
         return best[v.dfsnum];
     }
-    public void getIdoms(BasicBlock root){
+    private void getIdoms(BasicBlock root){
         dfs(null,root);
         for (int i = cnt; i >= 2; i--) {
             var n=vertex[i];
             var par=parent[n.dfsnum];
             var min=par;//parent on the tree is certainly a candidate
-            for (var pred : n.getPredecessors()) {
-                BasicBlock candidate;
-                if (pred.dfsnum <= n.dfsnum) {
-                    candidate = pred;
-                } else {
-                    candidate=semi[ancestorWithLowestSemi(pred).dfsnum];
-                }
-                if (candidate.dfsnum < min.dfsnum) {
-                    min=candidate;
+            for (var pred : n.getPredecessors() ) {
+                if(pred.dfsnum!=0) {
+                    BasicBlock candidate;
+                    if (pred.dfsnum <= n.dfsnum) {
+                        candidate = pred;
+                    } else {
+                        candidate = semi[ancestorWithLowestSemi(pred).dfsnum];
+                    }
+                    if (candidate.dfsnum < min.dfsnum) {
+                        min = candidate;
+                    }
                 }
             }
             semi[n.dfsnum]=min;
@@ -101,12 +103,12 @@ public class DominatorAnalysis implements FunctionPass {
             while (other.idom != null && other.idom!=this) {
                 other=other.idom;
             }
-            return other.idom==null;
+            return other.idom!=null;
         }
     }
-    private Node buildDominantTree(int bbnum){
+    private Node buildDominantTree(){
 
-        for (int i = 1; i <= bbnum; i++) {
+        for (int i = 1; i <= cnt; i++) {
             //use dfs order
             if (i == 1) {
                 DominantTree.put(vertex[i],new Node(vertex[i], null) );
@@ -140,7 +142,7 @@ public class DominatorAnalysis implements FunctionPass {
     private void BuildDominantFrontier(){
         buildDominantFrontierHelper(treeRoot);
     }
-    public void runOnFunction(Function function){
+    public void run(){
         int bbnum=0;
         for (var i = function.getHead(); i != null; i=i.getNext()) {
             bbnum++;
@@ -157,8 +159,10 @@ public class DominatorAnalysis implements FunctionPass {
             bucket[i]=new HashSet<>();
         }
         getIdoms(function.getEntryBB());
-        treeRoot=buildDominantTree(bbnum);
+        treeRoot=buildDominantTree();
         BuildDominantFrontier();
     }
-
+    public DominatorAnalysis(Function function){
+        super(function);
+    }
 }

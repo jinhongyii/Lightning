@@ -12,8 +12,8 @@ import java.io.IOException;
 
 public class IRPrinter implements IRVisitor {
     private String prefix="";
-    FileWriter writer=new FileWriter("tmp/main.ll");
-    BufferedWriter bufferedWriter=new BufferedWriter(writer,8096);
+    private FileWriter writer;
+    BufferedWriter bufferedWriter;
     private void indent(){prefix+="\t";}
     private void dedent(){prefix=prefix.substring(0,prefix.length()-1);}
     private void print(String str){
@@ -25,7 +25,9 @@ public class IRPrinter implements IRVisitor {
         }
 
     }
-    public IRPrinter(Module module) throws IOException {
+    public IRPrinter(Module module,String filename) throws IOException {
+        writer=new FileWriter("tmp/"+filename);
+        bufferedWriter=new BufferedWriter(writer,8096);
         visitModule(module);
         bufferedWriter.flush();
     }

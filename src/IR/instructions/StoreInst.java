@@ -14,4 +14,10 @@ public class StoreInst extends Instruction {
     public Object accept(IRVisitor visitor) {
         return visitor.visitStoreInst(this);
     }
+    public Value getStoreVal(){
+        return operands.get(0).getVal();
+    }
+    public Value getPtr(){
+        return operands.get(1).getVal();
+    }
 }
