@@ -9,6 +9,7 @@ public class ConstantBool extends Value{
 
     public ConstantBool(boolean val) {
         super("", Type.TheInt1, ValueType.ConstantVal);
+        this.val=val;
     }
 
     @Override
