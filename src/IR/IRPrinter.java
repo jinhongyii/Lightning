@@ -90,7 +90,16 @@ public class IRPrinter implements IRVisitor {
 
     @Override
     public Object visitBasicBlock(BasicBlock basicBlock) {
-        print(basicBlock.getName()+":");
+        StringBuilder builder=new StringBuilder();
+        builder.append(basicBlock.getName()).append(":\t\t\t\t\t\t\t");
+        if(basicBlock.getPredecessors().size()!=0){
+            builder.append("; preds = ");
+            for (var pred : basicBlock.getPredecessors()) {
+                builder.append(pred.toString()).append(",");
+            }
+            builder.delete(builder.length() - 1, builder.length());
+        }
+        print(builder.toString());
         indent();
 //        for (var inst : basicBlock.instructionList) {
 //            visit(inst);
