@@ -1,36 +1,18 @@
 # Compiler2020
+##### progress:
 
-### ir codegen test
+-parser											finish
 
-(unknown means no output)
+-ast										  		finish
 
-1 pass
+-semantic							   		maybe some bugs
 
-2 pass
+-ir											 		finish
 
-3 pass
+-optim:
 
-4 pass
+​	-1.mem2reg pass 			 		finish
 
-5 unknown
+​	-2.dead code elimination		 todo
 
-6 unknown 
-
-7 pass
-
-8 pass
-
-9 pass
-
-10 pass
-
-11 unknown
-
-12 pass
-
-13 pass
-
-14 pass
-
-15 pass
-
+​	-3.other optimizations			  todo
