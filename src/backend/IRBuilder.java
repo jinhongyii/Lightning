@@ -337,7 +337,7 @@ public class IRBuilder implements ASTVisitor {
         Value rhsV= (Value) visit(node.getRoperand());
         Instruction.Opcode opcode;
         Instruction opInst;
-        if (lhsV.getType().getId() == Type.TypeID.PointerType) {
+        if (lhsV.getType().equals(new PointerType(Type.TheInt8))) {
             Function function;
             String funcName="";
             switch (node.getOperator()) {

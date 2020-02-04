@@ -213,7 +213,7 @@ public class IRPrinter implements IRVisitor {
         }
         var operand1=icmpInst.operands.get(0).val;
         var operand2=icmpInst.operands.get(1).val;
-        print(icmpInst.toString()+" = icmp "+op+" "+(operand1.getType().isNull()?operand2.getType():operand1.getType())+" "+operand1+","+operand2);
+        print(icmpInst.toString()+" = icmp "+op+" "+(operand1.getType().isNull()?operand2.getType().isNull()?"i64*":operand2.getType():operand1.getType())+" "+operand1+","+operand2);
         return null;
     }
 
