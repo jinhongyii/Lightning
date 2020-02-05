@@ -7,7 +7,7 @@ import IR.Module;
 import IR.instructions.BranchInst;
 
 public class CFGSimplifier extends FunctionPass {
-    CFGSimplifier(Function function) {
+    public  CFGSimplifier(Function function) {
         super(function);
     }
     static public void runOnModule(Module module){
@@ -19,7 +19,7 @@ public class CFGSimplifier extends FunctionPass {
         }
     }
     @Override
-    void run() {
+    public void run() {
         boolean changed=true;
         while(changed) {
             changed=false;

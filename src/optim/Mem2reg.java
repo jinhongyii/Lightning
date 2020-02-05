@@ -15,14 +15,15 @@ import java.util.HashSet;
 import java.util.LinkedList;
 
 public class Mem2reg extends FunctionPass {
-    private DominatorAnalysis dominatorAnalyzer=new DominatorAnalysis(function);
+    private DominatorAnalysis dominatorAnalyzer;
     private HashMap<BasicBlock,HashMap<AllocaInst, PhiNode>> newPhiInsts=new HashMap<>();
-    public Mem2reg(Function function){
+    public Mem2reg(Function function, DominatorAnalysis dominatorAnalysis){
         super(function);
+        this.dominatorAnalyzer=dominatorAnalysis;
     }
     @Override
     public void run() {
-        dominatorAnalyzer.run();
+//        dominatorAnalyzer.run();
         ArrayList<AllocaInst> allocaInsts=new ArrayList<>();
         BasicBlock entryBlock=function.getEntryBB();
         for (var inst =entryBlock.getHead();inst!=null;inst=inst.getNext()) {
@@ -144,10 +145,10 @@ public class Mem2reg extends FunctionPass {
             renameVars(suc, basicBlock,value,alloca);
         }
     }
-    public static void runOnModule(Module module) {
+    public static void runOnModule(Module module,DominatorAnalysis dominatorAnalysis) {
         for (var func : module.getFunctionList()) {
             if (!func.isExternalLinkage()) {
-                Mem2reg mem2reg=new Mem2reg(func);
+                Mem2reg mem2reg=new Mem2reg(func, dominatorAnalysis);
                 mem2reg.run();
             }
         }

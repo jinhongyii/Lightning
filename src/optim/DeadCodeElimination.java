@@ -5,18 +5,17 @@ import IR.Instruction;
 import IR.instructions.CallInst;
 import IR.Module;
 import IR.instructions.StoreInst;
-import edu.princeton.cs.algs4.In;
 
 import java.util.LinkedList;
 
 public class DeadCodeElimination extends FunctionPass {
 
-    DeadCodeElimination(Function function) {
+    public DeadCodeElimination(Function function) {
         super(function);
     }
 
     @Override
-    void run() {
+    public void run() {
         naiveDeadCodeElimination();
     }
     public static void runOnModule(Module module){

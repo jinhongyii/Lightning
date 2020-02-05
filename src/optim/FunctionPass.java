@@ -1,7 +1,6 @@
 package optim;
 
 import IR.Function;
-import IR.Module;
 
 abstract public class FunctionPass implements Pass{
         Function function;
@@ -9,7 +8,7 @@ abstract public class FunctionPass implements Pass{
             this.function=function;
         }
 
-        abstract void run();
+        public abstract void run();
 
 
 

@@ -99,11 +99,15 @@ public class DominatorAnalysis extends FunctionPass {
             children.add(child);
         }
         public boolean dominate(Node other){
-
-            while (other.idom != null && other.idom!=this) {
-                other=other.idom;
+            var tmp=other;
+            while (tmp != null && tmp != this) {
+                tmp=tmp.idom;
             }
-            return other.idom!=null;
+            return tmp!=null;
+//            while (other.idom != null && other.idom!=this) {
+//                other=other.idom;
+//            }
+//            return other.idom!=null;
         }
     }
     private Node buildDominantTree(){

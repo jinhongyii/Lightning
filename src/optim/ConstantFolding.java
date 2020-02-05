@@ -4,17 +4,16 @@ import IR.*;
 import IR.Module;
 import IR.instructions.BinaryOpInst;
 import IR.instructions.CastInst;
-import IR.instructions.GetElementPtrInst;
 import IR.instructions.IcmpInst;
 
 public class ConstantFolding extends FunctionPass {
 
-    ConstantFolding(Function function) {
+    public ConstantFolding(Function function) {
         super(function);
     }
 
     @Override
-    void run() {
+    public void run() {
         constantFold(function);
     }
     public static void runOnModule(Module module){

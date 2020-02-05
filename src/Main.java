@@ -1,12 +1,10 @@
 import IR.IRPrinter;
+import IR.Module;
 import ast.Type;
 import backend.IRBuilder;
 import frontend.ASTBuilder;
 import frontend.ASTPrinter;
-import optim.CFGSimplifier;
-import optim.ConstantFolding;
-import optim.DeadCodeElimination;
-import optim.Mem2reg;
+import optim.*;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -36,12 +34,25 @@ public class Main {
         FunctionScanner scanner=new FunctionScanner(typeTable,valTable,builder.getASTStartNode());
         TypeChecker typeChecker=new TypeChecker(typeTable,valTable,builder.getASTStartNode());
         IRBuilder irBuilder=new IRBuilder(typeTable,valTable,builder.getASTStartNode());
-        IRPrinter irPrinter=new IRPrinter(irBuilder.getTopModule(),"main.ll");
-        CFGSimplifier.runOnModule(irBuilder.getTopModule());
-        Mem2reg.runOnModule(irBuilder.getTopModule());
-        DeadCodeElimination.runOnModule(irBuilder.getTopModule());
-        ConstantFolding.runOnModule(irBuilder.getTopModule());
-        IRPrinter ssaPrinter=new IRPrinter(irBuilder.getTopModule(),"ssa.ll");
+        Module topModule = irBuilder.getTopModule();
+        IRPrinter irPrinter=new IRPrinter(topModule,"main.ll");
+        for (var func : topModule.getFunctionList()) {
+            if (!func.isExternalLinkage()) {
+                var cFGSimplifier=new CFGSimplifier(func);
+                var dominatorAnalysis=new DominatorAnalysis(func);
+                var mem2reg=new Mem2reg(func,dominatorAnalysis);
+                var dce=new DeadCodeElimination(func);
+                var constantFold=new ConstantFolding(func);
+                var cse=new CSE(func,dominatorAnalysis);
+                cFGSimplifier.run();
+                dominatorAnalysis.run();
+                mem2reg.run();
+                dce.run();
+                constantFold.run();;
+                cse.run();
+            }
+        }
+        IRPrinter ssaPrinter=new IRPrinter(topModule,"ssa.ll");
 
     }
 }
