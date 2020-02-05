@@ -4,6 +4,7 @@ import backend.IRBuilder;
 import frontend.ASTBuilder;
 import frontend.ASTPrinter;
 import optim.CFGSimplifier;
+import optim.ConstantFolding;
 import optim.DeadCodeElimination;
 import optim.Mem2reg;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -39,6 +40,7 @@ public class Main {
         CFGSimplifier.runOnModule(irBuilder.getTopModule());
         Mem2reg.runOnModule(irBuilder.getTopModule());
         DeadCodeElimination.runOnModule(irBuilder.getTopModule());
+        ConstantFolding.runOnModule(irBuilder.getTopModule());
         IRPrinter ssaPrinter=new IRPrinter(irBuilder.getTopModule(),"ssa.ll");
 
     }

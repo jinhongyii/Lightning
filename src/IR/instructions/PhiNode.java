@@ -14,7 +14,9 @@ public class PhiNode extends Instruction {
     public void removeIncoming(BasicBlock basicBlock){
         for (int i = 0; i < operands.size(); i += 2) {
             if (operands.get(i + 1).getVal() == basicBlock) {
+                operands.get(i).delete();
                 operands.remove(i);
+                operands.get(i).delete();
                 operands.remove(i);
             }
         }

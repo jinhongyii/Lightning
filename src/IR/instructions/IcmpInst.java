@@ -10,7 +10,12 @@ public class IcmpInst extends Instruction {
         operands.add(new Use(lhs,this));
         operands.add(new Use(rhs,this));
     }
-
+    public Value getLhs(){
+        return operands.get(0).getVal();
+    }
+    public Value getRhs(){
+        return operands.get(1).getVal();
+    }
     @Override
     public Object accept(IRVisitor visitor) {
         return visitor.visitIcmpInst(this);
