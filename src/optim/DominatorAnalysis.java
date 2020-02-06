@@ -154,6 +154,7 @@ public class DominatorAnalysis extends FunctionPass {
         int bbnum=0;
         for (var i = function.getHead(); i != null; i=i.getNext()) {
             bbnum++;
+            i.dfsnum=0;
         }
         vertex=new BasicBlock[bbnum+1];
         semi=new BasicBlock[bbnum+1];

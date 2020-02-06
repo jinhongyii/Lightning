@@ -1,6 +1,9 @@
 package IR;
 
 public class Instruction extends User {
+    public void setParent(BasicBlock parent) {
+        this.parent = parent;
+    }
 
     Instruction prev=null;
     Instruction next=null;

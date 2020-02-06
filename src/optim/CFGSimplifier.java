@@ -40,8 +40,15 @@ public class CFGSimplifier extends FunctionPass {
             basicBlock.delete();
             return true;
         }
+        if (basicBlock.getPredecessors().size() == 1) {
+            var pred=basicBlock.getPredecessors().get(0);
+            if (pred.getSuccessors().size() == 1 &&pred!=basicBlock) {
+                basicBlock.mergetoBB(pred);
+                change=true;
+            }
+        }
         return change;
-        //todo:merge bbs
+        //todo:eliminate phiBB
     }
 
     private boolean constantCondition(BasicBlock basicBlock) {

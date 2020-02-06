@@ -50,7 +50,7 @@ public class BasicBlock extends  Value {
     }
     public Instruction getTerminator(){
 
-        if (tail.isTerminator()) {
+        if ( tail!=null && tail.isTerminator()) {
             return tail;
         } else {
             return null;
@@ -160,5 +160,18 @@ public class BasicBlock extends  Value {
                 ((PhiNode) phi).removeIncoming(pred);
             }
         }
+    }
+    public void mergetoBB(BasicBlock other){
+        var tmp=other.tail;
+        for (var inst = head; inst!=null; inst = inst.next) {
+            inst.setParent(other);
+            other.tail.setNextInstruction(inst);
+            other.tail=inst;
+        }
+        tmp.delete();
+        this.transferUses(other);
+        this.head=null;
+        this.tail=null;
+        this.delete();
     }
 }

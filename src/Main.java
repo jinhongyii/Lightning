@@ -45,16 +45,21 @@ public class Main {
                 var dominatorAnalysis=new DominatorAnalysis(func);
                 var mem2reg=new Mem2reg(func,dominatorAnalysis);
                 var dce=new DeadCodeElimination(func);
-//                var constantFold=new ConstantFolding(func);
                 var sccp=new SCCP(func);
                 var cse=new CSE(func,dominatorAnalysis);
                 cFGSimplifier.run();
                 dominatorAnalysis.run();
                 mem2reg.run();
-                sccp.run();
-                dce.run();
-                cse.run();
-                cFGSimplifier.run();
+                boolean changed=true;
+                while(changed) {
+                    changed=false;
+                    dominatorAnalysis.run();
+                    changed|=sccp.run();
+                    changed|=dce.run();
+                    changed|=cse.run();
+                    changed|=cFGSimplifier.run();
+
+                }
             }
         }
         IRPrinter ssaPrinter=new IRPrinter(topModule,"ssa.ll");
