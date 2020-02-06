@@ -1,9 +1,9 @@
 package frontend;
 
 import ast.*;
-import backend.IRBuilder;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
+import org.jetbrains.annotations.Nullable;
 import parser.mxBaseListener;
 import parser.mxParser;
 import semantic.*;
@@ -51,9 +51,16 @@ public class ASTBuilder extends mxBaseListener {
                     String typename=stmt.getType().getTypename();
                     SemanticType semanticType =typeTable.lookup(typename);
                     if(semanticType !=null){
+                        if(stmt.getType().getDims()!=0) {
+                            semanticType = new ArrayType(semanticType, stmt.getType().getDims());
+                        }
                         record.addRecord(stmt.getName(), semanticType);
                     }else {
-                        record.addRecord(stmt.getName(), new NameType(typename));
+                        if (stmt.getType().getDims() != 0) {
+                            record.addRecord(stmt.getName(), new ArrayType(new NameType(typename), stmt.getType().getDims()));
+                        } else {
+                            record.addRecord(stmt.getName(), new NameType(typename));
+                        }
                     }
                 }
             }else {
@@ -90,7 +97,7 @@ public class ASTBuilder extends mxBaseListener {
         }
         String name=ctx.IDENTIFIER().getText();
         BlockStmt stmt= (BlockStmt) values.get(ctx.block().blockStatement());
-        if (stmt.getStatements().isEmpty()|| !(stmt.getStatements().get(stmt.getStatements().size() - 1) instanceof ReturnStmt)) {
+        if (stmt.getStatements().isEmpty()|| !(stmt.getStatements().get(stmt.getStatements().size() - 1) instanceof ReturnStmt) &&( returntype==null || returntype.getTypename().equals("void") || name.equals("main"))) {
             stmt.addStatement(new ReturnStmt(null));
         }
         ArrayList<MethodDecl.parameter> parameters;
@@ -228,11 +235,11 @@ public class ASTBuilder extends mxBaseListener {
     @Override
     public void exitIfStmt(mxParser.IfStmtContext ctx) {
         Expr cond= (Expr) values.get(ctx.expression());
-        Stmt Then= (Stmt) values.get(ctx.statement(0)),Else;
+        Stmt Then= getRealStmt(values.get(ctx.statement(0))),Else;
         if (ctx.statement().size() == 1) {
             Else = null;
         } else {
-            Else= (Stmt) values.get(ctx.statement(1));
+            Else= getRealStmt( values.get(ctx.statement(1)));
         }
 
         values.put(ctx,new IfStmt(cond,Then,Else));
@@ -241,8 +248,29 @@ public class ASTBuilder extends mxBaseListener {
     @Override
     public void exitForStmt(mxParser.ForStmtContext ctx) {
         forElement element= (forElement) values.get(ctx.forControl());
-        values.put(ctx, new ForStmt(element.init,element.condition,element.incr, (Stmt) values.get(ctx.statement())));
+        var body=values.get(ctx.statement());
+        Stmt newBody;
+        newBody = getRealStmt(body);
+        values.put(ctx, new ForStmt(element.init, element.condition, element.incr,newBody));
+
     }
+
+    @Nullable
+    public Stmt getRealStmt(Object body) {
+        Stmt newBody;
+        if(body instanceof Stmt) {
+            newBody= (Stmt) body;
+        } else if (body instanceof ArrayList) {
+            newBody = new BlockStmt();
+            for (var varDecl : (ArrayList) body) {
+                ((BlockStmt) newBody).addStatement((Stmt) varDecl);
+            }
+        } else {
+            newBody=null;
+        }
+        return newBody;
+    }
+
     private static class forElement{
         Expr init,condition,incr;
         forElement(Expr init,Expr condition,Expr incr){
@@ -268,7 +296,7 @@ public class ASTBuilder extends mxBaseListener {
 
     @Override
     public void exitWhileStmt(mxParser.WhileStmtContext ctx) {
-        values.put(ctx, new WhileStmt((Expr)values.get(ctx.expression()),(Stmt)values.get(ctx.statement())));
+        values.put(ctx, new WhileStmt((Expr)values.get(ctx.expression()),getRealStmt(values.get(ctx.statement()))));
     }
 
     @Override
@@ -443,4 +471,8 @@ public class ASTBuilder extends mxBaseListener {
         }
     }
 
+    @Override
+    public void exitErrorCreator(mxParser.ErrorCreatorContext ctx) {
+        throw new Error("wrong creator");
+    }
 }

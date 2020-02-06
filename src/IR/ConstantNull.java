@@ -11,4 +11,9 @@ public class ConstantNull extends Value {
     public String toString() {
         return "null";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ConstantNull;
+    }
 }

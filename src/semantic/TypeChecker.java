@@ -67,9 +67,7 @@ public class TypeChecker implements ASTVisitor {
     public Object visitClassDecl(ClassDecl node) throws semanticException {
 
         inclassDecl=node;
-        for (var vardecl : node.getVariables()) {
-            valTable.enter(node.getName()+"@"+vardecl.getName(),new VarEntry(convert(vardecl.getType())));
-        }
+
         for (var method : node.getMethods()) {
             visit(method);
         }
@@ -235,7 +233,7 @@ public class TypeChecker implements ASTVisitor {
                 throw  new semanticException("param num not match");
             }else {
                 for (int i = 0; i < node.getArguments().size(); i++) {
-                    if (!visit(node.getArguments().get(i)).equals(funcEntry.params.get(i))) {
+                    if (!((SemanticType)visit(node.getArguments().get(i))).canAssignTo(funcEntry.params.get(i))) {
                         throw new semanticException("method param type not match");
                     }
                 }
@@ -268,19 +266,41 @@ public class TypeChecker implements ASTVisitor {
     @Override
     public Object visitNameExpr(NameExpr node) throws semanticException {
         var entry = valTable.lookup(node.getName());
-        if (entry != null) {
+        if (inclassDecl == null) {
             if (entry instanceof VarEntry) {
                 node.setDeclStmt(((VarEntry) entry).declStmt);
                 return ((VarEntry) entry).type;
             } else {
                 return entry;
             }
-        } else if(inclassDecl!=null){
-            var entry2=valTable.lookup(inclassDecl.getName()+"@"+node.getName());
-            if (entry2 != null) {
-                return entry2 instanceof VarEntry?((VarEntry) entry2).type:entry2;
+        }else {
+            var inclassEntry=valTable.lookup(inclassDecl.getName()+"@"+node.getName());
+            if (entry != null && (!valTable.isGlobalVariable(node.getName()) || inclassEntry==null)) {
+                if (entry instanceof VarEntry) {
+                    node.setDeclStmt(((VarEntry) entry).declStmt);
+                    return ((VarEntry) entry).type;
+                } else {
+                    return entry;
+                }
+            } else {
+                if (inclassEntry != null) {
+                    return inclassEntry instanceof VarEntry?((VarEntry) inclassEntry).type:inclassEntry;
+                }
             }
         }
+//        if (entry != null && !(valTable.isGlobalVariable(node.getName()) && inclassDecl!=null)) {
+//            if (entry instanceof VarEntry) {
+//                node.setDeclStmt(((VarEntry) entry).declStmt);
+//                return ((VarEntry) entry).type;
+//            } else {
+//                return entry;
+//            }
+//        } else if(inclassDecl!=null){
+//            var entry2=valTable.lookup(inclassDecl.getName()+"@"+node.getName());
+//            if (entry2 != null) {
+//                return entry2 instanceof VarEntry?((VarEntry) entry2).type:entry2;
+//            }
+//        }
         throw new semanticException("name not defined");
 
     }
@@ -317,11 +337,20 @@ public class TypeChecker implements ASTVisitor {
     @Override
     public Object visitPrefixExpr(PrefixExpr node) throws semanticException {
         SemanticType type= (SemanticType) visit(node.getVal());
-        if (!type.isIntType()) {
-            throw new semanticException(node.getOperator() + " not int type");
-        } else {
-            return type;
+        if(node.getOperator().equals("++") || node.getOperator().equals("--") || node.getOperator().equals("~") || node.getOperator().equals("+") || node.getOperator().equals("-")) {
+            if (!type.isIntType()) {
+                throw new semanticException(node.getOperator() + " not int type");
+            } else {
+                return type;
+            }
+        }else if(node.getOperator().equals("!")){
+            if (!type.isBoolType()) {
+                throw new semanticException(node.getOperator() + " not bool type");
+            } else {
+                return type;
+            }
         }
+        throw  new semanticException("wrong operator");
     }
 
     @Override
@@ -330,7 +359,7 @@ public class TypeChecker implements ASTVisitor {
         if(node.getVal()!=null) {
             returnType= (SemanticType) visit(node.getVal());
         }
-        if (!returnType.canAssignTo(convert(inMethodDecl.getReturnType()))) {
+        if (!returnType.canAssignTo(inMethodDecl.getSemanticReturnType())) {
             throw new semanticException("return wrong type");
         }
         return null;
@@ -368,15 +397,18 @@ public class TypeChecker implements ASTVisitor {
 
     @Override
     public Object visitVariableDeclStmt(VariableDeclStmt node) throws semanticException {
+        if (typeTable.lookup(node.getName()) != null) {
+            throw  new semanticException("variable and class have the same name");
+        }
         SemanticType type=convert(node.getType());
         node.setSemanticType(type);
-        valTable.enter(node.getName(), new VarEntry(type,node));
         if (node.getInit() != null) {
             SemanticType initType = (SemanticType) visit(node.getInit());
             if (!initType.canAssignTo(type)) {
                 throw new semanticException("var declare initiation type not match");
             }
         }
+        valTable.enter(node.getName(), new VarEntry(type,node));
         return null;
     }
 

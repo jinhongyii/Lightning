@@ -3,7 +3,10 @@ package semantic;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Stack;
 
 import static java.lang.Math.abs;
 
@@ -74,10 +77,10 @@ public class SymbolTable<Type> implements Iterable<SymbolTable.Entry<Type>>{
     }
      private Entry[] hashtable=new Entry[1023];
 
-    private Stack<HashSet<String>> stack=new Stack<>();
+    private ArrayList<HashSet<String>> stack=new ArrayList<>();
 
     public SymbolTable() {
-        stack.push(new HashSet<>());
+        stack.add(new HashSet<>());
     }
     public int size(){
         int cnt=0;
@@ -90,10 +93,10 @@ public class SymbolTable<Type> implements Iterable<SymbolTable.Entry<Type>>{
     public void enter(String sym,Type type) throws TypeChecker.semanticException {
         int idx=abs(sym.hashCode()%1023);
         hashtable[idx]=new Entry<>(sym,type,hashtable[idx]);
-        if (stack.peek().contains(sym)) {
+        if (stack.get(stack.size()-1).contains(sym)) {
             throw new TypeChecker.semanticException("redefinition");
         }
-        stack.peek().add(sym);
+        stack.get(stack.size()-1).add(sym);
 
     }
 
@@ -111,18 +114,29 @@ public class SymbolTable<Type> implements Iterable<SymbolTable.Entry<Type>>{
     }
     private final String marksym="<mark>";
     public void beginScope(){
-        stack.push(new HashSet<>());
+        stack.add(new HashSet<>());
     }
     public void endScope(){
-        for (String sym : stack.peek()) {
+        for (String sym : stack.get(stack.size()-1)) {
             int idx=abs(sym.hashCode()%1023);
             hashtable[idx]=hashtable[idx].next;
         }
-        stack.pop();
-
-
+        stack.remove(stack.size()-1);
     }
-
+    public boolean isGlobalVariable(String string){
+        if (lookup(string) instanceof FuncEntry) {
+            return false;
+        }
+        if(!stack.get(0).contains(string)){
+            return false;
+        }
+        for (int i = 1; i < stack.size(); i++) {
+            if (stack.get(i).contains(string)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 //public class SymbolTable<Type> extends ArrayList<HashMap<String,Type>>{
 //    public SymbolTable(){

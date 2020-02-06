@@ -1,7 +1,7 @@
 package optim;
 
-import IR.*;
 import IR.Module;
+import IR.*;
 import IR.instructions.BinaryOpInst;
 import IR.instructions.CastInst;
 import IR.instructions.IcmpInst;
@@ -13,8 +13,8 @@ public class ConstantFolding extends FunctionPass {
     }
 
     @Override
-    public void run() {
-        constantFold(function);
+    public boolean run() {
+        return constantFold(function);
     }
     public static void runOnModule(Module module){
         for (var func : module.getFunctionList()) {
@@ -25,75 +25,94 @@ public class ConstantFolding extends FunctionPass {
         }
     }
 
-    private void constantFold(Function function) {
+    private boolean constantFold(Function function) {
+        boolean changed=false;
         for (var bb = function.getHead(); bb != null; bb = bb.getNext()) {
             for (var inst = bb.getHead(); inst != null;) {
                 var tmp=inst.getNext();
-                handleInst(inst);
+                var replaceVal= constFoldInst(inst);
+                if(replaceVal!=null) {
+                    inst.transferUses(replaceVal);
+                    inst.delete();
+                    changed=true;
+                }
                 inst=tmp;
             }
         }
+        return changed;
     }
-    private void handleInst(Instruction inst){
+    public static Value constFoldInst(Instruction inst){
         Value replaceVal=null;
         if(inst instanceof BinaryOpInst){
             var lhs=((BinaryOpInst) inst).getLhs();
             var rhs=((BinaryOpInst) inst).getRhs();
-            if (lhs instanceof ConstantInt && rhs instanceof ConstantInt) {
-                var constLhs=(ConstantInt) lhs;
-                var constRhs=(ConstantInt) rhs;
-                switch (inst.getOpcode()) {
-                    case add:replaceVal=new ConstantInt(constLhs.getVal()+constRhs.getVal());break;
-                    case sub:replaceVal=new ConstantInt(constLhs.getVal()-constRhs.getVal());break;
-                    case mul:replaceVal=new ConstantInt(constLhs.getVal()*constRhs.getVal());break;
-                    case div:replaceVal=new ConstantInt(constLhs.getVal()/constRhs.getVal());break;
-                    case rem:replaceVal=new ConstantInt(constLhs.getVal()%constRhs.getVal());break;
-                    case and:replaceVal=new ConstantInt(constLhs.getVal()& constRhs.getVal());break;
-                    case or:replaceVal=new ConstantInt(constLhs.getVal() | constRhs.getVal());break;
-                    case xor:replaceVal=new ConstantInt(constLhs.getVal() ^ constRhs.getVal());break;
-                    case shl:replaceVal=new ConstantInt(constLhs.getVal()<<constRhs.getVal());break;
-                    case shr:replaceVal=new ConstantInt(constLhs.getVal()>>constRhs.getVal());break;
-                }
-            }
+            replaceVal = constFoldBinaryInst(inst.getOpcode(), replaceVal, lhs, rhs);
 
         }else if(inst instanceof IcmpInst){
             var lhs=((IcmpInst) inst).getLhs();
             var rhs=((IcmpInst) inst).getRhs();
-            if (lhs instanceof ConstantInt && rhs instanceof ConstantInt) {
-                var constLhs=((ConstantInt) lhs).getVal();
-                var constRhs=((ConstantInt) rhs).getVal();
-                switch (inst.getOpcode()){
-                    case EQ:replaceVal=new ConstantBool(constLhs==constRhs);break;
-                    case NE:replaceVal=new ConstantBool(constLhs!=constRhs);break;
-                    case GT:replaceVal=new ConstantBool(constLhs>constRhs);break;
-                    case GE:replaceVal=new ConstantBool(constLhs>=constRhs);break;
-                    case LT:replaceVal=new ConstantBool(constLhs<constRhs);break;
-                    case LE:replaceVal=new ConstantBool(constLhs<=constRhs);break;
-                }
-            }else if(lhs instanceof ConstantBool && rhs instanceof ConstantBool){
-                var constLhs=((ConstantBool)lhs).isTrue();
-                var constRhs=((ConstantBool)rhs).isTrue();
-                switch (inst.getOpcode()){
-                    case EQ:replaceVal=new ConstantBool(constLhs==constRhs);break;
-                    case NE:replaceVal=new ConstantBool(constLhs!=constRhs);break;
-                }
-            }else if(lhs instanceof ConstantNull && rhs instanceof ConstantNull){
-                switch (inst.getOpcode()){
-                    case EQ:replaceVal=new ConstantBool(true);
-                    case NE:replaceVal=new ConstantBool(false);
-                }
-            }
+            replaceVal = constFoldIcmpInst(inst.getOpcode(), replaceVal, lhs, rhs);
         } else if (inst instanceof CastInst) {
             var source=inst.getOperands().get(0).getVal();
-            if (source instanceof ConstantNull) {
-                replaceVal=new ConstantNull();
-            } else if (inst.getType().equals(source.getType())) {
-                replaceVal=source;
+            replaceVal = constFoldCastInst(inst.getType(), replaceVal, source);
+        }
+        return replaceVal;
+    }
+
+    public static Value constFoldCastInst(Type type, Value replaceVal, Value source) {
+        if (source instanceof ConstantNull) {
+            replaceVal=new ConstantNull();
+        } else if (type.equals(source.getType())) {
+            replaceVal=source;
+        }
+        return replaceVal;
+    }
+
+    public static Value constFoldIcmpInst(Instruction.Opcode opcode, Value replaceVal, Value lhs, Value rhs) {
+        if (lhs instanceof ConstantInt && rhs instanceof ConstantInt) {
+            var constLhs=((ConstantInt) lhs).getVal();
+            var constRhs=((ConstantInt) rhs).getVal();
+            switch (opcode){
+                case EQ:replaceVal=new ConstantBool(constLhs==constRhs);break;
+                case NE:replaceVal=new ConstantBool(constLhs!=constRhs);break;
+                case GT:replaceVal=new ConstantBool(constLhs>constRhs);break;
+                case GE:replaceVal=new ConstantBool(constLhs>=constRhs);break;
+                case LT:replaceVal=new ConstantBool(constLhs<constRhs);break;
+                case LE:replaceVal=new ConstantBool(constLhs<=constRhs);break;
+            }
+        }else if(lhs instanceof ConstantBool && rhs instanceof ConstantBool){
+            var constLhs=((ConstantBool)lhs).isTrue();
+            var constRhs=((ConstantBool)rhs).isTrue();
+            switch (opcode){
+                case EQ:replaceVal=new ConstantBool(constLhs==constRhs);break;
+                case NE:replaceVal=new ConstantBool(constLhs!=constRhs);break;
+            }
+        }else if(lhs instanceof ConstantNull && rhs instanceof ConstantNull){
+            switch (opcode){
+                case EQ:replaceVal=new ConstantBool(true);break;
+                case NE:replaceVal=new ConstantBool(false);break;
             }
         }
-        if(replaceVal!=null) {
-            inst.transferUses(replaceVal);
-            inst.delete();
+        return replaceVal;
+    }
+
+    public static Value constFoldBinaryInst(Instruction.Opcode opcode, Value replaceVal, Value lhs, Value rhs) {
+        if (lhs instanceof ConstantInt && rhs instanceof ConstantInt) {
+            var constLhs=(ConstantInt) lhs;
+            var constRhs=(ConstantInt) rhs;
+            switch (opcode) {
+                case add:replaceVal=new ConstantInt(constLhs.getVal()+constRhs.getVal());break;
+                case sub:replaceVal=new ConstantInt(constLhs.getVal()-constRhs.getVal());break;
+                case mul:replaceVal=new ConstantInt(constLhs.getVal()*constRhs.getVal());break;
+                case div:replaceVal=new ConstantInt(constLhs.getVal()/constRhs.getVal());break;
+                case rem:replaceVal=new ConstantInt(constLhs.getVal()%constRhs.getVal());break;
+                case and:replaceVal=new ConstantInt(constLhs.getVal()& constRhs.getVal());break;
+                case or:replaceVal=new ConstantInt(constLhs.getVal() | constRhs.getVal());break;
+                case xor:replaceVal=new ConstantInt(constLhs.getVal() ^ constRhs.getVal());break;
+                case shl:replaceVal=new ConstantInt(constLhs.getVal()<<constRhs.getVal());break;
+                case shr:replaceVal=new ConstantInt(constLhs.getVal()>>constRhs.getVal());break;
+            }
         }
+        return replaceVal;
     }
 }

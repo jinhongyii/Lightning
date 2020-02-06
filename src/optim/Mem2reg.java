@@ -1,13 +1,12 @@
 package optim;
 
-import IR.*;
 import IR.Module;
+import IR.*;
 import IR.Types.PointerType;
 import IR.instructions.AllocaInst;
 import IR.instructions.LoadInst;
 import IR.instructions.PhiNode;
 import IR.instructions.StoreInst;
-
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,8 +21,10 @@ public class Mem2reg extends FunctionPass {
         this.dominatorAnalyzer=dominatorAnalysis;
     }
     @Override
-    public void run() {
+    public boolean run() {
 //        dominatorAnalyzer.run();
+        newPhiInsts.clear();
+        vis.clear();
         ArrayList<AllocaInst> allocaInsts=new ArrayList<>();
         BasicBlock entryBlock=function.getEntryBB();
         for (var inst =entryBlock.getHead();inst!=null;inst=inst.getNext()) {
@@ -78,7 +79,7 @@ public class Mem2reg extends FunctionPass {
             }
         }
         fixNullValueInPhi();
-
+        return true;
     }
 
     private void fixNullValueInPhi() {

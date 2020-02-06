@@ -2,7 +2,6 @@ package IR.Types;
 
 import IR.Type;
 import IR.Value;
-import org.hamcrest.core.IsNull;
 
 public class PointerType extends CompositeType{
     Type ptrType;
@@ -18,7 +17,15 @@ public class PointerType extends CompositeType{
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof PointerType && ptrType.equals(((PointerType) obj).ptrType);
+        if (!(obj instanceof PointerType)) {
+            return false;
+        }
+        var objPtrtype=((PointerType) obj).ptrType;
+        if (this.ptrType == null) {
+            return objPtrtype == null;
+        } else {
+            return this.ptrType.equals(objPtrtype);
+        }
     }
 
     @Override

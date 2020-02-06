@@ -1,6 +1,9 @@
 package IR;
 
-import IR.Types.*;
+import IR.Types.IntType;
+import IR.Types.LabelType;
+import IR.Types.TypeType;
+import IR.Types.VoidType;
 
 public class Type extends Value {
     public Type(String name, TypeID id) {

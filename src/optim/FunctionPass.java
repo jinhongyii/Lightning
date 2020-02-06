@@ -7,8 +7,9 @@ abstract public class FunctionPass implements Pass{
         FunctionPass(Function function){
             this.function=function;
         }
-
-        public abstract void run();
+        //todo: return changed
+        // remember to clear all internal data structure before exit run()
+        public abstract boolean run();
 
 
 

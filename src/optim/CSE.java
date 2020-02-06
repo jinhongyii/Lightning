@@ -2,10 +2,10 @@ package optim;
 
 import IR.Function;
 import IR.Instruction;
+import IR.Module;
 import IR.instructions.BinaryOpInst;
 import IR.instructions.GetElementPtrInst;
 import IR.instructions.IcmpInst;
-import IR.Module;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,8 +19,9 @@ public class CSE extends FunctionPass {
     }
 
     @Override
-    public void run() {
-        CommonSubExpressionElimination();
+    public boolean run() {
+        subexprMap.clear();
+        return CommonSubExpressionElimination();
     }
     public static void runOnModule(Module module,DominatorAnalysis dominatorAnalysis){
         for (var func : module.getFunctionList()) {
@@ -134,8 +135,8 @@ public class CSE extends FunctionPass {
         }
         return exprs;
     }
-    private void CommonSubExpressionElimination(){
-
+    private boolean CommonSubExpressionElimination(){
+        boolean changed=false;
         for (var bb = function.getHead(); bb != null; bb = bb.getNext()) {
             for (var inst = bb.getHead(); inst != null;) {
                 var tmp=inst.getNext();
@@ -148,6 +149,7 @@ public class CSE extends FunctionPass {
                         if(prevExprNode.dominate(thisNode)) {
                             inst.transferUses(prevExpr);
                             inst.delete();
+                            changed=true;
                         }
                     } else {
                         for (var expr : exprs) {
@@ -158,6 +160,7 @@ public class CSE extends FunctionPass {
                 inst=tmp;
             }
         }
+        return changed;
     }
 
 }

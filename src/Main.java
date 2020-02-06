@@ -1,14 +1,14 @@
 import IR.IRPrinter;
 import IR.Module;
-import ast.Type;
 import backend.IRBuilder;
 import frontend.ASTBuilder;
-import frontend.ASTPrinter;
 import optim.*;
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import parser.ThrowingErrorListener;
 import parser.mxLexer;
 import parser.mxParser;
 import semantic.*;
@@ -18,12 +18,15 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class Main {
+
     public static void main(String[] args) throws IOException, TypeChecker.semanticException {
-        InputStream is = args.length > 0 ? new FileInputStream(args[0]) : System.in;
+        InputStream is = new FileInputStream(args[0]);
         ANTLRInputStream input = new ANTLRInputStream(is);
         mxLexer lexer=new mxLexer(input);
+        lexer.addErrorListener(ThrowingErrorListener.INSTANCE);
         CommonTokenStream tokens =new CommonTokenStream(lexer);
         mxParser parser=new mxParser(tokens);
+        parser.addErrorListener(ThrowingErrorListener.INSTANCE);
         ParseTree tree=parser.compilationUnit();
         ParseTreeWalker walker=new ParseTreeWalker();
         SymbolTable<SemanticType> typeTable=new SymbolTable<>();
@@ -42,14 +45,16 @@ public class Main {
                 var dominatorAnalysis=new DominatorAnalysis(func);
                 var mem2reg=new Mem2reg(func,dominatorAnalysis);
                 var dce=new DeadCodeElimination(func);
-                var constantFold=new ConstantFolding(func);
+//                var constantFold=new ConstantFolding(func);
+                var sccp=new SCCP(func);
                 var cse=new CSE(func,dominatorAnalysis);
                 cFGSimplifier.run();
                 dominatorAnalysis.run();
                 mem2reg.run();
+                sccp.run();
                 dce.run();
-                constantFold.run();;
                 cse.run();
+                cFGSimplifier.run();
             }
         }
         IRPrinter ssaPrinter=new IRPrinter(topModule,"ssa.ll");

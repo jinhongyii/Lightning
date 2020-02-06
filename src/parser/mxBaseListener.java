@@ -520,6 +520,18 @@ public class mxBaseListener implements mxListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterErrorCreator(mxParser.ErrorCreatorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitErrorCreator(mxParser.ErrorCreatorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterArrayCreator(mxParser.ArrayCreatorContext ctx) { }
 	/**
 	 * {@inheritDoc}

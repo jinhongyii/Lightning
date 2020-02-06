@@ -15,7 +15,7 @@ public class FunctionScanner implements ASTVisitor {
         preprocessBuiltinMethods();
         visit(startNode);
         NameEntry main=valTable.lookup("main");
-        if (main == null || main instanceof VarEntry || !((FuncEntry)main).returnType.isIntType()) {
+        if (main == null || main instanceof VarEntry || !((FuncEntry)main).returnType.isIntType() ||((FuncEntry)main).getParams().size()!=0) {
             throw new TypeChecker.semanticException("no main function");
         }
     }
@@ -31,6 +31,15 @@ public class FunctionScanner implements ASTVisitor {
                             throw new TypeChecker.semanticException("type not declared");
                         }
                         ((NameType) fieldType.get(i)).bind(bindType);
+                    } else if (((RecordType) entry.type).getFieldType().get(i).isArrayType()) {
+                        var elemType=((ArrayType)(((RecordType) entry.type).getFieldType().get(i))).getElementType();
+                        if (elemType.isNameType()) {
+                            var bindType=typeTable.lookup(((NameType)elemType).getName());
+                            if (bindType == null) {
+                                throw new TypeChecker.semanticException("type not declared");
+                            }
+                            ((NameType) elemType).bind(bindType);
+                        }
                     }
                 }
             }
@@ -96,6 +105,9 @@ public class FunctionScanner implements ASTVisitor {
         return null;
     }
     private SemanticType convert(ast.Type type){
+        if (type == null) {
+            return new VoidType();
+        }
         if (type.getDims() > 0) {
             return new ArrayType(typeTable.lookup(type.getTypename()),type.getDims());
         } else {
@@ -109,10 +121,18 @@ public class FunctionScanner implements ASTVisitor {
             for (var param : method.getParameters()) {
                 convertedParamTypes.add(convert(param.getType()));
             }
+            if (method.getReturnType() == null || method.getName().equals(node.getName())) {
+                if(!(method.getReturnType() == null && method.getName().equals(node.getName()))) {
+                    throw new TypeChecker.semanticException("constructor wrong name");
+                }
+            }
             var convertedReturnType=convert(method.getReturnType());
             method.setSemanticReturnType(convertedReturnType);
             method.setSemanticParamTypes(convertedParamTypes);
             valTable.enter(node.getName() + "@" + method.getName(), new FuncEntry(convertedReturnType, convertedParamTypes));
+        }
+        for (var vardecl : node.getVariables()) {
+            valTable.enter(node.getName()+"@"+vardecl.getName(),new VarEntry(convert(vardecl.getType())));
         }
         return null;
     }
@@ -179,6 +199,9 @@ public class FunctionScanner implements ASTVisitor {
 
     @Override
     public Object visitMethodDecl(MethodDecl node) throws TypeChecker.semanticException {
+        if (typeTable.lookup(node.getName()) != null) {
+            throw new TypeChecker.semanticException("method and class have the same name");
+        }
         ArrayList<SemanticType> paramTypes=new ArrayList<>();
         for (var param : node.getParameters()) {
             paramTypes.add(convert(param.getType()));

@@ -146,7 +146,11 @@ public class DominatorAnalysis extends FunctionPass {
     private void BuildDominantFrontier(){
         buildDominantFrontierHelper(treeRoot);
     }
-    public void run(){
+    public boolean run(){
+        treeRoot=null;
+        DominantTree.clear();
+        DominatorFrontier.clear();
+        cnt=0;
         int bbnum=0;
         for (var i = function.getHead(); i != null; i=i.getNext()) {
             bbnum++;
@@ -165,6 +169,7 @@ public class DominatorAnalysis extends FunctionPass {
         getIdoms(function.getEntryBB());
         treeRoot=buildDominantTree();
         BuildDominantFrontier();
+        return false;
     }
     public DominatorAnalysis(Function function){
         super(function);

@@ -472,6 +472,18 @@ public interface mxListener extends ParseTreeListener {
 	 */
 	void exitLiteral(mxParser.LiteralContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code errorCreator}
+	 * labeled alternative in {@link mxParser#creator}.
+	 * @param ctx the parse tree
+	 */
+	void enterErrorCreator(mxParser.ErrorCreatorContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code errorCreator}
+	 * labeled alternative in {@link mxParser#creator}.
+	 * @param ctx the parse tree
+	 */
+	void exitErrorCreator(mxParser.ErrorCreatorContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code arrayCreator}
 	 * labeled alternative in {@link mxParser#creator}.
 	 * @param ctx the parse tree

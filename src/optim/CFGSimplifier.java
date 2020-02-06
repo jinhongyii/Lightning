@@ -19,16 +19,19 @@ public class CFGSimplifier extends FunctionPass {
         }
     }
     @Override
-    public void run() {
+    public boolean run() {
         boolean changed=true;
+        boolean realChanged=false;
         while(changed) {
             changed=false;
             for (var bb = function.getHead(); bb != null; ) {
                 var tmp = bb.getNext();
                 changed|=simplify(bb);
+                realChanged|=changed;
                 bb = tmp;
             }
         }
+        return realChanged;
     }
     private boolean simplify(BasicBlock basicBlock){
         boolean change=false;

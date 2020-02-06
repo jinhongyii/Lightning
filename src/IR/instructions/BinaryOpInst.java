@@ -1,6 +1,9 @@
 package IR.instructions;
 
-import IR.*;
+import IR.IRVisitor;
+import IR.Instruction;
+import IR.Use;
+import IR.Value;
 
 public class BinaryOpInst extends Instruction {
 

@@ -1,8 +1,5 @@
 package semantic;
 
-import ast.Type;
-
-import java.util.ArrayList;
 abstract public class SemanticType {
     public enum kind{record,nil,integer,string,array,bool,voidType,name} ;
     protected kind typekind;

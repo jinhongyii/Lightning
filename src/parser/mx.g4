@@ -29,7 +29,7 @@ DECIMAL_LITERAL
     | '0'
     ;
 IDENTIFIER
-    : [a-zA-Z_] [a-zA-Z_0-9]*
+    : [a-zA-Z] [a-zA-Z_0-9]*
     ;
 
 // Whitespace and comments
@@ -122,6 +122,7 @@ literal
     ;
 
 creator
-    : (classType |primitiveType) ('[' expression']')+ ('['']')* #arrayCreator
+    : (classType |primitiveType) ('[' expression']')+ ('['']')+ ('[' expression']')+ # errorCreator
+      |(classType |primitiveType) ('[' expression']')+ ('['']')* #arrayCreator
       | (classType |primitiveType) ('(' ')' )?  #constructorCreator
     ;

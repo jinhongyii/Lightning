@@ -1,16 +1,16 @@
 package backend;
 
-import IR.*;
 import IR.Module;
 import IR.Type;
+import IR.*;
 import IR.Types.FunctionType;
 import IR.Types.PointerType;
 import IR.Types.StructType;
 import IR.instructions.*;
 import ast.*;
 import frontend.ASTVisitor;
-import semantic.*;
 import semantic.SymbolTable;
+import semantic.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -562,12 +562,12 @@ public class IRBuilder implements ASTVisitor {
                 Value argV = (Value) visit(arg);
                 arguments.add(argV);
             }
-            Function function= (Function) topModule.getSymbolTable().get(funcName);
-            if (function == null) {
+            var function= topModule.getSymbolTable().get(funcName);
+            if (!(function instanceof Function)) {
                 function=(Function)topModule.getSymbolTable().get(curClass.getName()+"_"+funcName);
                 arguments.add(curFunc.getThisPtr());
             }
-            var callInst=new CallInst("calltmp",function,arguments);
+            var callInst=new CallInst("calltmp",(Function)function,arguments);
             curBB.addInst(callInst);
             return callInst;
         }
@@ -575,7 +575,13 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public Object visitMethodDecl(MethodDecl node) throws TypeChecker.semanticException {
-        Function newfunc= (Function) topModule.getSymbolTable().get(node.getName());
+        String funcname;
+        if (curClass == null) {
+            funcname = node.getName();
+        } else {
+            funcname=curClass.getName()+"_"+node.getName();
+        }
+        Function newfunc= (Function) topModule.getSymbolTable().get(funcname);
         newfunc.internalLinkage();
         curFunc=newfunc;
 //        topModule.addFunction(newfunc);
@@ -746,13 +752,13 @@ public class IRBuilder implements ASTVisitor {
             Instruction storeInst = new StoreInst(tmpInst, ptr);
             curBB.addInst(tmpInst);
             curBB.addInst(storeInst);
-            return originalV_rhs;
+            return null;
         } else {
             Instruction tmpInst = new BinaryOpInst("postfix_sub", Instruction.Opcode.sub, originalV_rhs, new ConstantInt(1));
             Instruction storeInst = new StoreInst(tmpInst, ptr);
             curBB.addInst(tmpInst);
             curBB.addInst(storeInst);
-            return originalV_rhs;
+            return null;
         }
     }
 

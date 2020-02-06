@@ -4,7 +4,6 @@ import IR.Types.FunctionType;
 import IR.Types.PointerType;
 import IR.Types.StructType;
 import IR.instructions.*;
-import semantic.NullType;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -171,7 +170,7 @@ public class IRPrinter implements IRVisitor {
         boolean flag=false;
         for (int i = 1; i < callInst.operands.size(); i++) {
             var arg=callInst.operands.get(i).val;
-            str.append(arg.getType()).append(" ").append(arg.toString()).append(",");
+            str.append(((FunctionType)function.getType()).getParamTypes().get(i-1)).append(" ").append(arg.toString()).append(",");
             flag=true;
         }
         if(flag) {

@@ -3,10 +3,8 @@ package IR;
 import IR.instructions.BranchInst;
 import IR.instructions.PhiNode;
 import IR.instructions.ReturnInst;
-import edu.princeton.cs.algs4.In;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 public class BasicBlock extends  Value {
     Function parent;

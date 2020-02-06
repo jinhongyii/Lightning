@@ -1,7 +1,10 @@
 package IR.instructions;
 
-import IR.*;
+import IR.IRVisitor;
+import IR.Instruction;
 import IR.Types.PointerType;
+import IR.Use;
+import IR.Value;
 
 public class LoadInst extends Instruction {
     public LoadInst(String name, Value ptr) {

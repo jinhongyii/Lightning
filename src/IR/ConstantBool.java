@@ -13,6 +13,11 @@ public class ConstantBool extends Value{
     }
 
     @Override
+    public boolean equals(Object obj) {
+        return obj instanceof ConstantBool && ((ConstantBool) obj).val==val;
+    }
+
+    @Override
     public String toString() {
         return ((Boolean)val).toString();
     }

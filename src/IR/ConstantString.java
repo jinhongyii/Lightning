@@ -1,9 +1,6 @@
 package IR;
 
-import IR.Types.ArrayType;
 import IR.Types.PointerType;
-
-import java.util.ArrayList;
 
 public class ConstantString extends Value{
     String val;
