@@ -58,7 +58,6 @@ public class Main {
                     changed|=dce.run();
                     changed|=cse.run();
                     changed|=cFGSimplifier.run();
-
                 }
             }
         }

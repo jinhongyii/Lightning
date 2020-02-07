@@ -3,10 +3,7 @@ package optim;
 import IR.Module;
 import IR.*;
 import IR.Types.PointerType;
-import IR.instructions.AllocaInst;
-import IR.instructions.LoadInst;
-import IR.instructions.PhiNode;
-import IR.instructions.StoreInst;
+import IR.instructions.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,7 +44,8 @@ public class Mem2reg extends FunctionPass {
                     useBB.addLast(((Instruction)defOrUse.getUser()).getParent());
                 }
             }
-            HashSet<BasicBlock> deadset = new HashSet<>();
+            HashSet<BasicBlock> defbbSet = new HashSet<>(defBB);
+            HashSet<BasicBlock> phiset = new HashSet<>();
             while (!defBB.isEmpty()) {
                var bb=defBB.pollLast();
                var df=dominatorAnalyzer.DominatorFrontier.get(bb);
@@ -57,15 +55,15 @@ public class Mem2reg extends FunctionPass {
                         newPhiInsts.get(i).put(alloca,new PhiNode(alloca.getName(), ((PointerType)alloca.getType()).getPtrType()) );
                         defBB.addLast(i);
                     }
-                    deadset.add(i);
+                    phiset.add(i);
                 }
             }
-            vis.clear();
-            for (var bb : useBB) {
-                checkDeadPhi(bb,deadset, alloca);
-            }
-            for (var dead : deadset) {
-                newPhiInsts.get(dead).remove(alloca);
+
+            var liveset= getLiveSet(alloca,defbbSet,useBB);
+            for (var bb : phiset) {
+                if (!liveset.contains(bb)) {
+                    newPhiInsts.get(bb).remove(alloca);
+                }
             }
             vis.clear();
             renameVars(function.getEntryBB(), null,null,alloca);
@@ -105,17 +103,43 @@ public class Mem2reg extends FunctionPass {
         }
     }
 
-    private void checkDeadPhi(BasicBlock basicBlock, HashSet<BasicBlock> deadset, AllocaInst allocaInst){
-        for(var node=dominatorAnalyzer.DominantTree.get(basicBlock);node!=null;node=node.idom) {
-            basicBlock=node.basicBlock;
-            if (newPhiInsts.containsKey(basicBlock) && newPhiInsts.get(basicBlock).containsKey(allocaInst) && deadset.contains(basicBlock)) {
-                deadset.remove(basicBlock);
-                for (var pred : basicBlock.getPredecessors()) {
-                    checkDeadPhi(pred, deadset, allocaInst);
+    private HashSet<BasicBlock> getLiveSet(AllocaInst allocaInst, HashSet<BasicBlock> defbb, LinkedList<BasicBlock> usebb){
+        HashSet<BasicBlock> liveSet=new HashSet<>();
+        LinkedList<BasicBlock> worklist=new LinkedList<>();
+        while (!usebb.isEmpty()) {
+            var bb=usebb.pollLast();
+            if (defbb.contains(bb)) {
+                boolean DefBeforeUse=false;
+                for (var inst = bb.getHead(); bb != null; inst=inst.getNext()) {
+                    if (inst instanceof StoreInst && ((StoreInst) inst).getPtr() == allocaInst) {
+                        DefBeforeUse=true;
+                        break;
+                    } else if (inst instanceof LoadInst && ((LoadInst) inst).getLoadTarget() == allocaInst) {
+                        break;
+                    }
+                }
+                if (!DefBeforeUse) {
+                    worklist.addLast(bb);
+                }
+            } else {
+                worklist.addLast(bb);
+            }
+        }
+        while (!worklist.isEmpty()) {
+            var bb=worklist.pollLast();
+
+            if (!liveSet.contains(bb)) {
+                liveSet.add(bb);
+            } else {
+                continue;
+            }
+            for (var pred : bb.getPredecessors()) {
+                if (!defbb.contains(bb)) {
+                    worklist.addLast(pred);
                 }
             }
         }
-
+        return liveSet;
 
     }
     private HashSet<BasicBlock> vis=new HashSet<>();
