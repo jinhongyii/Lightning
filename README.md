@@ -13,6 +13,14 @@
 - ir
   - use llvm ir
   - can test without having to implement a interpreter
-- optim
+- optims finished
   - mem2reg pass (ssa construction)
-  - other optimizations to be done
+  - adce
+  - sccp
+  - cse
+  - cfg simplify
+- optims to be done  
+  - inst combine
+  - inlining
+  - loop invariant
+  - alias analysis
