@@ -161,6 +161,8 @@ public class CSE extends FunctionPass {
             }
         }
         return changed;
+        //todo: eliminate useless gep ,cast and load
+        // alias analysis
     }
 
 }

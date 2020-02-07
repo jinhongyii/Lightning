@@ -115,6 +115,7 @@ public class BasicBlock extends  Value {
             this.prev.next = this.next;
         } else {
             parent.head=this.next;
+            parent.head.setName("entry");
         }
         if (this.next != null) {
             this.next.prev = this.prev;

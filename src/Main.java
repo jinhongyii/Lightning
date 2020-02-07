@@ -44,7 +44,7 @@ public class Main {
                 var cFGSimplifier=new CFGSimplifier(func);
                 var dominatorAnalysis=new DominatorAnalysis(func);
                 var mem2reg=new Mem2reg(func,dominatorAnalysis);
-                var dce=new DeadCodeElimination(func);
+                var adce=new ADCE(func,dominatorAnalysis);
                 var sccp=new SCCP(func);
                 var cse=new CSE(func,dominatorAnalysis);
                 cFGSimplifier.run();
@@ -55,7 +55,7 @@ public class Main {
                     changed=false;
                     dominatorAnalysis.run();
                     changed|=sccp.run();
-                    changed|=dce.run();
+                    changed|=adce.run();
                     changed|=cse.run();
                     changed|=cFGSimplifier.run();
                 }

@@ -36,7 +36,7 @@ public class CFGSimplifier extends FunctionPass {
     private boolean simplify(BasicBlock basicBlock){
         boolean change=false;
         change |= constantCondition(basicBlock);
-        if (basicBlock.getPredecessors().isEmpty() && !basicBlock.getName().equals("entry")) {
+        if (basicBlock.getPredecessors().isEmpty() && basicBlock!=function.getEntryBB()) {
             basicBlock.delete();
             return true;
         }
@@ -44,8 +44,13 @@ public class CFGSimplifier extends FunctionPass {
             var pred=basicBlock.getPredecessors().get(0);
             if (pred.getSuccessors().size() == 1 &&pred!=basicBlock) {
                 basicBlock.mergetoBB(pred);
-                change=true;
+                return true;
             }
+        }
+        if(basicBlock.getHead()==basicBlock.getTail() && basicBlock.getTerminator() instanceof  BranchInst && !((BranchInst) basicBlock.getTerminator()).isConditional()){
+            basicBlock.transferUses(basicBlock.getSuccessors().get(0));
+            basicBlock.delete();
+            return true;
         }
         return change;
         //todo:eliminate phiBB
