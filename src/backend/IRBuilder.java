@@ -285,9 +285,9 @@ public class IRBuilder implements ASTVisitor {
         Value condV;
         if (node.getCondition() != null) {
             condV = (Value) visit(node.getCondition());
-            condBB.addInst(new BranchInst(loopBB, afterLoopBB, condV));
+            curBB.addInst(new BranchInst(loopBB, afterLoopBB, condV));
         } else {
-            condBB.addInst(new BranchInst(loopBB,null,null));
+            curBB.addInst(new BranchInst(loopBB,null,null));
         }
         var prevLoopBB=curLoopBB;
         var prevAfterLoopBB=curAfterLoopBB;
