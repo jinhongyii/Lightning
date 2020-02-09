@@ -175,6 +175,9 @@ public class BasicBlock extends  Value {
         }
     }
     public void mergetoBB(BasicBlock other){
+        if (this == parent.returnBB) {
+            parent.returnBB=other;
+        }
         var tmp=other.tail;
         for (var inst = head; inst!=null; inst = inst.next) {
             inst.setParent(other);
@@ -186,6 +189,7 @@ public class BasicBlock extends  Value {
         this.head=null;
         this.tail=null;
         this.delete();
+
     }
 
 }

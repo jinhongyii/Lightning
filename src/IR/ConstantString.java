@@ -11,10 +11,12 @@ public class ConstantString extends Value{
 
     @Override
     public String toString() {
-        var tmp=val.replace("\n","\\0A");
+        var tmp=val.replace("\\", "\\5C");
+        tmp=tmp.replace("\n","\\0A");
         tmp=tmp.replace("\0", "\\00");
         tmp=tmp.replace("\t","\\09");
         tmp=tmp.replace("\"", "\\22");
+
         return "c\""+tmp+"\"";
     }
 }

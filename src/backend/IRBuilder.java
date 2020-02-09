@@ -646,6 +646,7 @@ public class IRBuilder implements ASTVisitor {
     }
 
     private Value generateNewArray(SemanticType type,int totdim, LinkedList<Value> dims){
+        //todo:may contain some bugs
         Function mallocFunc= (Function) topModule.getSymbolTable().get("malloc");
         ArrayList<Value> params = new ArrayList<>();
         Value firstDimV= dims.pollFirst();

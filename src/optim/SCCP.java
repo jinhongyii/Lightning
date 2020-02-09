@@ -222,9 +222,9 @@ public class SCCP extends FunctionPass implements IRVisitor {
                 }
             }
         }
-
-        makeConstant(phiNode, theOnlyConstant);
-
+        if(theOnlyConstant!=null) {
+            makeConstant(phiNode, theOnlyConstant);
+        }
         return null;
     }
 

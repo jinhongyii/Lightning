@@ -60,6 +60,7 @@ public class Module {
         str=str.replace("\\n","\n");
         str=str.replace("\\t", "\t");
         str=str.replace("\\\"","\"");
+        str=str.replace("\\\\","\\");
         str+="\0";
         return str;
     }

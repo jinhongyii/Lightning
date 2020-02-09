@@ -247,12 +247,15 @@ public class DominatorAnalysis extends FunctionPass {
         getIdoms(function.getEntryBB());
         treeRoot=buildDominantTree();
         BuildDominantFrontier();
+        postTreeRoot=null;
+        postDomTree.clear();
+        postDomFrontier.clear();
         cnt=0;
         for (var i = function.getHead(); i != null; i=i.getNext()) {
             i.dfsnum=0;
         }
         initializeArrays(bbnum);
-        getPostIdoms(function.getLastBB());
+        getPostIdoms(function.getReturnBB());
         postTreeRoot=buildPostDomTree();
         BuildPostDomFrontier();
         return false;
