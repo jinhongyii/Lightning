@@ -127,7 +127,7 @@ public class SCCP extends FunctionPass implements IRVisitor {
         var op1State=getState(binaryOpInst.getLhs());
         var op2State=getState(binaryOpInst.getRhs());
         if (op1State.valState == ValState.constant && op2State.valState == ValState.constant) {
-            var constFold=ConstantFolding.constFoldBinaryInst(binaryOpInst.getOpcode(), null,op1State.getConstant(), op2State.getConstant());
+            var constFold=ConstantFolding.constFoldBinaryOpInst(binaryOpInst.getOpcode(),op1State.getConstant(), op2State.getConstant());
             makeConstant(binaryOpInst,constFold);
         } else if (op1State.valState == ValState.multidefined || op2State.valState == ValState.multidefined) {
             makeMultiDefine(binaryOpInst);
@@ -184,7 +184,7 @@ public class SCCP extends FunctionPass implements IRVisitor {
         var op1State=getState(icmpInst.getLhs());
         var op2State=getState(icmpInst.getRhs());
         if (op1State.valState == ValState.constant && op2State.valState == ValState.constant) {
-            var constFold=ConstantFolding.constFoldIcmpInst(icmpInst.getOpcode(), null,op1State.getConstant(), op2State.getConstant());
+            var constFold=ConstantFolding.constFoldIcmpInst(icmpInst.getOpcode(),op1State.getConstant(), op2State.getConstant());
             makeConstant(icmpInst,constFold);
         } else if (op1State.valState == ValState.multidefined || op2State.valState == ValState.multidefined) {
             makeMultiDefine(icmpInst);
@@ -201,7 +201,7 @@ public class SCCP extends FunctionPass implements IRVisitor {
     @Override
     public Object visitPhiNode(PhiNode phiNode) {
         Value theOnlyConstant=null;
-        int cnt=0;
+
         for (int i = 0; i < phiNode.getOperands().size() / 2; i++) {
             var bb=phiNode.getBB(i);
             var value=phiNode.getValue(i);
@@ -211,20 +211,20 @@ public class SCCP extends FunctionPass implements IRVisitor {
                     makeMultiDefine(phiNode);
                     return null;
                 } else if (state.valState == ValState.constant) {
-                    cnt++;
                     if (theOnlyConstant == null) {
                         theOnlyConstant = state.constant;
                     } else {
                         if(!theOnlyConstant.equals(state.constant)){
                             makeMultiDefine(phiNode);
+                            return null;
                         }
                     }
                 }
             }
         }
-        if(cnt==1) {
-            makeConstant(phiNode, theOnlyConstant);
-        }
+
+        makeConstant(phiNode, theOnlyConstant);
+
         return null;
     }
 

@@ -47,6 +47,7 @@ public class Main {
                 var adce=new ADCE(func,dominatorAnalysis);
                 var sccp=new SCCP(func);
                 var cse=new CSE(func,dominatorAnalysis);
+                var instCombine=new InstCombine(func);
                 cFGSimplifier.run();
                 dominatorAnalysis.run();
                 mem2reg.run();
@@ -57,11 +58,11 @@ public class Main {
                     changed|=sccp.run();
                     changed|=adce.run();
                     changed|=cse.run();
+                    changed|=instCombine.run();
                     changed|=cFGSimplifier.run();
                 }
             }
         }
         IRPrinter ssaPrinter=new IRPrinter(topModule,"ssa.ll");
-
     }
 }

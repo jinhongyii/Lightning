@@ -110,7 +110,7 @@ public class Mem2reg extends FunctionPass {
             var bb=usebb.pollLast();
             if (defbb.contains(bb)) {
                 boolean DefBeforeUse=false;
-                for (var inst = bb.getHead(); bb != null; inst=inst.getNext()) {
+                for (var inst = bb.getHead(); inst != null; inst=inst.getNext()) {
                     if (inst instanceof StoreInst && ((StoreInst) inst).getPtr() == allocaInst) {
                         DefBeforeUse=true;
                         break;
@@ -134,7 +134,7 @@ public class Mem2reg extends FunctionPass {
                 continue;
             }
             for (var pred : bb.getPredecessors()) {
-                if (!defbb.contains(bb)) {
+                if (!defbb.contains(pred)) {
                     worklist.addLast(pred);
                 }
             }

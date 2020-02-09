@@ -45,6 +45,18 @@ public class BasicBlock extends  Value {
         inst.parent = this;
 
     }
+    public void addInstBefore(Instruction originalInst,Instruction newInst){
+        if (head == originalInst) {
+            head = newInst;
+            newInst.setNextInstruction(originalInst);
+        } else {
+            originalInst.prev.setNextInstruction(newInst);
+            newInst.setNextInstruction(originalInst);
+        }
+        parent.symtab.put(newInst.getName(), newInst);
+        newInst.parent=this;
+    }
+
     public void setParent(Function parent) {
         this.parent=parent;
     }
@@ -175,4 +187,5 @@ public class BasicBlock extends  Value {
         this.tail=null;
         this.delete();
     }
+
 }

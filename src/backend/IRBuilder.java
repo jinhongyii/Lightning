@@ -521,7 +521,7 @@ public class IRBuilder implements ASTVisitor {
         curBB.addInst(newinst);
         //if the member type is a derived type ,we just need to return a pointer
         ptr=newinst;
-        if (((RecordType) node.getInstanceType()).getFieldType().get(i).isPrimitiveType() && !lhs) {
+        if ( !lhs) {
             var loadinst=new LoadInst("load", newinst);
             curBB.addInst(loadinst);
             return loadinst;
@@ -732,14 +732,15 @@ public class IRBuilder implements ASTVisitor {
             var newInstance=new CallInst("malloc",mallocFunc,params);
             curBB.addInst(newInstance);
             Function ctor=(Function)topModule.getSymbolTable().get(node.getTypename()+"_"+node.getTypename());
+            var cast=new CastInst("cast", convertTypeLookUp(node.getSemanticType()), newInstance);
+            curBB.addInst(cast);
             if(ctor!=null) {
                 ArrayList<Value> params2 = new ArrayList<>();
-                params2.add(newInstance);
+                params2.add(cast);
                 var ctorCall = new CallInst(node.getTypename() + ".ctor", ctor, params2);
                 curBB.addInst(ctorCall);
             }
-            var cast=new CastInst("cast", convertTypeLookUp(node.getSemanticType()), newInstance);
-            curBB.addInst(cast);
+
             return cast;
         }
     }

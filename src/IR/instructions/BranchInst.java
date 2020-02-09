@@ -16,6 +16,13 @@ public class BranchInst extends Instruction {
     public boolean isConditional(){
         return operands.size()==3;
     }
+    public void setCond(Value cond){
+        operands.remove(2).delete();
+        operands.add(new Use(cond,this));
+    }
+    public void swapThenElse(){
+        operands.add(1,operands.remove(0));
+    }
     public BasicBlock getDstThen(){
         return (BasicBlock) operands.get(0).getVal();
     }

@@ -5,6 +5,7 @@ import IR.*;
 import IR.instructions.BinaryOpInst;
 import IR.instructions.CastInst;
 import IR.instructions.IcmpInst;
+import semantic.NullType;
 
 public class ConstantFolding extends FunctionPass {
 
@@ -46,12 +47,12 @@ public class ConstantFolding extends FunctionPass {
         if(inst instanceof BinaryOpInst){
             var lhs=((BinaryOpInst) inst).getLhs();
             var rhs=((BinaryOpInst) inst).getRhs();
-            replaceVal = constFoldBinaryInst(inst.getOpcode(), replaceVal, lhs, rhs);
+            replaceVal = constFoldBinaryOpInst(inst.getOpcode(), lhs, rhs);
 
         }else if(inst instanceof IcmpInst){
             var lhs=((IcmpInst) inst).getLhs();
             var rhs=((IcmpInst) inst).getRhs();
-            replaceVal = constFoldIcmpInst(inst.getOpcode(), replaceVal, lhs, rhs);
+            replaceVal = constFoldIcmpInst(inst.getOpcode(), lhs, rhs);
         } else if (inst instanceof CastInst) {
             var source=inst.getOperands().get(0).getVal();
             replaceVal = constFoldCastInst(inst.getType(), replaceVal, source);
@@ -68,7 +69,8 @@ public class ConstantFolding extends FunctionPass {
         return replaceVal;
     }
 
-    public static Value constFoldIcmpInst(Instruction.Opcode opcode, Value replaceVal, Value lhs, Value rhs) {
+    public static Value constFoldIcmpInst(Instruction.Opcode opcode, Value lhs, Value rhs) {
+        Value replaceVal=null;
         if (lhs instanceof ConstantInt && rhs instanceof ConstantInt) {
             var constLhs=((ConstantInt) lhs).getVal();
             var constRhs=((ConstantInt) rhs).getVal();
@@ -95,8 +97,16 @@ public class ConstantFolding extends FunctionPass {
         }
         return replaceVal;
     }
-
-    public static Value constFoldBinaryInst(Instruction.Opcode opcode, Value replaceVal, Value lhs, Value rhs) {
+    public static Value constFoldBinaryOperation(Instruction.Opcode opcode, Value lhs, Value rhs){
+        switch (opcode){
+            case EQ:case NE:case LT:case LE:case GE:case GT:
+                return constFoldIcmpInst(opcode,lhs,rhs);
+            default:
+                return constFoldBinaryOpInst(opcode,lhs,rhs);
+        }
+    }
+    public static Value constFoldBinaryOpInst(Instruction.Opcode opcode,  Value lhs, Value rhs) {
+        Value replaceVal=null;
         if (lhs instanceof ConstantInt && rhs instanceof ConstantInt) {
             var constLhs=(ConstantInt) lhs;
             var constRhs=(ConstantInt) rhs;
@@ -111,6 +121,14 @@ public class ConstantFolding extends FunctionPass {
                 case xor:replaceVal=new ConstantInt(constLhs.getVal() ^ constRhs.getVal());break;
                 case shl:replaceVal=new ConstantInt(constLhs.getVal()<<constRhs.getVal());break;
                 case shr:replaceVal=new ConstantInt(constLhs.getVal()>>constRhs.getVal());break;
+            }
+        } else if ((lhs instanceof ConstantBool && rhs instanceof ConstantBool)) {
+            var constLhs=(ConstantBool) lhs;
+            var constRhs=(ConstantBool) rhs;
+            switch (opcode) {
+                case and:replaceVal=new ConstantBool(constLhs.isTrue()& constRhs.isTrue());break;
+                case or:replaceVal=new ConstantBool(constLhs.isTrue() | constRhs.isTrue());break;
+                case xor:replaceVal=new ConstantBool(constLhs.isTrue() ^ constRhs.isTrue());break;
             }
         }
         return replaceVal;

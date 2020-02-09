@@ -4,6 +4,7 @@ import IR.Function;
 import IR.Instruction;
 import IR.Module;
 import IR.instructions.BinaryOpInst;
+import IR.instructions.CastInst;
 import IR.instructions.GetElementPtrInst;
 import IR.instructions.IcmpInst;
 
@@ -132,6 +133,12 @@ public class CSE extends FunctionPass {
                 operands.add(val.getVal().toString());
             }
             exprs.add(new Expr(op,operands));
+        } else if (instruction instanceof CastInst) {
+            String op="cast";
+            ArrayList<String> operands=new ArrayList<>();
+            operands.add(instruction.getType().toString());
+            operands.add(instruction.getOperands().get(0).getVal().toString());
+            exprs.add(new Expr(op,operands));
         }
         return exprs;
     }
@@ -161,7 +168,7 @@ public class CSE extends FunctionPass {
             }
         }
         return changed;
-        //todo: eliminate useless gep ,cast and load
+        //todo: eliminate useless gep ,cast(inst combine will do it)  and load
         // alias analysis
     }
 

@@ -45,11 +45,13 @@ public class Use {
             delete();
         }
         this.val=val;
-        if (val.use_tail != null) {
-            val.use_tail.setNextUse(this);
-            val.use_tail = this;
-        } else {
-            val.use_tail=val.use_head=this;
+        if(val!=null) {
+            if (val.use_tail != null) {
+                val.use_tail.setNextUse(this);
+                val.use_tail = this;
+            } else {
+                val.use_tail = val.use_head = this;
+            }
         }
     }
     public void delete(){

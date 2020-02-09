@@ -17,6 +17,7 @@ public class ADCE extends FunctionPass {
         if (!markedSet.contains(instruction)) {
             markedSet.add(instruction);
             workList.addLast(instruction);
+            usefulBB.add(instruction.getParent());
         }
     }
     private void markTerminator(BasicBlock bb){
@@ -90,6 +91,9 @@ public class ADCE extends FunctionPass {
         return changed;
     }
     private void initialize() {
+        markedSet.clear();
+        usefulBB.clear();
+        workList.clear();
         for (var bb = function.getHead(); bb != null; bb = bb.getNext()) {
             for (var inst = bb.getHead(); inst != null; inst = inst.getNext()) {
                 if(isCritical(inst)){

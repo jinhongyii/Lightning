@@ -47,11 +47,11 @@ public class CFGSimplifier extends FunctionPass {
                 return true;
             }
         }
-        if(basicBlock.getHead()==basicBlock.getTail() && basicBlock.getTerminator() instanceof  BranchInst && !((BranchInst) basicBlock.getTerminator()).isConditional()){
-            basicBlock.transferUses(basicBlock.getSuccessors().get(0));
-            basicBlock.delete();
-            return true;
-        }
+//        if(basicBlock != basicBlock.getParent().getEntryBB() && basicBlock.getHead()==basicBlock.getTail() && basicBlock.getTerminator() instanceof  BranchInst && !((BranchInst) basicBlock.getTerminator()).isConditional()){
+//            basicBlock.transferUses(basicBlock.getSuccessors().get(0));
+//            basicBlock.delete();
+//            return true;
+//        }
         return change;
         //todo:eliminate phiBB
     }
