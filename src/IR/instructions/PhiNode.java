@@ -31,6 +31,23 @@ public class PhiNode extends Instruction {
     public Value getValue(int index){
         return operands.get(index*2).getVal();
     }
+    public BasicBlock findBB(Value value){
+        for (int i = 0; i < operands.size() / 2; i++) {
+            if (getValue(i) == value) {
+                return getBB(i);
+            }
+        }
+        return null;
+    }
+
+    public Value findValue(BasicBlock basicBlock) {
+        for (int i = 0; i < operands.size() / 2; i++) {
+            if (getBB(i) == basicBlock) {
+                return getValue(i);
+            }
+        }
+        return null;
+    }
     @Override
     public Object accept(IRVisitor visitor) {
         return visitor.visitPhiNode(this);
