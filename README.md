@@ -19,8 +19,8 @@
   - sccp
   - cse
   - cfg simplify
-- optims to be done  
   - inst combine
   - inlining
+- optims to be done  
   - loop invariant
   - alias analysis
