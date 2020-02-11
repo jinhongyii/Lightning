@@ -16,6 +16,15 @@ public class GetElementPtrInst extends Instruction {
         }
     }
 
+    @Override
+    public Instruction cloneInst() {
+        ArrayList<Value> idx=new ArrayList<>();
+        for (int i = 1; i < operands.size(); i++) {
+            idx.add(operands.get(i).getVal());
+        }
+        return new GetElementPtrInst(this.getName(),operands.get(0).getVal(),idx);
+    }
+
     private static Type getInnerType(Type ptrType, ArrayList<Value> idx) {
         if (!(ptrType instanceof PointerType)) {
             return null;

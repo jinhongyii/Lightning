@@ -13,4 +13,9 @@ public class IcmpInst extends BinaryOperation {
     public Object accept(IRVisitor visitor) {
         return visitor.visitIcmpInst(this);
     }
+
+    @Override
+    public Instruction cloneInst() {
+        return new IcmpInst(this.getName(),this.getOpcode(),getLhs(),getRhs());
+    }
 }

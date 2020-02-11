@@ -41,28 +41,27 @@ public class Main {
         IRPrinter irPrinter=new IRPrinter(topModule,"main.ll");
         for (var func : topModule.getFunctionList()) {
             if (!func.isExternalLinkage()) {
-                var cFGSimplifier=new CFGSimplifier(func);
-                var dominatorAnalysis=new DominatorAnalysis(func);
-                var mem2reg=new Mem2reg(func,dominatorAnalysis);
-                var adce=new ADCE(func,dominatorAnalysis);
-                var sccp=new SCCP(func);
-                var cse=new CSE(func,dominatorAnalysis);
-                var instCombine=new InstCombine(func);
-                cFGSimplifier.run();
-                dominatorAnalysis.run();
-                mem2reg.run();
-                boolean changed=true;
-                while(changed) {
-                    changed=false;
-                    dominatorAnalysis.run();
-                    changed|=sccp.run();
-                    changed|=adce.run();
-                    changed|=cse.run();
-                    changed|=instCombine.run();
-                    changed|=cFGSimplifier.run();
-                }
+               Optimizer optimizer=new Optimizer(func);
+               optimizer.run();
             }
         }
         IRPrinter ssaPrinter=new IRPrinter(topModule,"ssa.ll");
+        boolean changed=true;
+        while(changed) {
+            changed=false;
+            Inliner inliner = new Inliner(topModule);
+            inliner.run();
+            IRPrinter inlinePrinter = new IRPrinter(topModule, "inline.ll");
+            for (var func : topModule.getFunctionList()) {
+                if (!func.isExternalLinkage()) {
+                    Optimizer optimizer = new Optimizer(func);
+                    changed|=optimizer.run();
+                }
+            }
+        }
+        DeadFunctionElimination dfe=new DeadFunctionElimination(topModule);
+        dfe.run();
+        IRPrinter finalPrinter=new IRPrinter(topModule,"final.ll");
+
     }
 }

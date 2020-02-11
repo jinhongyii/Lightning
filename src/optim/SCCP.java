@@ -128,7 +128,9 @@ public class SCCP extends FunctionPass implements IRVisitor {
         var op2State=getState(binaryOpInst.getRhs());
         if (op1State.valState == ValState.constant && op2State.valState == ValState.constant) {
             var constFold=ConstantFolding.constFoldBinaryOpInst(binaryOpInst.getOpcode(),op1State.getConstant(), op2State.getConstant());
-            makeConstant(binaryOpInst,constFold);
+            if (constFold != null) {
+                makeConstant(binaryOpInst, constFold);
+            }
         } else if (op1State.valState == ValState.multidefined || op2State.valState == ValState.multidefined) {
             makeMultiDefine(binaryOpInst);
         }

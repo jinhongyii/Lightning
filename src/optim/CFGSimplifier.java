@@ -129,6 +129,15 @@ public class CFGSimplifier extends FunctionPass {
                 BasicBlock newdst=null;
                 if (cond instanceof ConstantBool) {
                     newdst=((ConstantBool) cond).isTrue()?dst1:dst2;
+                    if (((ConstantBool) cond).isTrue()) {
+                        for (var inst = dst2.getHead(); inst instanceof PhiNode; inst = inst.getNext()) {
+                            ((PhiNode) inst).removeIncoming(basicBlock);
+                        }
+                    } else {
+                        for (var inst = dst1.getHead(); inst instanceof PhiNode; inst = inst.getNext()) {
+                            ((PhiNode) inst).removeIncoming(basicBlock);
+                        }
+                    }
                 } else if (dst1 == dst2) {
                     newdst=dst1;
                 }

@@ -70,4 +70,7 @@ public class Instruction extends User {
             use.delete();
         }
     }
+    public Instruction cloneInst(){
+        return null;
+    }
 }

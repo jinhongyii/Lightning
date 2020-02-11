@@ -73,7 +73,9 @@ public class BasicBlock extends  Value {
         return visitor.visitBasicBlock(this);
     }
     public void setNextBB(BasicBlock next){
-        next.prev=this;
+        if(next!=null) {
+            next.prev = this;
+        }
         this.next=next;
     }
     public Function getParent() {
@@ -127,7 +129,9 @@ public class BasicBlock extends  Value {
             this.prev.next = this.next;
         } else {
             parent.head=this.next;
-            parent.head.setName("entry");
+            if(parent.head!=null) {
+                parent.head.setName("entry");
+            }
         }
         if (this.next != null) {
             this.next.prev = this.prev;
@@ -178,6 +182,11 @@ public class BasicBlock extends  Value {
         if (this == parent.returnBB) {
             parent.returnBB=other;
         }
+        for (var suc : getSuccessors()) {
+            for (var inst = suc.getHead(); inst instanceof PhiNode; inst = inst.getNext()) {
+                ((PhiNode) inst).replaceIncomingBlock(this,other);
+            }
+        }
         var tmp=other.tail;
         for (var inst = head; inst!=null; inst = inst.next) {
             inst.setParent(other);
@@ -190,6 +199,35 @@ public class BasicBlock extends  Value {
         this.tail=null;
         this.delete();
 
+    }
+    //inst will be removed
+    public BasicBlock split(Instruction inst){
+        var newBB=new BasicBlock("split");
+        for (var suc : getSuccessors()) {
+            for (var phi = suc.getHead(); phi instanceof PhiNode; phi = phi.getNext()) {
+                ((PhiNode) phi).replaceIncomingBlock(this,newBB);
+            }
+        }
+        for (var tailInst = this.tail; tailInst != inst;) {
+            tail=tail.prev;
+            tail.next=null;
+            tailInst.prev=null;
+            tailInst.next=null;
+            if(newBB.tail==null){
+                newBB.head=newBB.tail=tailInst;
+            }else {
+                tailInst.setNextInstruction(newBB.head);
+                newBB.head = tailInst;
+            }
+            tailInst.parent = newBB;
+            tailInst=tail;
+        }
+        if (parent.returnBB == this) {
+            parent.returnBB=newBB;
+        }
+        this.addInst(new BranchInst(newBB,null,null ));
+        this.parent.addBB(newBB);
+        return newBB;
     }
 
 }

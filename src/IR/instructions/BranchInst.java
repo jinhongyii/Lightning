@@ -43,4 +43,13 @@ public class BranchInst extends Instruction {
     public Object accept(IRVisitor visitor) {
         return visitor.visitBranchInst(this);
     }
+
+    @Override
+    public Instruction cloneInst() {
+        if (this.isConditional()) {
+            return new BranchInst(getDstThen(), getDstElse(), getCondition());
+        } else {
+            return new BranchInst(getDstThen(),null,null);
+        }
+    }
 }

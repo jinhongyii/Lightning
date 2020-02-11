@@ -20,4 +20,9 @@ public class StoreInst extends Instruction {
     public Value getPtr(){
         return operands.get(1).getVal();
     }
+
+    @Override
+    public Instruction cloneInst() {
+        return new StoreInst(operands.get(0).getVal(), operands.get(1).getVal());
+    }
 }

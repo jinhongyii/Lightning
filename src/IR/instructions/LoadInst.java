@@ -19,4 +19,9 @@ public class LoadInst extends Instruction {
     public Value getLoadTarget(){
         return operands.get(0).getVal();
     }
+
+    @Override
+    public Instruction cloneInst() {
+        return new LoadInst(this.getName(), this.operands.get(0).getVal());
+    }
 }

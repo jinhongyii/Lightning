@@ -15,4 +15,9 @@ public class CastInst extends Instruction {
     public Object accept(IRVisitor visitor) {
         return visitor.visitCastInst(this);
     }
+
+    @Override
+    public Instruction cloneInst() {
+        return new CastInst(this.getName(),this.getType(),operands.get(0).getVal());
+    }
 }

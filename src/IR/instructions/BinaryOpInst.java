@@ -14,4 +14,9 @@ public class BinaryOpInst extends BinaryOperation {
     public Object accept(IRVisitor visitor) {
         return visitor.visitBinaryOpInst(this);
     }
+
+    @Override
+    public Instruction cloneInst() {
+        return new BinaryOpInst(this.getName(),this.getOpcode(),this.getLhs(),this.getRhs());
+    }
 }

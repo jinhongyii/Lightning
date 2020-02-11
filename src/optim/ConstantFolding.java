@@ -114,8 +114,20 @@ public class ConstantFolding extends FunctionPass {
                 case add:replaceVal=new ConstantInt(constLhs.getVal()+constRhs.getVal());break;
                 case sub:replaceVal=new ConstantInt(constLhs.getVal()-constRhs.getVal());break;
                 case mul:replaceVal=new ConstantInt(constLhs.getVal()*constRhs.getVal());break;
-                case div:replaceVal=new ConstantInt(constLhs.getVal()/constRhs.getVal());break;
-                case rem:replaceVal=new ConstantInt(constLhs.getVal()%constRhs.getVal());break;
+                case div: {
+                    if (constRhs.getVal() == 0) {
+                        return null;
+                    }
+                    replaceVal = new ConstantInt(constLhs.getVal() / constRhs.getVal());
+                    break;
+                }
+                case rem: {
+                    if (constRhs.getVal() == 0) {
+                        return null;
+                    }
+                    replaceVal = new ConstantInt(constLhs.getVal() % constRhs.getVal());
+                    break;
+                }
                 case and:replaceVal=new ConstantInt(constLhs.getVal()& constRhs.getVal());break;
                 case or:replaceVal=new ConstantInt(constLhs.getVal() | constRhs.getVal());break;
                 case xor:replaceVal=new ConstantInt(constLhs.getVal() ^ constRhs.getVal());break;

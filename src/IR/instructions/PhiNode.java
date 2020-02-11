@@ -48,6 +48,24 @@ public class PhiNode extends Instruction {
         }
         return null;
     }
+
+    public void replaceIncomingBlock(BasicBlock prevBlock, BasicBlock newBlock) {
+        for (int i = 0; i < operands.size() / 2; i++) {
+            if (getBB(i) == prevBlock) {
+                operands.get(i*2+1).setValue(newBlock);
+            }
+        }
+    }
+
+    @Override
+    public Instruction cloneInst() {
+        var clone= new PhiNode(this.getName(),this.getType());
+        for (int i = 0; i < operands.size() / 2; i++) {
+            clone.addIncoming(getValue(i), getBB(i));
+        }
+        return clone;
+    }
+
     @Override
     public Object accept(IRVisitor visitor) {
         return visitor.visitPhiNode(this);
