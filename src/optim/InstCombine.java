@@ -89,6 +89,28 @@ public class InstCombine extends FunctionPass implements IRVisitor {
         prev.delete();
         return now;
     }
+    private Value simplifyWithoutAddInst(Value lhs, Value rhs, Instruction.Opcode opcode){
+        switch (opcode) {
+            case add:
+                if (rhs instanceof ConstantInt && ((ConstantInt) rhs).getVal() == 0) {
+                    return lhs;
+                }
+                if (lhs instanceof ConstantInt && ((ConstantInt) lhs).getVal() == 0) {
+                    return rhs;
+                }
+                break;
+            case sub:
+                if (lhs == rhs) {
+                    return new ConstantInt(0) ;
+                }
+                //x-0=0
+                if (rhs instanceof ConstantInt && ((ConstantInt) rhs).getVal() == 0) {
+                    return  lhs;
+                }
+                break;
+        }
+        return null;
+    }
     // put unary,const to right hand side
     private Instruction handleCommutativityAndAssociativity(BinaryOperation inst){
         Instruction replaceInst=null;
@@ -148,6 +170,65 @@ public class InstCombine extends FunctionPass implements IRVisitor {
             addInstBefore(inst,subInst);
             return replace(inst,subInst);
         }
+        if (lhs instanceof BinaryOpInst ) {
+            var binaryLhs=(BinaryOpInst)lhs;
+            var a_add_c=simplifyWithoutAddInst(binaryLhs.getLhs(), rhs, Instruction.Opcode.add);
+            var b_add_c=simplifyWithoutAddInst(binaryLhs.getRhs(),rhs, Instruction.Opcode.add);
+            var c_sub_b=simplifyWithoutAddInst(rhs,binaryLhs.getRhs(), Instruction.Opcode.sub);
+            if (binaryLhs.getOpcode() == Instruction.Opcode.add) {
+                //(a+b)+c
+                if (a_add_c != null) {
+                    var newAddInst=new BinaryOpInst("add", Instruction.Opcode.add,a_add_c,binaryLhs.getRhs());
+                    addInstBefore(inst,newAddInst);
+                    return replace(inst,newAddInst);
+                }
+                if (b_add_c != null) {
+                    var newAddInst= new BinaryOpInst("add", Instruction.Opcode.add,b_add_c,binaryLhs.getLhs());
+                    addInstBefore(inst,newAddInst);
+                    return replace(inst,newAddInst);
+                }
+            } else if (binaryLhs.getOpcode() == Instruction.Opcode.sub) {
+                //(a-b)+c
+                if (a_add_c != null) {
+                    var newSubInst = new BinaryOpInst("sub", Instruction.Opcode.sub, a_add_c, binaryLhs.getRhs());
+                    addInstBefore(inst, newSubInst);
+                    return replace(inst, newSubInst);
+                } else if(c_sub_b!=null) {
+                    var newAddInst=new BinaryOpInst("add", Instruction.Opcode.add,binaryLhs.getLhs(),c_sub_b);
+                    addInstBefore(inst,newAddInst);
+                    return replace(inst,newAddInst);
+                }
+            }
+        }
+        if (rhs instanceof BinaryOpInst) {
+            var binaryRhs=(BinaryOpInst) rhs;
+            var a_add_b=simplifyWithoutAddInst(lhs,binaryRhs.getLhs(), Instruction.Opcode.add);
+            var a_add_c=simplifyWithoutAddInst(lhs,binaryRhs.getRhs(), Instruction.Opcode.add);
+            var a_sub_c=simplifyWithoutAddInst(lhs,binaryRhs.getRhs(), Instruction.Opcode.sub);
+            if (binaryRhs.getOpcode() == Instruction.Opcode.add) {
+                //a+(b+c)
+                if (a_add_b != null) {
+                    var newAddInst=new BinaryOpInst("add", Instruction.Opcode.add,a_add_b,binaryRhs.getRhs());
+                    addInstBefore(inst,newAddInst);
+                    return replace(inst,newAddInst);
+                } else if (a_add_c != null) {
+                    var newAddInst=new BinaryOpInst("add", Instruction.Opcode.add,a_add_c,binaryRhs.getLhs());
+                    addInstBefore(inst,newAddInst);
+                    return replace(inst,newAddInst);
+                }
+            } else if (binaryRhs.getOpcode() == Instruction.Opcode.sub) {
+                //a+(b-c)
+                if (a_add_b != null) {
+                    var newSubInst=new BinaryOpInst("sub", Instruction.Opcode.sub,a_add_b,binaryRhs.getRhs());
+                    addInstBefore(inst,newSubInst);
+                    return replace(inst,newSubInst);
+                } else if (a_sub_c != null) {
+                    var newAddInst=new BinaryOpInst("add", Instruction.Opcode.add,a_sub_c,binaryRhs.getLhs());
+                    addInstBefore(inst,newAddInst);
+                    return replace(inst,newAddInst);
+                }
+            }
+        }
         return inst;
     }
 
@@ -178,6 +259,62 @@ public class InstCombine extends FunctionPass implements IRVisitor {
             var notInst=new BinaryOpInst(inst.getName(), Instruction.Opcode.xor,rhs,new ConstantInt(-1));
             addInstBefore(inst,notInst);
             return replace(inst,notInst);
+        }
+        if (lhs instanceof BinaryOpInst) {
+            var binaryLhs=(BinaryOpInst)lhs;
+            var a_sub_c=simplifyWithoutAddInst(binaryLhs.getLhs(),rhs, Instruction.Opcode.sub);
+            var b_sub_c=simplifyWithoutAddInst(binaryLhs.getRhs(),rhs, Instruction.Opcode.sub);
+            var b_add_c=simplifyWithoutAddInst(binaryLhs.getRhs(),rhs, Instruction.Opcode.add);
+            if (binaryLhs.getOpcode() == Instruction.Opcode.add) {
+                //(a+b)-c
+                if (a_sub_c != null) {
+                    var newAddInst=new BinaryOpInst("add", Instruction.Opcode.add,a_sub_c,binaryLhs.getRhs());
+                    addInstBefore(inst,newAddInst);
+                    return replace(inst,newAddInst);
+                } else if (b_sub_c != null) {
+                    var newAddInst=new BinaryOpInst("add", Instruction.Opcode.add,b_sub_c,binaryLhs.getLhs());
+                    addInstBefore(inst,newAddInst);
+                    return replace(inst,newAddInst);
+                }
+            } else if (binaryLhs.getOpcode() == Instruction.Opcode.sub) {
+                //(a-b)-c
+                if (a_sub_c != null) {
+                    var newSubInst=new BinaryOpInst("sub", Instruction.Opcode.sub,a_sub_c,binaryLhs.getRhs());
+                    addInstBefore(inst,newSubInst);
+                    return replace(inst,newSubInst);
+                } else if (b_add_c != null) {
+                    var newSubInst=new BinaryOpInst("sub", Instruction.Opcode.sub,binaryLhs.getLhs(),b_add_c);
+                    addInstBefore(inst,newSubInst);
+                    return replace(inst,newSubInst);
+                }
+            }
+        }
+        if (rhs instanceof BinaryOpInst) {
+            var binaryRhs=(BinaryOpInst)rhs;
+            var a_sub_b=simplifyWithoutAddInst(lhs,binaryRhs.getLhs(), Instruction.Opcode.sub);
+            var a_sub_c=simplifyWithoutAddInst(lhs,binaryRhs.getRhs(), Instruction.Opcode.sub);
+            var a_add_c=simplifyWithoutAddInst(lhs,binaryRhs.getRhs(), Instruction.Opcode.add);
+            if (binaryRhs.getOpcode() == Instruction.Opcode.add) {
+                //a-(b+c)
+                if (a_sub_b != null) {
+                    var newSubInst=new BinaryOpInst("sub", Instruction.Opcode.sub,a_sub_b,binaryRhs.getRhs());
+                    addInstBefore(inst,newSubInst);
+                    return replace(inst,newSubInst);
+                } else if (a_sub_c != null) {
+                    var newSubInst=new BinaryOpInst("sub", Instruction.Opcode.sub,a_sub_c,binaryRhs.getLhs());
+                }
+            } else if (binaryRhs.getOpcode() == Instruction.Opcode.sub) {
+                //a-(b-c)
+                if (a_sub_b != null) {
+                    var newAddInst=new BinaryOpInst("add", Instruction.Opcode.add,a_sub_b,binaryRhs.getRhs());
+                    addInstBefore(inst,newAddInst);
+                    return replace(inst,newAddInst);
+                } else if (a_add_c != null) {
+                    var newSubInst=new BinaryOpInst("sub", Instruction.Opcode.sub,a_add_c,binaryRhs.getLhs());
+                    addInstBefore(inst,newSubInst);
+                    return replace(inst,newSubInst);
+                }
+            }
         }
         return inst;
     }

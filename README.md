@@ -24,3 +24,5 @@
 - optims to be done  
   - loop invariant
   - alias analysis
+  - dead argument elimination
+  - tail call elimination
