@@ -20,9 +20,12 @@ public class BasicBlock extends  Value {
     public void addInst(Instruction inst){
         if (tail == null) {
             head=tail=inst;
-        }else if(!(inst.isTerminator() && tail.isTerminator())) {
+            inst.setPrev(null);
+            inst.setNext(null);
+        }else if(!tail.isTerminator()) {
 //            instructionList.add(inst);
             tail.setNextInstruction(inst);
+            inst.setNext(null);
             tail = inst;
         }else {
             inst.delete();;
@@ -36,7 +39,10 @@ public class BasicBlock extends  Value {
     public void addInstToFirst(Instruction inst){
         if(tail==null){
             head=tail=inst;
+            inst.setPrev(null);
+            inst.setNext(null);
         }else {
+            inst.setPrev(null);
             inst.setNextInstruction(head);
             head = inst;
         }
@@ -46,14 +52,19 @@ public class BasicBlock extends  Value {
 
     }
     public void addInstBefore(Instruction originalInst,Instruction newInst){
+        attachBefore(originalInst, newInst);
+        parent.symtab.put(newInst.getName(), newInst);
+    }
+
+    public void attachBefore(Instruction originalInst, Instruction newInst) {
         if (head == originalInst) {
             head = newInst;
             newInst.setNextInstruction(originalInst);
+            newInst.setPrev(null);
         } else {
             originalInst.prev.setNextInstruction(newInst);
             newInst.setNextInstruction(originalInst);
         }
-        parent.symtab.put(newInst.getName(), newInst);
         newInst.parent=this;
     }
 
@@ -200,6 +211,23 @@ public class BasicBlock extends  Value {
         this.delete();
 
     }
+
+    public void setTail(Instruction tail) {
+        this.tail = tail;
+    }
+
+    public void setPrev(BasicBlock prev) {
+        this.prev = prev;
+    }
+
+    public void setNext(BasicBlock next) {
+        this.next = next;
+    }
+
+    public void setHead(Instruction head) {
+        this.head = head;
+    }
+
     //inst will be removed
     public BasicBlock split(Instruction inst){
         var newBB=new BasicBlock("split");

@@ -49,8 +49,26 @@ public class Instruction extends User {
         instruction.prev=this;
     }
 
+    public void setPrev(Instruction prev) {
+        this.prev = prev;
+    }
+
+    public void setNext(Instruction next) {
+        this.next = next;
+    }
+
     //must transfer use before delete
     public void delete(){
+        detach();
+        for (var use = use_head; use != null; use = use.next) {
+            use.delete();
+        }
+        for (var use : operands) {
+            use.delete();
+        }
+    }
+
+    public void detach() {
         if(this.parent!=null) {
             if (this.prev != null) {
                 this.prev.next = this.next;
@@ -63,13 +81,8 @@ public class Instruction extends User {
                 parent.tail = this.prev;
             }
         }
-        for (var use = use_head; use != null; use = use.next) {
-            use.delete();
-        }
-        for (var use : operands) {
-            use.delete();
-        }
     }
+
     public Instruction cloneInst(){
         return null;
     }

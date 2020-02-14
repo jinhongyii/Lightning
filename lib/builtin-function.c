@@ -1,6 +1,7 @@
 //
 // Created by jinho on 1/29/2020.
 //
+//todo: inline external functions
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

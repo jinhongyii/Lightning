@@ -142,14 +142,26 @@ public class IRBuilder implements ASTVisitor {
 
     //string can not  malloc
     private int getRecordMallocSize(SemanticType type) {
+        //todo: change to i32
         if (type.actual().isIntType()) {
             return 8;
         } else if(type.actual().isBoolType()){
             return 1;
         }  else if (type.actual().isRecordType()) {
             int tot = 0;
-            for (var i : ((RecordType) type.actual()).getFieldType()) {
-                tot +=i.isBoolType()?1:8;
+            ArrayList<SemanticType> fields = ((RecordType) type.actual()).getFieldType();
+            boolean has8Byte=false;
+            for (int i=0;i<fields.size();i++) {
+                has8Byte|=!fields.get(i).isBoolType();
+                if (i + 1 < fields.size()) {
+                    if (fields.get(i).isBoolType() && fields.get(i + 1).isBoolType()) {
+                        tot += 1;
+                    } else {
+                        tot+=8;
+                    }
+                } else {
+                    tot +=has8Byte? 8 - tot % 8:1;
+                }
             }
             return tot;
         } else {
@@ -646,7 +658,6 @@ public class IRBuilder implements ASTVisitor {
     }
 
     private Value generateNewArray(SemanticType type,int totdim, LinkedList<Value> dims){
-        //todo:may contain some bugs
         Function mallocFunc= (Function) topModule.getSymbolTable().get("malloc");
         ArrayList<Value> params = new ArrayList<>();
         Value firstDimV= dims.pollFirst();

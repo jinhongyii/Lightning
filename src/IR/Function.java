@@ -71,6 +71,11 @@ public class Function extends User{
             returnBB.addInst(new ReturnInst(realReturn));
         }
     }
+
+    public Module getParent() {
+        return parent;
+    }
+
     public void updateReturnBB(){
         if(!externalLinkage) {
             tail.addInst(new BranchInst(returnBB, null, null));

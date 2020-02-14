@@ -44,8 +44,8 @@ public class Main {
                Optimizer optimizer=new Optimizer(func);
                optimizer.run();
             }
+
         }
-        IRPrinter ssaPrinter=new IRPrinter(topModule,"ssa.ll");
         boolean changed=true;
         while(changed) {
             changed=false;
@@ -60,7 +60,7 @@ public class Main {
             }
         }
         DeadFunctionElimination dfe=new DeadFunctionElimination(topModule);
-        dfe.run();
+//        dfe.run();
         IRPrinter finalPrinter=new IRPrinter(topModule,"final.ll");
 
     }

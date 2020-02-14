@@ -30,6 +30,12 @@ public class IRPrinter implements IRVisitor {
         visitModule(module);
         bufferedWriter.flush();
     }
+    public IRPrinter(Function function,String fileName) throws IOException {
+        writer=new FileWriter("tmp/"+fileName);
+        bufferedWriter=new BufferedWriter(writer,8096);
+        visitFunction(function);
+        bufferedWriter.flush();
+    }
     @Override
     public Object visitModule(Module module) {
         print("target datalayout = \"e-m:e-i64:64-f80:128-n8:16:32:64-S128\"\n" +
