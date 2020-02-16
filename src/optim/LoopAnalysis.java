@@ -1,9 +1,7 @@
 package optim;
 
 
-import IR.BasicBlock;
-import IR.Function;
-import IR.User;
+import IR.*;
 import IR.instructions.BranchInst;
 import IR.instructions.PhiNode;
 
@@ -46,6 +44,14 @@ public class LoopAnalysis extends FunctionPass {
             }
             return null;
         }
+        public BasicBlock getBackEdge(){
+            for (var i : header.getPredecessors()) {
+                if (contains(i)) {
+                    return i;
+                }
+            }
+            return null;
+        }
     }
     DominatorAnalysis dominatorAnalysis;
     ArrayList<Loop> topLoops=new ArrayList<>();
@@ -61,6 +67,7 @@ public class LoopAnalysis extends FunctionPass {
         loopMap.clear();
         dfs(dominatorAnalysis.treeRoot);
         addPreHeader();
+        addBackedgeBB();
         return false;
     }
     private void dfs(DominatorAnalysis.Node node){
@@ -112,6 +119,7 @@ public class LoopAnalysis extends FunctionPass {
         var newPreHeader=addPreHeader(loop);
         if (newPreHeader != null) {
             loopMap.put(newPreHeader,curLoop);
+            curLoop.basicBlocks.add(newPreHeader);
         }
         curLoop=loop;
         for (var subLoop : loop.subLoops) {
@@ -156,5 +164,50 @@ public class LoopAnalysis extends FunctionPass {
         }
         return preHeader;
 
+    }
+    private void addBackedgeBB(Loop loop){
+        ArrayList<Use> backedge=new ArrayList<>();
+        var header=loop.header;
+        for (var use=header.getUse_head();use!=null;use=use.getNext()) {
+            var brInst=use.getUser();
+            if(brInst instanceof BranchInst){
+                if (loop.contains(((BranchInst) brInst).getParent())) {
+                    backedge.add(use);
+                }
+            }
+        }
+        if (backedge.size() == 1) {
+            return;
+        }
+        var backedgeBB=function.addBB("backedge");
+        backedgeBB.addInst(new BranchInst(header, null,null));
+        for (var phi = header.getHead(); phi instanceof PhiNode; phi = phi.getNext()) {
+            var newPhi = new PhiNode("phi", phi.getType());
+            backedgeBB.addInstToFirst(newPhi);
+            for (var pred : header.getPredecessors()) {
+                if (loop.contains(pred)) {
+                    var val = ((PhiNode) phi).findValue(pred);
+                    ((PhiNode) phi).removeIncoming(pred);
+                    newPhi.addIncoming(val,pred);
+                }
+            }
+            ((PhiNode) phi).addIncoming(newPhi,backedgeBB);
+        }
+        for (var use : backedge) {
+            use.setValue(backedgeBB);
+        }
+        loop.basicBlocks.add(backedgeBB);
+        loopMap.put(backedgeBB,loop);
+    }
+    private void addBackedgeBB(){
+        for (var loop : topLoops) {
+            recursiveAddBackedgeBB(loop);
+        }
+    }
+    private void recursiveAddBackedgeBB(Loop loop){
+        for (var subLoop : loop.subLoops) {
+            recursiveAddBackedgeBB(subLoop);
+        }
+        addBackedgeBB(loop);
     }
 }

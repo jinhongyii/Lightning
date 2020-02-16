@@ -21,7 +21,7 @@ public class IRPrinter implements IRVisitor {
             bufferedWriter.write(prefix + str + "\n");
         } catch (IOException e) {
             e.printStackTrace();
-        }
+    }
 
     }
     public IRPrinter(Module module,String filename) throws IOException {

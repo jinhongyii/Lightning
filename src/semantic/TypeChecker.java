@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class TypeChecker implements ASTVisitor {
     public static class semanticException extends Exception{
-        semanticException(String str){
+        public semanticException(String str){
             super(str);
         }
     }

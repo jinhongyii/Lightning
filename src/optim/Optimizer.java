@@ -15,6 +15,7 @@ public class Optimizer extends FunctionPass{
     private CSE cse;
     private InstCombine instCombine;
     private LICM licm;
+    private StrengthReduction strengthReduction;
     public Optimizer(Function function) {
         super(function);
         cfgSimplifier=new CFGSimplifier(function);
@@ -26,6 +27,7 @@ public class Optimizer extends FunctionPass{
         instCombine=new InstCombine(function);
         loopAnalysis=new LoopAnalysis(function,dominatorAnalysis);
         licm=new LICM(function,loopAnalysis,dominatorAnalysis);
+        strengthReduction=new StrengthReduction(function,loopAnalysis,dominatorAnalysis);
     }
 
     @Override
@@ -41,10 +43,11 @@ public class Optimizer extends FunctionPass{
             changed|=sccp.run();
             changed|=adce.run();
             changed|=cse.run();
-            changed|=instCombine.run();
             loopAnalysis.run();
             dominatorAnalysis.run();
             changed|=licm.run();
+            changed|=strengthReduction.run();
+            changed|=instCombine.run();
             cfgSimplifier.run();
             global_changed|=changed;
             try {

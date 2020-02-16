@@ -125,7 +125,7 @@ public class SymbolTable<Type> implements Iterable<SymbolTable.Entry<Type>>{
     }
     public boolean isGlobalVariable(String string){
         if (lookup(string) instanceof FuncEntry) {
-            return false;
+            return true;
         }
         if(!stack.get(0).contains(string)){
             return false;

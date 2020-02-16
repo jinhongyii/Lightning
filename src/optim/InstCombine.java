@@ -3,9 +3,7 @@ package optim;
 import IR.*;
 import IR.Module;
 import IR.instructions.*;
-import edu.princeton.cs.algs4.BinaryIn;
 
-import javax.accessibility.AccessibleValue;
 import java.util.LinkedList;
 
 public class InstCombine extends FunctionPass implements IRVisitor {

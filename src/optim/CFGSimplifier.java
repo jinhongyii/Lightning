@@ -9,7 +9,7 @@ import semantic.NullType;
 
 import java.util.HashMap;
 import java.util.HashSet;
-
+//todo: a lot
 public class CFGSimplifier extends FunctionPass {
     public  CFGSimplifier(Function function) {
         super(function);

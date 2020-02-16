@@ -189,7 +189,11 @@ public class IRBuilder implements ASTVisitor {
         } else if (type.actual().isStringType()) {
             return new PointerType(Type.TheInt8);
         } else if (type.actual().isArrayType()) {
-            return new PointerType(convertTypeInitialize(((ArrayType)type.actual()).getElementType()));
+            var innerType=convertTypeInitialize(((ArrayType)type.actual()).getElementType());
+            for(int i=0;i<((ArrayType)type.actual()).getDims();i++) {
+                innerType=new PointerType(innerType);
+            }
+            return innerType;
         } else if (type.actual().isNullType()) {
             return new PointerType(Type.theVoidType);
         } else if (type.actual().isBoolType()) {
@@ -765,13 +769,15 @@ public class IRBuilder implements ASTVisitor {
             Instruction storeInst = new StoreInst(tmpInst, ptr);
             curBB.addInst(tmpInst);
             curBB.addInst(storeInst);
-            return null;
+            ptr=null;
+            return originalV_rhs;
         } else {
             Instruction tmpInst = new BinaryOpInst("postfix_sub", Instruction.Opcode.sub, originalV_rhs, new ConstantInt(1));
             Instruction storeInst = new StoreInst(tmpInst, ptr);
             curBB.addInst(tmpInst);
             curBB.addInst(storeInst);
-            return null;
+            ptr=null;
+            return originalV_rhs;
         }
     }
 
