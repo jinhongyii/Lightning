@@ -9,13 +9,14 @@ import java.util.HashSet;
 
 public class LICM extends FunctionPass implements IRVisitor {
     LoopAnalysis loopAnalysis;
+    AliasAnalysis aliasAnalysis;
     DominatorAnalysis dominatorAnalysis;
     private HashSet<Instruction> invariableSet =new HashSet<>();
     private LoopAnalysis.Loop curLoop;
     private boolean changed;
-    LICM(Function function,LoopAnalysis loopAnalysis,DominatorAnalysis dominatorAnalysis) {
+    LICM(Function function,LoopAnalysis loopAnalysis,DominatorAnalysis dominatorAnalysis,AliasAnalysis aliasAnalysis) {
         super(function);
-
+        this.aliasAnalysis=aliasAnalysis;
         invariableSet.clear();
         curLoop=null;
         this.loopAnalysis=loopAnalysis;
@@ -102,7 +103,6 @@ public class LICM extends FunctionPass implements IRVisitor {
     public Object visitBinaryOpInst(BinaryOpInst binaryOpInst) {
         var lhs=binaryOpInst.getLhs();
         var rhs=binaryOpInst.getRhs();
-        //todo:maybe some hard operations shouldn't be hoisted
         if (isInvariable(lhs) && isInvariable(rhs)) {
             hoist(binaryOpInst);
             invariableSet.add(binaryOpInst);
@@ -149,9 +149,30 @@ public class LICM extends FunctionPass implements IRVisitor {
         return null;
     }
 
+
+
+    private boolean NotModifiedInLoop(Value ptr){
+        for (var bb : curLoop.basicBlocks) {
+            if (loopAnalysis.loopMap.get(bb) == curLoop) {
+                for (var inst = bb.getHead(); inst != null; inst = inst.getNext()) {
+                    AliasAnalysis.ModRef modRefInfo = aliasAnalysis.getModRefInfo(inst, ptr);
+                    if(modRefInfo == AliasAnalysis.ModRef.ModRef || modRefInfo== AliasAnalysis.ModRef.Mod){
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     @Override
     public Object visitLoadInst(LoadInst loadInst) {
         //todo:move useless load inst out
+        Value ptr = loadInst.getLoadTarget();
+        if (isInvariable(ptr) && NotModifiedInLoop(ptr)) {
+            hoist(loadInst);
+            invariableSet.add(loadInst);
+        }
         return null;
     }
 

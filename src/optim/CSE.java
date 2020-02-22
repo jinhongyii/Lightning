@@ -1,5 +1,6 @@
 package optim;
 
+import IR.BasicBlock;
 import IR.Function;
 import IR.Instruction;
 import IR.Module;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 public class CSE extends FunctionPass {
     private DominatorAnalysis dominatorAnalysis;
     private HashMap<Expr,Instruction> subexprMap=new HashMap<>();
+    private boolean changed;
     public CSE(Function function,DominatorAnalysis dominatorAnalysis) {
         super(function);
         this.dominatorAnalysis=dominatorAnalysis;
@@ -21,8 +23,10 @@ public class CSE extends FunctionPass {
 
     @Override
     public boolean run() {
+        changed=false;
         subexprMap.clear();
-        return CommonSubExpressionElimination();
+        CommonSubExpressionElimination();
+        return changed;
     }
     public static void runOnModule(Module module,DominatorAnalysis dominatorAnalysis){
         for (var func : module.getFunctionList()) {
@@ -142,34 +146,38 @@ public class CSE extends FunctionPass {
         }
         return exprs;
     }
-    private boolean CommonSubExpressionElimination(){
-        boolean changed=false;
-        for (var bb = function.getHead(); bb != null; bb = bb.getNext()) {
-            for (var inst = bb.getHead(); inst != null;) {
-                var tmp=inst.getNext();
-                var exprs= convertInstToExpr(inst);
-                if (exprs.size() != 0) {
-                    var prevExpr=subexprMap.get(exprs.get(0));
-                    if (prevExpr!=null) {
-                        var prevExprNode=dominatorAnalysis.DominantTree.get(prevExpr.getParent());
-                        var thisNode=dominatorAnalysis.DominantTree.get(bb);
-                        if(prevExprNode.dominate(thisNode)) {
-                            inst.transferUses(prevExpr);
-                            inst.delete();
-                            changed=true;
-                        }
-                    } else {
-                        for (var expr : exprs) {
-                            subexprMap.put(expr, inst);
-                        }
+    private void CommonSubExpressionElimination(){
+        recursiveProcessBB(dominatorAnalysis.treeRoot);
+    }
+
+    private void recursiveProcessBB(DominatorAnalysis.Node node) {
+        processBB(node.basicBlock );
+        for (var child : node.children) {
+            recursiveProcessBB(child);
+        }
+    }
+    private void processBB( BasicBlock bb) {
+        for (var inst = bb.getHead(); inst != null;) {
+            var tmp=inst.getNext();
+            var exprs= convertInstToExpr(inst);
+            if (exprs.size() != 0) {
+                var prevExpr=subexprMap.get(exprs.get(0));
+                if (prevExpr!=null) {
+                    var prevExprNode=dominatorAnalysis.DominantTree.get(prevExpr.getParent());
+                    var thisNode=dominatorAnalysis.DominantTree.get(bb);
+                    if(prevExprNode.dominate(thisNode)) {
+                        inst.transferUses(prevExpr);
+                        inst.delete();
+                        changed=true;
+                    }
+                } else {
+                    for (var expr : exprs) {
+                        subexprMap.put(expr, inst);
                     }
                 }
-                inst=tmp;
             }
+            inst=tmp;
         }
-        return changed;
-        //todo: eliminate useless gep ,cast(inst combine will do it)  and load
-        // alias analysis
     }
 
 }

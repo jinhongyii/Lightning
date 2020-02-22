@@ -16,12 +16,8 @@ public class SymbolTable<Type> implements Iterable<SymbolTable.Entry<Type>>{
     public Iterator<Entry<Type>> iterator() {
         int i=0;
 
-        for (i = 0; i < 1024; i++) {
-            if (hashtable[i] != null) {
-                break;
-            }
-        }
-        return new tableIterator(0,i==1023?null:hashtable[i]);
+
+        return new tableIterator(0,null);
     }
 
     public class tableIterator implements Iterator<Entry<Type>>{
@@ -38,7 +34,17 @@ public class SymbolTable<Type> implements Iterable<SymbolTable.Entry<Type>>{
         }
         @Override
         public Entry<Type> next() {
+
             iterated++;
+            if(now==null){
+                int i;
+                for (i = 0; i < 1024; i++) {
+                    if (hashtable[i] != null) {
+                        break;
+                    }
+                }
+                return now=hashtable[i];
+            }
             if (now.next != null) {
                 now = now.next;
             } else {

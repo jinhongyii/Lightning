@@ -2,6 +2,8 @@ package optim;
 
 import IR.BasicBlock;
 import IR.Function;
+import IR.Instruction;
+import IR.Value;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -277,5 +279,30 @@ public class DominatorAnalysis extends FunctionPass {
 
     public DominatorAnalysis(Function function){
         super(function);
+    }
+
+    public boolean dominate(Value val1, Value val2){
+        if (!(val1 instanceof Instruction)) {
+            return true;
+        }
+        if (!(val2 instanceof Instruction)) {
+            return false;
+        }
+        var inst1=(Instruction)val1;
+        var inst2=(Instruction)val2;
+        var bb1=inst1.getParent();
+        var bb2=inst2.getParent();
+        if (bb1 != bb2) {
+            var node1 = DominantTree.get(bb1);
+            var node2 = DominantTree.get(bb2);
+            return node1.dominate(node2);
+        } else {
+            for (var inst = inst1; inst != null; inst = inst.getNext()) {
+                if (inst == inst2) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

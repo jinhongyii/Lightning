@@ -4,13 +4,15 @@ import IR.*;
 import IR.Module;
 import IR.instructions.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class InstCombine extends FunctionPass implements IRVisitor {
     private LinkedList<Instruction> workList=new LinkedList<>();
-
-    public InstCombine(Function function) {
+    DominatorAnalysis dominatorAnalysis;
+    public InstCombine(Function function,DominatorAnalysis dominatorAnalysis) {
         super(function);
+        this.dominatorAnalysis=dominatorAnalysis;
     }
 
     @Override
@@ -244,6 +246,11 @@ public class InstCombine extends FunctionPass implements IRVisitor {
         //x-0=0
         if (rhs instanceof ConstantInt && ((ConstantInt) rhs).getVal() == 0) {
             return replace(inst, lhs);
+        }else if(rhs instanceof ConstantInt){
+            //x-c=x+(-c)
+            var addInst=new BinaryOpInst(inst.getName(), Instruction.Opcode.add,lhs,ConstantFolding.constFoldBinaryOpInst(Instruction.Opcode.sub,new ConstantInt(0),rhs));
+            addInstBefore(inst,addInst);
+            return replace(inst,addInst);
         }
         //x-(-a)=x+a
         if (isNeg(rhs)) {
@@ -471,13 +478,21 @@ public class InstCombine extends FunctionPass implements IRVisitor {
             if(rhsVal==0) {
                 return replace(inst, lhs);
             }
-            if (lhs instanceof BinaryOpInst && ((BinaryOpInst) lhs).getOpcode() == Instruction.Opcode.mul) {
+            if (lhs instanceof BinaryOpInst) {
                 var lhs_lhs=((BinaryOpInst) lhs).getLhs();
                 var lhs_rhs=((BinaryOpInst) lhs).getRhs();
-                if (lhs_rhs instanceof ConstantInt) {
-                    var newInst=new BinaryOpInst(inst.getName(), Instruction.Opcode.mul,lhs_lhs,ConstantFolding.constFoldBinaryOpInst(Instruction.Opcode.shl,lhs_rhs,rhs));
-                    addInstBefore(inst,newInst);
-                    return replace(inst,newInst);
+                if( ((BinaryOpInst) lhs).getOpcode() == Instruction.Opcode.mul) {
+                    if (lhs_rhs instanceof ConstantInt) {
+                        var newInst = new BinaryOpInst(inst.getName(), Instruction.Opcode.mul, lhs_lhs, ConstantFolding.constFoldBinaryOpInst(Instruction.Opcode.shl, lhs_rhs, rhs));
+                        addInstBefore(inst, newInst);
+                        return replace(inst, newInst);
+                    }
+                } else if (((BinaryOpInst) lhs).getOpcode() == Instruction.Opcode.shl) {
+                    if (lhs_rhs instanceof ConstantInt) {
+                        var newInst=new BinaryOpInst(inst.getName(), Instruction.Opcode.shl,lhs_lhs,ConstantFolding.constFoldBinaryOpInst(Instruction.Opcode.add,lhs_rhs,rhs));
+                        addInstBefore(inst, newInst);
+                        return replace(inst, newInst);
+                    }
                 }
             }
         }
@@ -493,6 +508,17 @@ public class InstCombine extends FunctionPass implements IRVisitor {
             var rhsVal=((ConstantInt) rhs).getVal();
             if(rhsVal==0) {
                 return replace(inst, lhs);
+            }
+            if (lhs instanceof BinaryOpInst) {
+                var lhs_lhs=((BinaryOpInst) lhs).getLhs();
+                var lhs_rhs=((BinaryOpInst) lhs).getRhs();
+                if (((BinaryOpInst) lhs).getOpcode() == Instruction.Opcode.shr) {
+                    if (lhs_rhs instanceof ConstantInt) {
+                        var newInst=new BinaryOpInst(inst.getName(), Instruction.Opcode.shr,lhs_lhs,ConstantFolding.constFoldBinaryOpInst(Instruction.Opcode.add,lhs_rhs,rhs));
+                        addInstBefore(inst, newInst);
+                        return replace(inst, newInst);
+                    }
+                }
             }
         }
         return inst;
@@ -543,6 +569,7 @@ public class InstCombine extends FunctionPass implements IRVisitor {
     @Override
     public Object visitGEPInst(GetElementPtrInst GEPInst) {
         boolean isAllZero=true;
+        var ptr=GEPInst.getOperands().get(0).getVal();
         for (int i = 1; i < GEPInst.getOperands().size();i++) {
             var idx=GEPInst.getOperands().get(i).getVal();
             if (!(idx instanceof ConstantInt) || ((ConstantInt) idx).getVal() != 0) {
@@ -551,13 +578,32 @@ public class InstCombine extends FunctionPass implements IRVisitor {
             }
         }
         if (isAllZero) {
-            var ptr=GEPInst.getOperands().get(0).getVal();
             if (GEPInst.getOperands().size() == 2) {
                 return replace(GEPInst, ptr);
             } else {
                 var castInst=new CastInst("cast", GEPInst.getType(),ptr );
                 addInstBefore(GEPInst, castInst);
                 return replace(GEPInst,castInst);
+            }
+        }
+        ArrayList<Value> offsetIdx=new ArrayList<>();
+        ArrayList<Value> referenceIdx=new ArrayList<>();
+        for (int i = 2; i < GEPInst.getOperands().size(); i++) {
+            referenceIdx.add(GEPInst.getOperands().get(i).getVal());
+        }
+        var ptrOffset=GEPInst.getOperands().get(1).getVal();
+        if (ptrOffset instanceof BinaryOpInst && hasOnlyOneUse(ptrOffset) && dominatorAnalysis.dominate(ptr,ptrOffset)) {
+            var lhs=((BinaryOpInst) ptrOffset).getLhs();
+            var rhs=((BinaryOpInst) ptrOffset).getRhs();
+            if (((BinaryOpInst) ptrOffset).getOpcode() == Instruction.Opcode.add) {
+                offsetIdx.add(lhs);
+                referenceIdx.add(0,rhs);
+                var offsetInst=new GetElementPtrInst("scevgep", ptr,offsetIdx);
+                addInstBefore((Instruction) ptrOffset, offsetInst);
+                ((BinaryOpInst) ptrOffset).delete();
+                var referenceInst=new GetElementPtrInst(GEPInst.getName(),offsetInst,referenceIdx);
+                addInstBefore(GEPInst,referenceInst);
+                return replace(GEPInst,referenceInst);
             }
         }
         return GEPInst;

@@ -16,18 +16,21 @@ public class Optimizer extends FunctionPass{
     private InstCombine instCombine;
     private LICM licm;
     private StrengthReduction strengthReduction;
-    public Optimizer(Function function) {
+    private AliasAnalysis aa;
+    private RedundantLoadElimination loadElimination;
+    public Optimizer(Function function,AliasAnalysis aa) {
         super(function);
         cfgSimplifier=new CFGSimplifier(function);
         dominatorAnalysis=new DominatorAnalysis(function);
         mem2reg=new Mem2reg(function,dominatorAnalysis);
         adce=new ADCE(function,dominatorAnalysis);
         sccp=new SCCP(function);
-        cse=new CSE(function,dominatorAnalysis);
-        instCombine=new InstCombine(function);
+        instCombine=new InstCombine(function,dominatorAnalysis);
         loopAnalysis=new LoopAnalysis(function,dominatorAnalysis);
-        licm=new LICM(function,loopAnalysis,dominatorAnalysis);
+        licm=new LICM(function,loopAnalysis,dominatorAnalysis,aa);
         strengthReduction=new StrengthReduction(function,loopAnalysis,dominatorAnalysis);
+        cse=new CSE(function,dominatorAnalysis);
+        loadElimination=new RedundantLoadElimination(function,dominatorAnalysis,aa);
     }
 
     @Override
@@ -42,12 +45,14 @@ public class Optimizer extends FunctionPass{
             dominatorAnalysis.run();
             changed|=sccp.run();
             changed|=adce.run();
-            changed|=cse.run();
             loopAnalysis.run();
             dominatorAnalysis.run();
-            changed|=licm.run();
             changed|=strengthReduction.run();
             changed|=instCombine.run();
+            changed|=cse.run();
+            changed|=loadElimination.run();
+            changed|=cse.run();
+            changed|=licm.run();
             cfgSimplifier.run();
             global_changed|=changed;
             try {

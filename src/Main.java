@@ -39,9 +39,10 @@ public class Main {
         IRBuilder irBuilder=new IRBuilder(typeTable,valTable,builder.getASTStartNode());
         Module topModule = irBuilder.getTopModule();
         IRPrinter irPrinter=new IRPrinter(topModule,"main.ll");
+        AliasAnalysis aa=new AliasAnalysis();
         for (var func : topModule.getFunctionList()) {
             if (!func.isExternalLinkage()) {
-               Optimizer optimizer=new Optimizer(func);
+               Optimizer optimizer=new Optimizer(func,aa);
                optimizer.run();
             }
 
@@ -54,13 +55,13 @@ public class Main {
             IRPrinter inlinePrinter = new IRPrinter(topModule, "inline.ll");
             for (var func : topModule.getFunctionList()) {
                 if (!func.isExternalLinkage()) {
-                    Optimizer optimizer = new Optimizer(func);
+                    Optimizer optimizer = new Optimizer(func,aa);
                     changed|=optimizer.run();
                 }
             }
         }
         DeadFunctionElimination dfe=new DeadFunctionElimination(topModule);
-//        dfe.run();
+        dfe.run();
         IRPrinter finalPrinter=new IRPrinter(topModule,"final.ll");
 
     }
