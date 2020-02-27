@@ -667,7 +667,7 @@ public class IRBuilder implements ASTVisitor {
         ArrayList<Value> params = new ArrayList<>();
         Value firstDimV= dims.pollFirst();
         assert firstDimV != null;
-        int size=totdim==1?(type.isBoolType()?1:ptrSize):ptrSize;//元素大小
+        int size=totdim==1?(type.isBoolType()?1:4):ptrSize;//元素大小
         var memberLength=new BinaryOpInst("mul", Instruction.Opcode.mul, firstDimV,new ConstantInt(size));
         var totLength=new BinaryOpInst("add", Instruction.Opcode.add,memberLength,new ConstantInt(ptrSize));//int 大小
         params.add(totLength);
