@@ -17,21 +17,23 @@ public class AliasAnalysis implements Pass {
         if (v1 == v2) {
             return AliasResult.MustAlias;
         }
-        if (v1 instanceof GetElementPtrInst && v2 instanceof GetElementPtrInst && ((GetElementPtrInst) v1).getOperands().size()==((GetElementPtrInst) v2).getOperands().size()) {
-            var ptr1=((GetElementPtrInst) v1).getOperands().get(0).getVal();
-            var ptr2=((GetElementPtrInst) v2).getOperands().get(0).getVal();
-            for (int i = 1; i < ((GetElementPtrInst) v1).getOperands().size(); i++) {
-                if (((GetElementPtrInst) v1).getOperands().get(i).getVal() != ((GetElementPtrInst) v2).getOperands().get(i).getVal()) {
-                    return AliasResult.MayAlias;
-                }
-            }
-            if (alias(ptr1, ptr2) == AliasResult.MustAlias) {
-                return AliasResult.MustAlias;
-            } else {
-                return AliasResult.MayAlias;
-            }
+//        if (v1 instanceof GetElementPtrInst && v2 instanceof GetElementPtrInst && ((GetElementPtrInst) v1).getOperands().size()==((GetElementPtrInst) v2).getOperands().size()) {
+//            var ptr1=((GetElementPtrInst) v1).getOperands().get(0).getVal();
+//            var ptr2=((GetElementPtrInst) v2).getOperands().get(0).getVal();
+//            for (int i = 1; i < ((GetElementPtrInst) v1).getOperands().size(); i++) {
+//                if (((GetElementPtrInst) v1).getOperands().get(i).getVal() != ((GetElementPtrInst) v2).getOperands().get(i).getVal()) {
+//                    return AliasResult.MayAlias;
+//                }
+//            }
+//            if (alias(ptr1, ptr2) == AliasResult.MustAlias) {
+//                return AliasResult.MustAlias;
+//            } else {
+//                return AliasResult.MayAlias;
+//            }
+//        }
+        if (!v1.getType().equals(v2.getType())) {
+            return AliasResult.NoAlias;
         }
-
         return AliasResult.MayAlias;
     }
     public enum ModRef{ModRef,Mod,Ref,NoModRef}
