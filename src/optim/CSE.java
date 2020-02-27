@@ -169,7 +169,7 @@ public class CSE extends FunctionPass {
                         inst.transferUses(prevExpr);
                         inst.delete();
                         changed=true;
-                    }
+                    }//todo:else put in the map
                 } else {
                     for (var expr : exprs) {
                         subexprMap.put(expr, inst);

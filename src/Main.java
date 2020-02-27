@@ -40,7 +40,7 @@ public class Main {
         IRBuilder irBuilder=new IRBuilder(typeTable,valTable,builder.getASTStartNode());
         Module topModule = irBuilder.getTopModule();
         IRPrinter irPrinter=new IRPrinter(topModule,"main.ll");
-        AliasAnalysis aa=new AliasAnalysis();
+        AliasAnalysis aa=new DSA();
         for (var func : topModule.getFunctionList()) {
             if (!func.isExternalLinkage()) {
                Optimizer optimizer=new Optimizer(func,aa);

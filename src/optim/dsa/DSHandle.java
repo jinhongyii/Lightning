@@ -18,6 +18,7 @@ public class DSHandle {
     //return true if cell2 is collapsed after this operation
     private static boolean mergeTypeInfo(DSHandle cell1, DSHandle cell2){
         if (cell1.field != cell2.field) {
+            cell1.getNode().collapse();
             cell2.getNode().collapse();
             return true;
         }
@@ -41,6 +42,7 @@ public class DSHandle {
         var t1=node1.type;
         var t2=node2.type;
         if (node2.isCollapsed()) {
+            node1.collapse();
             return true;
         }
 
@@ -55,6 +57,7 @@ public class DSHandle {
             return false;
         }
         if (!t1.equals(t2)) {
+            node1.collapse();
             node2.collapse();
             return true;
         }

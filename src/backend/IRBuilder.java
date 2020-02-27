@@ -677,7 +677,7 @@ public class IRBuilder implements ASTVisitor {
         var cast_PrepareForSize=new CastInst("cast_size", new PointerType(Type.TheInt64), newArray);
         var storeInst=new StoreInst(firstDimV,cast_PrepareForSize);
         ArrayList<Value> gepindex=new ArrayList<>();
-        gepindex.add(new ConstantInt(ptrSize/size));//int大小
+        gepindex.add(new ConstantInt(8/size));//int大小
         var arrayBase=new GetElementPtrInst("gep", newArray,gepindex );
         curBB.addInst(memberLength);
         curBB.addInst(totLength);

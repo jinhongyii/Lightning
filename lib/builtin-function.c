@@ -11,12 +11,12 @@ void print(char* str){
 void println(char* str){
     printf("%s\n",str);
 }
-void printInt(long long a){
-    printf("%lld",a);
+void printInt(int a){
+    printf("%d",a);
 }
 
-void printlnInt(long long a){
-    printf("%lld\n",a);
+void printlnInt(int a){
+    printf("%d\n",a);
 }
 
 char* getString(){
@@ -24,44 +24,64 @@ char* getString(){
     scanf("%s",buffer);
     return buffer;
 }
-long long getInt(){
-    long long tmp;
-    scanf("%lld",&tmp);
+int getInt(){
+    int tmp;
+    scanf("%d",&tmp);
     return tmp;
 }
-char* toString(long long  a){
-    char* newstr=malloc(30);
-    sprintf(newstr,"%lld",a);
-    return newstr;
+char* toString(int  v){
+    if (v == 0){
+        char *r = (char *)malloc(sizeof(char) * 2);
+        r[0] = '0'; r[1] = '\0';
+        return r;
+    }
+    short digits[10];
+    short neg = v < 0;
+    if (neg) v=-v;
+    short len = 0;
+    while (v>0){
+        digits[len++] = v%10;
+        v/=10;
+    }
+    char *r = (char *)malloc(sizeof(char) * (len + neg + 1));
+    short p = 0;
+    if (neg) r[0] = '-';
+    while (p < len){
+        r[p + neg] = digits[len - p - 1] + '0';
+        ++p;
+    }
+    r[len + neg] = '\0';
+    return r;
 }
 
-long long string_length (char *string){
+int string_length (char *string){
     return strlen(string);
 }
 
-char* string_substring(long long left,long long right,char* string){
+char* string_substring(int left,int right,char* string){
     char* newstr=malloc(right-left+1);
     memcpy(newstr,string+left,right-left);
     newstr[right-left]=0;
     return newstr;
 }
 
-long long string_parseInt(char* str){
-    char **aa = NULL;
-    return strtoll(str,aa,10);
+int string_parseInt(char* str){
+    int tmp;
+    sscanf(str,"%d",&tmp);
+    return tmp;
 }
 
-long long string_ord(long long index,char* string){
+int string_ord(int index,char* string){
     return string[index];
 }
 
-long long _array_size(char* array){
-    return *(((long long*)array)-1);
+int _array_size(char* array){
+   return *(((long long*)array)-1);
 }
 
 char* string_add(char* str1,char* str2){
-    long long len1=strlen(str1);
-    long long len2=strlen(str2);
+    int len1=strlen(str1);
+    int len2=strlen(str2);
     char* newstr=malloc(len1+len2+1);
     strcpy(newstr,str1);
     strcat(newstr,str2);
