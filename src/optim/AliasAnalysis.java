@@ -7,6 +7,7 @@ import IR.instructions.CallInst;
 import IR.instructions.GetElementPtrInst;
 import IR.instructions.LoadInst;
 import IR.instructions.StoreInst;
+import IR.Module;
 
 //an extremely simplified version but enough
 public class AliasAnalysis implements Pass {
@@ -61,6 +62,9 @@ public class AliasAnalysis implements Pass {
         return ModRef.NoModRef;
     }
     public AliasAnalysis(){
+
+    }
+    public void run(Module module){
 
     }
 }

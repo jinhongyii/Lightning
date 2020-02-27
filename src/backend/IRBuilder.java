@@ -18,6 +18,7 @@ import java.util.LinkedList;
 
 
 public class IRBuilder implements ASTVisitor {
+    private final int ptrSize=8;
     private Module topModule=new Module();
     private semantic.SymbolTable<SemanticType> typeTable;
     private semantic.SymbolTable<NameEntry> valTable;
@@ -144,23 +145,23 @@ public class IRBuilder implements ASTVisitor {
     private int getRecordMallocSize(SemanticType type) {
         //todo: change to i32
         if (type.actual().isIntType()) {
-            return 8;
+            return ptrSize;
         } else if(type.actual().isBoolType()){
             return 1;
         }  else if (type.actual().isRecordType()) {
             int tot = 0;
             ArrayList<SemanticType> fields = ((RecordType) type.actual()).getFieldType();
-            boolean has8Byte=false;
+            boolean has4Byte=false;
             for (int i=0;i<fields.size();i++) {
-                has8Byte|=!fields.get(i).isBoolType();
+                has4Byte|=!fields.get(i).isBoolType();
                 if (i + 1 < fields.size()) {
                     if (fields.get(i).isBoolType() && fields.get(i + 1).isBoolType()) {
                         tot += 1;
                     } else {
-                        tot+=8;
+                        tot+=ptrSize;
                     }
                 } else {
-                    tot +=has8Byte? 8 - tot % 8:1;
+                    tot +=has4Byte? ptrSize - tot % ptrSize:1;
                 }
             }
             return tot;
@@ -666,9 +667,9 @@ public class IRBuilder implements ASTVisitor {
         ArrayList<Value> params = new ArrayList<>();
         Value firstDimV= dims.pollFirst();
         assert firstDimV != null;
-        int size=totdim==1?(type.isBoolType()?1:8):8;
+        int size=totdim==1?(type.isBoolType()?1:ptrSize):ptrSize;//元素大小
         var memberLength=new BinaryOpInst("mul", Instruction.Opcode.mul, firstDimV,new ConstantInt(size));
-        var totLength=new BinaryOpInst("add", Instruction.Opcode.add,memberLength,new ConstantInt(8));
+        var totLength=new BinaryOpInst("add", Instruction.Opcode.add,memberLength,new ConstantInt(ptrSize));//int 大小
         params.add(totLength);
         var malloc=new CallInst("malloc", mallocFunc,params);
         var typePtrToArray=getPtrType(convertTypeLookUp(type),totdim);
@@ -676,7 +677,7 @@ public class IRBuilder implements ASTVisitor {
         var cast_PrepareForSize=new CastInst("cast_size", new PointerType(Type.TheInt64), newArray);
         var storeInst=new StoreInst(firstDimV,cast_PrepareForSize);
         ArrayList<Value> gepindex=new ArrayList<>();
-        gepindex.add(new ConstantInt(8/size));
+        gepindex.add(new ConstantInt(ptrSize/size));//int大小
         var arrayBase=new GetElementPtrInst("gep", newArray,gepindex );
         curBB.addInst(memberLength);
         curBB.addInst(totLength);
@@ -857,6 +858,7 @@ public class IRBuilder implements ASTVisitor {
         idx.add(indexV);
         var newInst=new GetElementPtrInst("array", arrayV, idx);
         curBB.addInst(newInst);
+        ptr=newInst;
         if (!lhs) {
             var loadInst=new LoadInst( "load", newInst);
             curBB.addInst(loadInst);

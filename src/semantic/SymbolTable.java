@@ -43,6 +43,7 @@ public class SymbolTable<Type> implements Iterable<SymbolTable.Entry<Type>>{
                         break;
                     }
                 }
+                idx=i;
                 return now=hashtable[i];
             }
             if (now.next != null) {

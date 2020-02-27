@@ -7,4 +7,8 @@ public class Argument extends  Value{
         super(name, type, ValueType.ArgumentVal);
         this.parent=parent;
     }
+
+    public Function getParent() {
+        return parent;
+    }
 }

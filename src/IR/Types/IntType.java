@@ -14,8 +14,8 @@ public class IntType extends Type {
                 return "i1";
             case Int8:
                 return "i8";
-            case Int64:
-                return "i64";
+            case Int32:
+                return "i32";
             default:return null;
         }
     }

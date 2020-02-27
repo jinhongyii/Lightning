@@ -38,8 +38,6 @@ public class IRPrinter implements IRVisitor {
     }
     @Override
     public Object visitModule(Module module) {
-        print("target datalayout = \"e-m:e-i64:64-f80:128-n8:16:32:64-S128\"\n" +
-                "target triple = \"x86_64-pc-linux-gnu\"");
         for (var i : module.structMap.entrySet()) {
             if (i.getValue() instanceof StructType) {
                 print("%" + i.getKey() + " = type " + ((StructType) i.getValue()).getDetailedText());
@@ -199,7 +197,7 @@ public class IRPrinter implements IRVisitor {
         var ptr=GEPInst.operands.get(0).val;
         StringBuilder tmp= new StringBuilder(GEPInst.toString() + "= getelementptr " + ((PointerType)ptr.getType()).getPtrType() + " ," + ptr.getType() + " " + ptr);
         for (int i = 1; i < GEPInst.operands.size(); i++) {
-            tmp.append(GEPInst.operands.get(i).val.getValueType()== Value.ValueType.ConstantVal?",i32 ":",i64 ").append(GEPInst.operands.get(i).val);
+            tmp.append(",i32 ").append(GEPInst.operands.get(i).val);
         }
         print(tmp.toString());
         return null;
@@ -218,7 +216,7 @@ public class IRPrinter implements IRVisitor {
         }
         var operand1=icmpInst.operands.get(0).val;
         var operand2=icmpInst.operands.get(1).val;
-        print(icmpInst.toString()+" = icmp "+op+" "+(operand1.getType().isNull()?operand2.getType().isNull()?"i64*":operand2.getType():operand1.getType())+" "+operand1+","+operand2);
+        print(icmpInst.toString()+" = icmp "+op+" "+(operand1.getType().isNull()?operand2.getType().isNull()?"i32*":operand2.getType():operand1.getType())+" "+operand1+","+operand2);
         return null;
     }
 

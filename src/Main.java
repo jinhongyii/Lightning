@@ -3,6 +3,7 @@ import IR.Module;
 import backend.IRBuilder;
 import frontend.ASTBuilder;
 import optim.*;
+import optim.dsa.DSA;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;

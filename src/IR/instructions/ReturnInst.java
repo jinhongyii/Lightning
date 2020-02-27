@@ -14,6 +14,9 @@ public class ReturnInst extends Instruction {
         return operands.size()>0;
     }
     public Value getRetValue(){
+        if (operands.size() == 0) {
+            return null;
+        }
         return operands.get(0).getVal();
     }
     @Override

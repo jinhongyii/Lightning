@@ -20,6 +20,7 @@ public class Optimizer extends FunctionPass{
     private RedundantLoadElimination loadElimination;
     public Optimizer(Function function,AliasAnalysis aa) {
         super(function);
+        this.aa=aa;
         cfgSimplifier=new CFGSimplifier(function);
         dominatorAnalysis=new DominatorAnalysis(function);
         mem2reg=new Mem2reg(function,dominatorAnalysis);
@@ -50,8 +51,8 @@ public class Optimizer extends FunctionPass{
             changed|=strengthReduction.run();
             changed|=instCombine.run();
             changed|=cse.run();
+            aa.run(function.getParent());
             changed|=loadElimination.run();
-            changed|=cse.run();
             changed|=licm.run();
             cfgSimplifier.run();
             global_changed|=changed;
