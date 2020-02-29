@@ -49,7 +49,7 @@ public class Optimizer extends FunctionPass{
             loopAnalysis.run();
             dominatorAnalysis.run();
             changed|=strengthReduction.run();
-            changed|=instCombine.run();
+            instCombine.run();
             changed|=cse.run();
             aa.run(function.getParent());
             changed|=loadElimination.run();

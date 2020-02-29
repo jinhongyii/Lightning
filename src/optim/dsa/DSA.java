@@ -11,8 +11,10 @@ import java.util.HashMap;
 public class DSA extends AliasAnalysis {
     private Local local;
     private BottomUp bottomUp;
+    private TopDown topDown;
     private Module module;
     public DSA(Module module){
+        super(module);
         this.module=module;
     }
     @Override
@@ -45,29 +47,31 @@ public class DSA extends AliasAnalysis {
         local.run(module);
         bottomUp=new BottomUp(local);
         bottomUp.run(module);
+        topDown=new TopDown(bottomUp);
+        topDown.run(module);
     }
 
     @Override
     public ModRef getCallModRefInfo(CallInst callInst, Value value) {
-        //todo:wrong
-//        var calleeF=callInst.getCallee();
-//        if (calleeF.isExternalLinkage()) {
-//            return super.getCallModRefInfo(callInst,value);
-//        }
-//        var graph = bottomUp.graphs.get(calleeF);
-//        var handle=graph.scalarMap.get(value);
-//        if (handle != null) {
-//            var node=handle.getNode();
-//            if (node.isMod() && node.isRef()) {
-//                return ModRef.ModRef;
-//            } else if (node.isMod()) {
-//                return ModRef.Mod;
-//            } else if (node.isRef()) {
-//                return ModRef.Ref;
-//            }
-//        } else {
-//            return ModRef.NoModRef;
-//        }
+
+        var calleeF=callInst.getCallee();
+        if (calleeF.isExternalLinkage()) {
+            return super.getCallModRefInfo(callInst,value);
+        }
+        var graph = bottomUp.graphs.get(calleeF);
+        var handle=graph.scalarMap.get(value);
+        if (handle != null) {
+            var node=handle.getNode();
+            if (node.isMod() && node.isRef()) {
+                return ModRef.ModRef;
+            } else if (node.isMod()) {
+                return ModRef.Mod;
+            } else if (node.isRef()) {
+                return ModRef.Ref;
+            }
+        } else {
+            return ModRef.NoModRef;
+        }
         return super.getCallModRefInfo(callInst,value);
     }
 }

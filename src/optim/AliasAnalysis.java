@@ -38,9 +38,9 @@ public class AliasAnalysis implements Pass {
     }
     public enum ModRef{ModRef,Mod,Ref,NoModRef}
     public ModRef getCallModRefInfo(CallInst callInst,Value value){
-        if (callInst.getCallee().isExternalLinkage()) {
-            return ModRef.NoModRef;
-        }
+//        if (callInst.getCallee().isExternalLinkage()) {
+//            return ModRef.NoModRef;
+//        }
         return ModRef.ModRef;
     }
     private ModRef getLoadModRefInfo(LoadInst loadInst,Value value){
@@ -65,7 +65,7 @@ public class AliasAnalysis implements Pass {
         }
         return ModRef.NoModRef;
     }
-    public AliasAnalysis(){
+    public AliasAnalysis(Module module){
 
     }
     public void run(Module module){

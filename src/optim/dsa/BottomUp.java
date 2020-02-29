@@ -67,7 +67,7 @@ public class BottomUp {
             if (SCCGraph == null) {
                 SCCGraph = graphs.get(func);
             } else {
-                SCCGraph.cloneGraphInto(graphs.get(func), graphs.get(func).retNodes);
+                SCCGraph.cloneGraphInto(graphs.get(func), graphs.get(func).retNodes, true, new HashMap<>(), ~0);
                 graphs.put(func,SCCGraph);
             }
         }
@@ -78,6 +78,6 @@ public class BottomUp {
                 }
             }
         }
-
+        SCCGraph.removeDeadNodes();
     }
 }

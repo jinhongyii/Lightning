@@ -5,12 +5,13 @@ import IR.Types.StructType;
 import IR.Value;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class DSNode {
     Type type;
     int flag;
     DSNode forwardNode;
-    ArrayList<Value> globalValue=new ArrayList<>();
+    HashSet<Value> globalValue=new HashSet<>();
     ArrayList<DSHandle> outGoingEdge=new ArrayList<>();
     DSGraph parent;
     public DSHandle getOutEdge(int field){
@@ -90,6 +91,10 @@ public class DSNode {
         return (flag & (1 << 8)) != 0;
     }
 
+    boolean isDeleted(){
+        return (flag & (1 << 9)) != 0;
+    }
+
     void setHeap() {
         flag |= 1;
     }
@@ -124,6 +129,10 @@ public class DSNode {
 
     void setArray() {
         flag |= (1 << 8);
+    }
+
+    void setDeleted(){
+        flag |= (1 << 9);
     }
     void collapse(){
         DSHandle theOnlyCell=getOutEdge(0);

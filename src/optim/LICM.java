@@ -153,14 +153,14 @@ public class LICM extends FunctionPass implements IRVisitor {
 
     private boolean NotModifiedInLoop(Value ptr){
         for (var bb : curLoop.basicBlocks) {
-            if (loopAnalysis.loopMap.get(bb) == curLoop) {
+
                 for (var inst = bb.getHead(); inst != null; inst = inst.getNext()) {
                     AliasAnalysis.ModRef modRefInfo = aliasAnalysis.getModRefInfo(inst, ptr);
                     if(modRefInfo == AliasAnalysis.ModRef.ModRef || modRefInfo== AliasAnalysis.ModRef.Mod){
                         return false;
                     }
                 }
-            }
+
         }
         return true;
     }

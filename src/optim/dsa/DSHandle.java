@@ -89,6 +89,7 @@ public class DSHandle {
                 newEdges.add(mergeCells(node1.getOutEdge(i), node2.getOutEdge(i)));
             }
             node2.outGoingEdge = newEdges;
+            node1.setDeleted();
             node1.forwardNode = node2;
         }
         if (node2.isCollapsed()) {

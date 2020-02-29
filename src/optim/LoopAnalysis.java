@@ -117,7 +117,7 @@ public class LoopAnalysis extends FunctionPass {
     private void recursiveAddPreHeader(Loop loop){
         var tmp=curLoop;
         var newPreHeader=addPreHeader(loop);
-        if (newPreHeader != null) {
+        if (curLoop!=null) {
             loopMap.put(newPreHeader,curLoop);
             curLoop.basicBlocks.add(newPreHeader);
         }
@@ -136,9 +136,9 @@ public class LoopAnalysis extends FunctionPass {
                 cnt++;
             }
         }
-        if (cnt <= 1) {
-            return null;
-        }
+//        if (cnt <= 1) {
+//            return null;
+//        }
         var preHeader=function.addBB("preHeader");
         preHeader.addInst(new BranchInst(header, null,null));
         for (var phi = header.getHead(); phi instanceof PhiNode;phi=phi.getNext()) {
