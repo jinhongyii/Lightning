@@ -37,8 +37,10 @@ public class AliasAnalysis implements Pass {
         return AliasResult.MayAlias;
     }
     public enum ModRef{ModRef,Mod,Ref,NoModRef}
-    private ModRef getCallModRefInfo(CallInst callInst,Value value){
-        //todo
+    public ModRef getCallModRefInfo(CallInst callInst,Value value){
+        if (callInst.getCallee().isExternalLinkage()) {
+            return ModRef.NoModRef;
+        }
         return ModRef.ModRef;
     }
     private ModRef getLoadModRefInfo(LoadInst loadInst,Value value){

@@ -21,8 +21,10 @@
   - cfg simplify
   - inst combine
   - inlining
+  - licm
+  - strength reduction
 - optims to be done  
-  - loop invariant
   - alias analysis
-  - dead argument elimination
+  - loop idiom recognition
+  - loop rotation
   - tail call elimination

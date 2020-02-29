@@ -24,6 +24,16 @@ public class DSNode {
         }
         return edge;
     }
+    DSNode(DSNode other,DSGraph parent) {
+        this.parent=parent;
+        parent.nodes.add(this);
+        this.type=other.type;
+        this.flag=other.flag;
+        this.globalValue.addAll(other.globalValue);
+        for (var outEdge : other.outGoingEdge) {
+            this.outGoingEdge.add(new DSHandle(outEdge));
+        }
+    }
     DSNode(DSGraph parent){
         type=Type.theVoidType;
         outGoingEdge.add(new DSHandle());

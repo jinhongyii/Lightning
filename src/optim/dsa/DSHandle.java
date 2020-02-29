@@ -11,6 +11,10 @@ public class DSHandle {
         this.node=null;
         this.field=0;
     }
+    public DSHandle(DSHandle other){
+        this.node=other.getNode();
+        this.field=other.field;
+    }
     public DSHandle(DSNode node, int field) {
         this.node = node;
         this.field = field;

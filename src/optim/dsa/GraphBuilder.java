@@ -3,27 +3,25 @@ package optim.dsa;
 import IR.*;
 import IR.Types.PointerType;
 import IR.instructions.*;
-import optim.ConstantFolding;
 
-import java.lang.Module;
 import java.util.ArrayList;
 
-public class LocalAnalysis implements IRVisitor{
-    DSGraph graph;
-
-    public LocalAnalysis(DSGraph graph) {
+public class GraphBuilder implements IRVisitor{
+    private DSGraph graph;
+    private  Function function;
+    public GraphBuilder(DSGraph graph) {
         this.graph = graph;
     }
 
     void run(Function function){
-        DSGraph graph=new DSGraph();
+        this.function=function;
         for(var arg:function.getArguments()){
             if (arg.getType() instanceof PointerType) {
                 getValueNode(arg);
             }
         }
         visit(function);
-        graph.markIncomplete();
+//        graph.markIncomplete(true);
     }
     DSHandle getValueNode(Value value){
         var InScalarMap=graph.scalarMap.get(value);
@@ -111,7 +109,9 @@ public class LocalAnalysis implements IRVisitor{
         }else {
             DSHandle returnVal=null;
             if (callInst.getType() instanceof PointerType) {
-                returnVal=getValueNode(callInst);
+                returnVal = getValueNode(callInst);
+            } else {
+                returnVal= new DSHandle();
             }
             ArrayList<DSHandle> params=new ArrayList<>();
             for (var param : callInst.getParams()) {
@@ -191,7 +191,7 @@ public class LocalAnalysis implements IRVisitor{
     public Object visitReturnInst(ReturnInst returnInst) {
         if(returnInst.getRetValue()!=null) {
             if (returnInst.getRetValue().getType() instanceof PointerType) {
-                DSHandle.mergeCells(graph.pi, getValueNode(returnInst.getRetValue()));
+                DSHandle.mergeCells(graph.retNodes.get(function), getValueNode(returnInst.getRetValue()));
             }
         }
         return null;
