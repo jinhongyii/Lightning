@@ -51,8 +51,9 @@ public class BottomUp {
                     break;
                 }
             }
+            ProcessSCC(scc);
+
         }
-        ProcessSCC(scc);
     }
     private void ProcessSCC(HashSet<Function> SCC ){
         for (Function function : SCC) {
@@ -67,7 +68,7 @@ public class BottomUp {
             if (SCCGraph == null) {
                 SCCGraph = graphs.get(func);
             } else {
-                SCCGraph.cloneGraphInto(graphs.get(func), graphs.get(func).retNodes, true, new HashMap<>(), ~0);
+                SCCGraph.cloneGraphInto(graphs.get(func), SCCGraph.retNodes, true, new HashMap<>(), ~0);
                 graphs.put(func,SCCGraph);
             }
         }

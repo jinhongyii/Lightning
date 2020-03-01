@@ -48,12 +48,22 @@ public class Optimizer extends FunctionPass{
             changed|=adce.run();
             loopAnalysis.run();
             dominatorAnalysis.run();
-            changed|=strengthReduction.run();
-            instCombine.run();
             changed|=cse.run();
+            changed|=strengthReduction.run();
             aa.run(function.getParent());
             changed|=loadElimination.run();
             changed|=licm.run();
+//            try {
+//                IRPrinter ssaPrinter=new IRPrinter(function.getParent(),"ssa.ll");
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            instCombine.run();
+//            try {
+//                IRPrinter ssaPrinter=new IRPrinter(function.getParent(),"ssa.ll");
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             cfgSimplifier.run();
             global_changed|=changed;
             try {

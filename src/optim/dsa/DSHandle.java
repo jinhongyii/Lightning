@@ -72,10 +72,10 @@ public class DSHandle {
         assert cell1!=null && cell2!=null;
         if (cell1.getNode() == null) {
             cell1.node = cell2.getNode();
-            return cell2;
+            return new DSHandle(cell2);
         } else if(cell2.getNode()==null){
             cell2.node=cell1.getNode();
-            return cell1;
+            return new DSHandle(cell1);
         }
         mergeTypeInfo(cell1,cell2);
         var node1=cell1.getNode();
@@ -85,17 +85,18 @@ public class DSHandle {
             node2.globalValue.addAll(node1.globalValue);
             assert node1.outGoingEdge.size() == node2.outGoingEdge.size();
             ArrayList<DSHandle> newEdges = new ArrayList<>();
+            node1.setDeleted();
+            node1.forwardNode = node2;
             for (int i = 0; i < node1.outGoingEdge.size(); i++) {
                 newEdges.add(mergeCells(node1.getOutEdge(i), node2.getOutEdge(i)));
             }
             node2.outGoingEdge = newEdges;
-            node1.setDeleted();
-            node1.forwardNode = node2;
+
         }
         if (node2.isCollapsed()) {
             return new DSHandle(node2, 0);
         } else {
-            return cell2;
+            return new DSHandle(cell2);
         }
     }
 
