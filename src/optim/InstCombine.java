@@ -19,6 +19,7 @@ public class InstCombine extends FunctionPass implements IRVisitor {
     public boolean run() {
         initialize();
         boolean changed=false;
+
         while (!workList.isEmpty()) {
             var inst=workList.pollLast();
             if (visit(inst) != inst) {
@@ -26,6 +27,15 @@ public class InstCombine extends FunctionPass implements IRVisitor {
             }
         }
         return changed;
+    }
+
+    public void cleanInstInList(Instruction inst) {
+        while(true) {
+            var removed=workList.remove(inst);
+            if (!removed) {
+                break;
+            }
+        }
     }
 
     private void initialize(){
@@ -87,6 +97,7 @@ public class InstCombine extends FunctionPass implements IRVisitor {
         }
         prev.transferUses(now);
         prev.delete();
+        cleanInstInList(prev);
         return now;
     }
     private Value simplifyWithoutAddInst(Value lhs, Value rhs, Instruction.Opcode opcode){

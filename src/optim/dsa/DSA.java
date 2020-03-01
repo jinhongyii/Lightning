@@ -58,7 +58,7 @@ public class DSA extends AliasAnalysis {
         if (calleeF.isExternalLinkage()) {
             return super.getCallModRefInfo(callInst,value);
         }
-        var graph = bottomUp.graphs.get(calleeF);
+        var graph = topDown.graphs.get(calleeF);
         var handle=graph.scalarMap.get(value);
         if (handle != null) {
             var node=handle.getNode();

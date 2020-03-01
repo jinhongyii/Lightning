@@ -117,7 +117,8 @@ public class DSGraph {
             }
         }
     }
-    public void markIncomplete(boolean localPhase){//todo:change
+    //wrong function, but not needed
+    public void markIncomplete(boolean localPhase){
         for (var callSite : callSites) {
             Function function=callSite.callee;
             if (!function.getName().equals("main") && !function.isExternalLinkage()) {

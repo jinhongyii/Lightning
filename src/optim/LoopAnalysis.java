@@ -68,7 +68,19 @@ public class LoopAnalysis extends FunctionPass {
         dfs(dominatorAnalysis.treeRoot);
         addPreHeader();
         addBackedgeBB();
+        cleanUp();
         return false;
+    }
+    private void cleanUp(){
+        ADCE adce=new ADCE(function,dominatorAnalysis);
+        SCCP sccp=new SCCP(function);
+        dominatorAnalysis.run();
+        boolean changed=true;
+        while (changed) {
+            changed=false;
+            changed|=adce.run();
+            changed|=sccp.run();
+        }
     }
     private void dfs(DominatorAnalysis.Node node){
         findLoop(node);
@@ -117,7 +129,7 @@ public class LoopAnalysis extends FunctionPass {
     private void recursiveAddPreHeader(Loop loop){
         var tmp=curLoop;
         var newPreHeader=addPreHeader(loop);
-        if (curLoop!=null) {
+        if (newPreHeader!=null && curLoop!=null) {
             loopMap.put(newPreHeader,curLoop);
             curLoop.basicBlocks.add(newPreHeader);
         }
@@ -131,14 +143,18 @@ public class LoopAnalysis extends FunctionPass {
     private BasicBlock addPreHeader(Loop loop) {
         var header=loop.getHeader();
         int cnt=0;
+        var hasOnlySuc=true;
         for (var pred : header.getPredecessors()) {
             if(!loop.contains(pred)){
+                if (pred.getSuccessors().size() > 1) {
+                    hasOnlySuc=false;
+                }
                 cnt++;
             }
         }
-//        if (cnt <= 1) {
-//            return null;
-//        }
+        if (cnt <= 1 && hasOnlySuc) {
+            return null;
+        }
         var preHeader=function.addBB("preHeader");
         preHeader.addInst(new BranchInst(header, null,null));
         for (var phi = header.getHead(); phi instanceof PhiNode;phi=phi.getNext()) {

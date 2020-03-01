@@ -58,12 +58,20 @@ public class Use {
         if (this.prev != null) {
             this.prev.next = this.next;
         } else {
-            val.use_head=this.next;
+            if (val.use_head == val.use_tail) {
+                val.use_head=val.use_tail=null;
+            }else {
+                val.use_head = this.next;
+            }
         }
         if (this.next != null) {
             this.next.prev = this.prev;
         } else {
-            val.use_tail=this.prev;
+            if (val.use_head == val.use_tail) {
+                val.use_head=val.use_tail=null;
+            }else {
+                val.use_tail = this.prev;
+            }
         }
         this.next=null;
         this.prev=null;

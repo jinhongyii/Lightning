@@ -6,7 +6,7 @@ import IR.instructions.*;
 import backend.IRBuilder;
 
 import java.util.HashSet;
-
+//todo:maybe we can hoist call and store
 public class LICM extends FunctionPass implements IRVisitor {
     LoopAnalysis loopAnalysis;
     AliasAnalysis aliasAnalysis;
@@ -167,7 +167,6 @@ public class LICM extends FunctionPass implements IRVisitor {
 
     @Override
     public Object visitLoadInst(LoadInst loadInst) {
-        //todo:move useless load inst out
         Value ptr = loadInst.getLoadTarget();
         if (isInvariable(ptr) && NotModifiedInLoop(ptr)) {
             hoist(loadInst);

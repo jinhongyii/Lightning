@@ -53,17 +53,7 @@ public class Optimizer extends FunctionPass{
             aa.run(function.getParent());
             changed|=loadElimination.run();
             changed|=licm.run();
-//            try {
-//                IRPrinter ssaPrinter=new IRPrinter(function.getParent(),"ssa.ll");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            instCombine.run();
-//            try {
-//                IRPrinter ssaPrinter=new IRPrinter(function.getParent(),"ssa.ll");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            instCombine.run();
             cfgSimplifier.run();
             global_changed|=changed;
             try {

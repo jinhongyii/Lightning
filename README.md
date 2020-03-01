@@ -24,7 +24,7 @@
   - licm
   - strength reduction
 - optims to be done  
-  - alias analysis
+  - dead store elimination
   - loop idiom recognition
   - loop rotation
   - tail call elimination
