@@ -15,16 +15,19 @@
   - can test without having to implement a interpreter
 - optims finished
   - mem2reg pass (ssa construction)
-  - adce
+  - adce (dsa-based)
   - sccp
   - cse
   - cfg simplify
   - inst combine
   - inlining
-  - licm
+  - licm (dsa-based)
   - strength reduction
-- optims to be done  
-  - dead store elimination
+  - redundant load elimination (dsa-based)
+- optims to be done  (sorted by priority)
+  - promote memory to scalar in licm
+  - dead store elimination (dsa-based)
+  - gvn
   - loop idiom recognition
   - loop rotation
   - tail call elimination
