@@ -1,0 +1,102 @@
+int [][] largeArray=new int[50][50];
+int [][] anotherArray=new int[50][50];
+int [][][][] deadArray=new int[20][20][50][50];
+void init(){
+    int i,j,k;
+    for(i=0;i<50;i++){
+        for(j=0;j<50;j++){
+            largeArray[i][j]=0;
+        }
+    }
+    for(i=0;i<50;i++){
+        for(j=0;j<50;j++){
+            anotherArray[i][j]=largeArray[i][j];
+        }
+    }
+}
+int g=0;
+int a=getInt();
+void testLoopOptims(){
+    if(a==0){
+        testLoopOptims();
+    }
+    int i,j;
+    int[] k=new int[100];
+    k[0]=0;
+    for(i=0;i<50;i++){
+        for(j=0;j<500;j++){
+            ++largeArray[0][0];
+            ++g;
+            ++k[0];
+        }
+    }
+    printlnInt(largeArray[0][0]);
+    int a=0;
+    for(i=0;i<5000;i++){
+        largeArray[0][0]=i;
+        getSelf(largeArray)[0][0]=0;
+        printlnInt(largeArray[0][0]);
+    }
+    for(i=0;i<5000;i++){
+        largeArray[0][0]=i;
+        getAnotherArray()[0][0]=0;
+        printlnInt(largeArray[0][0]);
+    }
+    for(i=0;i<5000;i++){
+       largeArray[0][3]=i;
+       printlnInt(getSelf(largeArray)[0][3]);
+       getSelf(largeArray)[0][4]=i;
+       a=largeArray[0][4];
+    }
+    printlnInt(a);
+    for(i=0;i<50000;i++){
+       largeArray[0][3]=i;
+       printlnInt(getAnotherArray()[0][3]);
+       getAnotherArray()[0][4]=i;
+       a=largeArray[0][4];
+    }
+    printlnInt(a);
+    int[] tmp=new int[60];
+    tmp[0]=0;
+    changeArray(tmp);
+    printlnInt(tmp[0]);
+    for(i=0;i<5000;i++){
+        notChangeArray(tmp);
+    }
+    printlnInt(tmp[0]);
+}
+int[][] getAnotherArray(){
+    if(a==0){
+        return getAnotherArray();
+    }
+
+    return anotherArray;
+}
+int[][] getSelf(int[][] array){
+    if(a==0){
+        return getSelf(array);
+    }
+    return array;
+}
+void changeArray(int[] tmp){
+    if(a==0){
+        changeArray(tmp);
+    }
+    tmp[0]=1;
+}
+void notChangeArray(int[] tmp){
+    if(a==0){
+        notChangeArray(tmp);
+    }
+}
+
+int main(){
+    init();
+    ++g;
+    testLoopOptims();
+    printlnInt(g);
+}
+
+/*
+    input:1
+*/

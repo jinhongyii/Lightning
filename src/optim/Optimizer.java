@@ -24,16 +24,48 @@ public class Optimizer extends FunctionPass{
         cfgSimplifier=new CFGSimplifier(function);
         dominatorAnalysis=new DominatorAnalysis(function);
         mem2reg=new Mem2reg(function,dominatorAnalysis);
-        adce=new ADCE(function,dominatorAnalysis);
+        adce=new ADCE(function,dominatorAnalysis,aa);
         sccp=new SCCP(function);
         instCombine=new InstCombine(function,dominatorAnalysis);
-        loopAnalysis=new LoopAnalysis(function,dominatorAnalysis);
+        loopAnalysis=new LoopAnalysis(function,dominatorAnalysis,aa);
         licm=new LICM(function,loopAnalysis,dominatorAnalysis,aa);
-        strengthReduction=new StrengthReduction(function,loopAnalysis,dominatorAnalysis);
+        strengthReduction=new StrengthReduction(function,loopAnalysis,dominatorAnalysis,aa);
         cse=new CSE(function,dominatorAnalysis);
         loadElimination=new RedundantLoadElimination(function,dominatorAnalysis,aa);
     }
-
+    public void domUpdate(){
+        dominatorAnalysis.run();
+    }
+    public boolean sccp(){
+        return sccp.run();
+    }
+    public boolean cse(){
+        return cse.run();
+    }
+    public boolean adce(){
+        return adce.run();
+    }
+    public boolean redundantLoadElim(){
+        return loadElimination.run();
+    }
+    public void loopAnalysis(){
+        loopAnalysis.run();
+    }
+    public boolean strengthReduce(){
+        return strengthReduction.run();
+    }
+    public boolean licm(){
+        return licm.run();
+    }
+    public boolean instCombine(){
+        return instCombine.run();
+    }
+    public boolean CFGSimplify(){
+        return cfgSimplifier.run();
+    }
+    public void mem2reg(){
+        mem2reg.run();
+    }
     @Override
     public boolean run() {
         cfgSimplifier.run();
@@ -45,13 +77,15 @@ public class Optimizer extends FunctionPass{
             changed=false;
             dominatorAnalysis.run();
             changed|=sccp.run();
-            changed|=adce.run();
-            loopAnalysis.run();
             dominatorAnalysis.run();
             changed|=cse.run();
+            aa.run(function.getParent());
+            changed|=adce.run();
+            changed|=loadElimination.run();
+            loopAnalysis.run();
+            aa.run(function.getParent());
             changed|=strengthReduction.run();
             aa.run(function.getParent());
-            changed|=loadElimination.run();
             changed|=licm.run();
             instCombine.run();
             cfgSimplifier.run();
@@ -63,21 +97,5 @@ public class Optimizer extends FunctionPass{
             }
         }
         return global_changed;
-    }
-    public void runPart(){
-        cfgSimplifier.run();
-        dominatorAnalysis.run();
-        mem2reg.run();
-        boolean changed=true;
-        for(int i=0;i<1;i++) {
-            changed=false;
-            dominatorAnalysis.run();
-            changed|=sccp.run();
-            changed|=adce.run();
-            changed|=cse.run();
-            changed|=instCombine.run();
-//            changed|=cfgSimplifier.run();
-        }
-        return ;
     }
 }

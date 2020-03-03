@@ -1,19 +1,16 @@
 package optim;
 
-import IR.Argument;
-import IR.Instruction;
-import IR.Value;
+import IR.*;
+import IR.Module;
 import IR.instructions.CallInst;
 import IR.instructions.GetElementPtrInst;
 import IR.instructions.LoadInst;
 import IR.instructions.StoreInst;
-import IR.Module;
 
 //an extremely simplified version but enough
 public class AliasAnalysis implements Pass {
     public enum AliasResult{MustAlias,MayAlias,NoAlias}
     public AliasResult alias(Value v1,Value v2){
-        //todo
         if (v1 == v2) {
             return AliasResult.MustAlias;
         }
@@ -35,6 +32,38 @@ public class AliasAnalysis implements Pass {
             return AliasResult.NoAlias;
         }
         return AliasResult.MayAlias;
+    }
+    public ModRef getFunctionModRefInfo(Function function){
+        if (function.isExternalLinkage()) {
+            switch (function.getName()) {
+                case "print":
+                case "println":
+                case "printlnInt":
+                case "printInt":
+                    return ModRef.Mod;
+                case "getString":
+                case "getInt":
+                case "malloc"://malloc can't be hoisted but can be eliminated so we can mark it ref
+                    return ModRef.Ref;
+                case "toString":
+                case "string_length"://because it references a constant memory location:
+                case "string_substring":
+                case "string_parseInt":
+                case "string_ord":
+                case "_array_size":
+                case "string_add":
+                case "string_eq":
+                case "string_ne":
+                case "string_gt":
+                case "string_ge":
+                case "string_lt":
+                case "string_le":
+                    return ModRef.NoModRef;
+                default:
+                    throw new Error("wrong external function");
+            }
+        }
+        return ModRef.ModRef;
     }
     public enum ModRef{ModRef,Mod,Ref,NoModRef}
     public ModRef getCallModRefInfo(CallInst callInst,Value value){

@@ -3,6 +3,8 @@ package optim.dsa;
 import IR.*;
 import IR.Module;
 import IR.instructions.CallInst;
+import ast.Node;
+import edu.princeton.cs.algs4.Graph;
 import optim.AliasAnalysis;
 import optim.LICM;
 
@@ -13,6 +15,7 @@ public class DSA extends AliasAnalysis {
     private BottomUp bottomUp;
     private TopDown topDown;
     private Module module;
+    private HashMap<DSGraph,ModRef> modRefHashMap;
     public DSA(Module module){
         super(module);
         this.module=module;
@@ -30,6 +33,10 @@ public class DSA extends AliasAnalysis {
 
         if (node1 != node2) {
             return AliasResult.NoAlias;
+        } else {
+            if (node1.globalValue.size() == 1) {
+                return AliasResult.MustAlias;
+            }
         }
 
         return super.alias(v1,v2);
@@ -49,6 +56,37 @@ public class DSA extends AliasAnalysis {
         bottomUp.run(module);
         topDown=new TopDown(bottomUp);
         topDown.run(module);
+        updateModRefMap();
+    }
+
+    private void updateModRefMap() {
+        modRefHashMap=new HashMap<>();
+
+        for (var graph : topDown.graphs.values()) {
+            boolean ref=false,mod=false;
+            for (var node : graph.nodes) {
+                if (node.isRef()) {
+                    ref=true;
+                }
+                if (node.isMod()) {
+                    mod=true;
+                }
+                if (ref && mod) {
+                    break;
+                }
+            }
+            ModRef result;
+            if (ref && mod) {
+                result= ModRef.ModRef;
+            } else if (ref) {
+                result= ModRef.Ref;
+            } else if (mod) {
+                result = ModRef.Mod;
+            } else {
+                result= ModRef.NoModRef;
+            }
+            modRefHashMap.put(graph,result);
+        }
     }
 
     @Override
@@ -68,10 +106,20 @@ public class DSA extends AliasAnalysis {
                 return ModRef.Mod;
             } else if (node.isRef()) {
                 return ModRef.Ref;
+            }else {
+                return ModRef.NoModRef;
             }
         } else {
             return ModRef.NoModRef;
         }
-        return super.getCallModRefInfo(callInst,value);
+    }
+
+    @Override
+    public ModRef getFunctionModRefInfo(Function function) {
+//        if(function.isExternalLinkage()) {
+//            return super.getFunctionModRefInfo(function);
+//        }
+        var graph=topDown.graphs.get(function);
+        return modRefHashMap.get(graph);
     }
 }

@@ -20,8 +20,42 @@ public class GraphBuilder implements IRVisitor{
                 getValueNode(arg);
             }
         }
-        visit(function);
-//        graph.markIncomplete(true);
+        if(function.isExternalLinkage()){
+            var virtualNode=new DSNode(graph);
+            switch (function.getName()) {
+                case "print":
+                case "println":
+                case "printlnInt":
+                case "printInt":
+                    virtualNode.setMod();
+                    break;
+                case "getString":
+                case "getInt":
+                case "malloc"://malloc can't be hoisted but can be eliminated so we can mark it ref
+                    virtualNode.setRef();
+                    break;
+                case "toString":
+                case "string_length"://because it references a constant memory location:
+                case "string_substring":
+                case "string_parseInt":
+                case "string_ord":
+                case "_array_size":
+                case "string_add":
+                case "string_eq":
+                case "string_ne":
+                case "string_gt":
+                case "string_ge":
+                case "string_lt":
+                case "string_le":
+                    virtualNode.setDeleted();
+                    break;
+                default:
+                    throw new Error("wrong external function");
+            }
+        }else {
+            visit(function);
+        }
+        //        graph.markIncomplete(true);
     }
     DSHandle getValueNode(Value value){
         var InScalarMap=graph.scalarMap.get(value);
@@ -104,6 +138,7 @@ public class GraphBuilder implements IRVisitor{
         var func=callInst.getCallee();
         if (func.getName().equals("malloc")) {
             var newNode=new DSNode(graph);
+            newNode.globalValue.add(callInst);
             newNode.setHeap();
             setValueNode(callInst,new DSHandle(newNode,0));
         }else {

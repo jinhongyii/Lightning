@@ -56,9 +56,11 @@ public class LoopAnalysis extends FunctionPass {
     DominatorAnalysis dominatorAnalysis;
     ArrayList<Loop> topLoops=new ArrayList<>();
     HashMap<BasicBlock,Loop> loopMap=new HashMap<>();
-    public LoopAnalysis(Function function,DominatorAnalysis dominatorAnalysis) {
+    AliasAnalysis aa;
+    public LoopAnalysis(Function function,DominatorAnalysis dominatorAnalysis,AliasAnalysis aa) {
         super(function);
         this.dominatorAnalysis=dominatorAnalysis;
+        this.aa=aa;
     }
 
     @Override
@@ -72,7 +74,7 @@ public class LoopAnalysis extends FunctionPass {
         return false;
     }
     private void cleanUp(){
-        ADCE adce=new ADCE(function,dominatorAnalysis);
+        ADCE adce=new ADCE(function,dominatorAnalysis,aa);
         SCCP sccp=new SCCP(function);
         dominatorAnalysis.run();
         boolean changed=true;

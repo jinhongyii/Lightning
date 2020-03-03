@@ -78,9 +78,9 @@ public class DSGraph {
         }
     }
     public void resolveCallee(DSGraph callee,Function calleeF,DSCallNode callSite){
-        if (calleeF.isExternalLinkage()) {
-            return;
-        }
+//        if (calleeF.isExternalLinkage()) {
+//            return;
+//        }
         if (callee != this) {
             var clonedRetNodes=new HashMap<Function,DSHandle>();
             cloneGraphInto(callee, clonedRetNodes, false, new HashMap<>(), ~0);
@@ -98,9 +98,9 @@ public class DSGraph {
     }
 
     public void resolveCaller(DSGraph caller,Function calleeF,DSCallNode callSite){
-        if (calleeF.isExternalLinkage()) {
-            return;
-        }
+//        if (calleeF.isExternalLinkage()) {
+//            return;
+//        }
         assert caller!=this;
 
         var clonedRetNodes=new HashMap<Function,DSHandle>();

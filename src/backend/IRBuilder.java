@@ -143,7 +143,7 @@ public class IRBuilder implements ASTVisitor {
 
     //string can not  malloc
     private int getRecordMallocSize(SemanticType type) {
-        //todo: change to i32
+
         if (type.actual().isIntType()) {
             return ptrSize;
         } else if(type.actual().isBoolType()){

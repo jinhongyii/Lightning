@@ -13,6 +13,7 @@ public class ADCE extends FunctionPass {
     private HashSet<Instruction> markedSet =new HashSet<>();
     private HashSet<BasicBlock> usefulBB =new HashSet<>();
     private DominatorAnalysis dominatorAnalysis;
+    private AliasAnalysis aliasAnalysis;
     private void markInst(Instruction instruction){
         if (!markedSet.contains(instruction)) {
             markedSet.add(instruction);
@@ -26,9 +27,10 @@ public class ADCE extends FunctionPass {
     private void markBBUseful(BasicBlock bb){
         usefulBB.add(bb);
     }
-    public ADCE(Function function,DominatorAnalysis dominatorAnalysis) {
+    public ADCE(Function function,DominatorAnalysis dominatorAnalysis,AliasAnalysis aliasAnalysis) {
         super(function);
         this.dominatorAnalysis=dominatorAnalysis;
+        this.aliasAnalysis=aliasAnalysis;
     }
 
     @Override
@@ -105,7 +107,14 @@ public class ADCE extends FunctionPass {
     }
 
     private boolean isCritical(Instruction inst) {
-        //todo: deal with functions that don't write to memory
-        return inst instanceof StoreInst || inst instanceof ReturnInst || inst instanceof CallInst;
+        if (inst instanceof StoreInst || inst instanceof ReturnInst) {
+            return true;
+        } else if(inst instanceof CallInst){
+            var callee = ((CallInst) inst).getCallee();
+            var modRef=aliasAnalysis.getFunctionModRefInfo(callee);
+            return modRef == AliasAnalysis.ModRef.Mod || modRef == AliasAnalysis.ModRef.ModRef;
+        }
+        return false;
+//        return inst instanceof StoreInst || inst instanceof ReturnInst || inst instanceof CallInst;
     }
 }

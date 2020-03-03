@@ -10,6 +10,7 @@ import java.util.HashMap;
 public class StrengthReduction extends FunctionPass {
     LoopAnalysis loopAnalysis;
     DominatorAnalysis dominatorAnalysis;
+    AliasAnalysis aa;
 //    HashSet<InductionVariable> indVarSet=new HashSet<>();
     HashMap<Value,InductionVariable> indVarMap=new HashMap<>();
     boolean changed=false;
@@ -67,10 +68,11 @@ public class StrengthReduction extends FunctionPass {
             }
         }
     }
-    public StrengthReduction(Function function,LoopAnalysis loopAnalysis,DominatorAnalysis dominatorAnalysis) {
+    public StrengthReduction(Function function,LoopAnalysis loopAnalysis,DominatorAnalysis dominatorAnalysis,AliasAnalysis aa) {
         super(function);
         this.dominatorAnalysis=dominatorAnalysis;
         this.loopAnalysis=loopAnalysis;
+        this.aa=aa;
     }
 
     private boolean isInvariable(Value value, LoopAnalysis.Loop loop) {
@@ -89,7 +91,7 @@ public class StrengthReduction extends FunctionPass {
         return changed;
     }
     private void cleanup(){
-        ADCE adce =new ADCE(function,dominatorAnalysis);
+        ADCE adce =new ADCE(function,dominatorAnalysis,aa);
         SCCP sccp=new SCCP(function);
         boolean changed=true;
         while(changed) {

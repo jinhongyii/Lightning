@@ -117,7 +117,16 @@ public class LICM extends FunctionPass implements IRVisitor {
 
     @Override
     public Object visitCallInst(CallInst callInst) {
-        //todo:hoist functions with no side effect
+        var callee= callInst.getCallee();
+        if (aliasAnalysis.getFunctionModRefInfo(callee) == AliasAnalysis.ModRef.NoModRef) {
+            for (var param : callInst.getParams()) {
+                if (!isInvariable(param)) {
+                    return null;
+                }
+            }
+            hoist(callInst);
+            invariableSet.add(callInst);
+        }
         return null;
     }
 
