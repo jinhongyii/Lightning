@@ -2,9 +2,11 @@ package optim;
 
 import IR.*;
 import IR.Module;
+import IR.Types.PointerType;
 import IR.instructions.*;
-import backend.IRBuilder;
+import semantic.SymbolTable;
 
+import java.util.HashMap;
 import java.util.HashSet;
 //todo:maybe we can hoist call and store
 public class LICM extends FunctionPass implements IRVisitor {
@@ -14,6 +16,7 @@ public class LICM extends FunctionPass implements IRVisitor {
     private HashSet<Instruction> invariableSet =new HashSet<>();
     private LoopAnalysis.Loop curLoop;
     private boolean changed;
+    private HashMap<Value,AllocaInst> replaceMap =new HashMap<>();
     LICM(Function function,LoopAnalysis loopAnalysis,DominatorAnalysis dominatorAnalysis,AliasAnalysis aliasAnalysis) {
         super(function);
         this.aliasAnalysis=aliasAnalysis;
@@ -46,8 +49,10 @@ public class LICM extends FunctionPass implements IRVisitor {
             hoistLoop(subLoop);
         }
         curLoop=loop;
+        replaceMap.clear();
         var headerNode=dominatorAnalysis.DominantTree.get(loop.header);
         hoistBB(headerNode);
+        doPromotion();
         invariableSet.clear();
     }
     private void hoistBB(DominatorAnalysis.Node node){
@@ -65,6 +70,20 @@ public class LICM extends FunctionPass implements IRVisitor {
         for (var child : node.children) {
             hoistBB(child);
         }
+    }
+    private boolean isTrappingInst(Instruction instruction){
+        if (instruction instanceof BinaryOpInst) {
+            var opcode=instruction.getOpcode();
+            if (opcode == Instruction.Opcode.div || opcode == Instruction.Opcode.rem) {
+                for (var exitBB : curLoop.exitBlocks) {
+                    var domNode=dominatorAnalysis.DominantTree.get(instruction.getParent());
+                    if (!domNode.dominate(dominatorAnalysis.DominantTree.get(exitBB))) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
     private void hoist(Instruction instruction){
         changed=true;
@@ -103,7 +122,7 @@ public class LICM extends FunctionPass implements IRVisitor {
     public Object visitBinaryOpInst(BinaryOpInst binaryOpInst) {
         var lhs=binaryOpInst.getLhs();
         var rhs=binaryOpInst.getRhs();
-        if (isInvariable(lhs) && isInvariable(rhs)) {
+        if (isInvariable(lhs) && isInvariable(rhs) && !isTrappingInst(binaryOpInst)) {
             hoist(binaryOpInst);
             invariableSet.add(binaryOpInst);
         }
@@ -196,9 +215,102 @@ public class LICM extends FunctionPass implements IRVisitor {
 
     @Override
     public Object visitStoreInst(StoreInst storeInst) {
+        var ptr=storeInst.getPtr();
+        if (isInvariable(ptr) && !checkMayAlias(ptr)) {
+            AllocaInst allocaInst=null;
+            for (var v : replaceMap.entrySet()) {
+                if (aliasAnalysis.alias(v.getKey(), ptr) == AliasAnalysis.AliasResult.MustAlias) {
+                    allocaInst=v.getValue();
+                }
+            }
+            if (allocaInst == null) {
+                allocaInst=new AllocaInst("tmp.alloca", ((PointerType)ptr.getType()).getPtrType());
+                function.getEntryBB().addInstToFirst(allocaInst);
+            }
+            replaceMap.put(ptr,allocaInst);
+        }
         return null;
     }
+    private boolean checkMayAlias(Value ptr){
+        for (var bb : curLoop.basicBlocks) {
+            for (var inst = bb.getHead(); inst != null; inst = inst.getNext()) {
+                if (inst instanceof LoadInst) {
+                    if (aliasAnalysis.alias(ptr, ((LoadInst) inst).getLoadTarget())== AliasAnalysis.AliasResult.MayAlias) {
+                        return true;
+                    }
+                } else if (inst instanceof StoreInst) {
+                    if (aliasAnalysis.alias(ptr, ((StoreInst) inst).getPtr()) == AliasAnalysis.AliasResult.MayAlias) {
+                        return true;
+                    }
+                } else if (inst instanceof CallInst) {
+                    if (aliasAnalysis.getModRefInfo(inst, ptr) != AliasAnalysis.ModRef.NoModRef) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    private void doPromotion(){
+        HashMap<AllocaInst,Value> realMemLoc=new HashMap<>();
+        HashSet<BasicBlock> exitBB=new HashSet<>();
+        var preheader=curLoop.getPreHeader();
+        var pre_terminator=preheader.getTerminator();
+        for (var entry: replaceMap.entrySet()) {
+            if (!realMemLoc.containsKey(entry.getValue()) && isInvariable(entry.getKey())) {
+                var loadInst=new LoadInst("promoted_load", entry.getKey());
+                preheader.addInstBefore(pre_terminator,loadInst);
+                var storeInst=new StoreInst(loadInst,entry.getValue());
+                preheader.addInstBefore(pre_terminator,storeInst);
+                realMemLoc.put(entry.getValue(),entry.getKey());
+            }
+        }
+        for (var bb : curLoop.basicBlocks) {
+            for (var inst = bb.getHead(); inst != null; inst = inst.getNext()) {
+                if (inst instanceof LoadInst) {
+                    for (var entry : replaceMap.entrySet()) {
+                        if (aliasAnalysis.alias(entry.getKey(), ((LoadInst) inst).getLoadTarget())== AliasAnalysis.AliasResult.MustAlias) {
+                            var alloca=entry.getValue();
+                            if(alloca!=null) {
+                                inst.getOperands().get(0).setValue(alloca);
+                            }
+                            break;
+                        }
+                    }
 
+                } else if (inst instanceof StoreInst) {
+                    for (var entry : replaceMap.entrySet()) {
+                        if (aliasAnalysis.alias(entry.getKey(), ((StoreInst) inst).getPtr()) == AliasAnalysis.AliasResult.MustAlias) {
+                            var alloca = entry.getValue();
+                            if (alloca != null) {
+                                inst.getOperands().get(1).setValue(alloca);
+                            }
+                            break;
+                        }
+                    }
+
+                }
+            }
+            for (var suc : bb.getSuccessors()) {
+                if (curLoop.basicBlocks.contains(suc) || exitBB.contains(suc)) {
+                    continue;
+                }
+                exitBB.add(suc);
+                var insertPos=suc.getHead();
+                while (insertPos instanceof PhiNode) {
+                    insertPos = insertPos.getNext();
+                }
+                for (var entry : realMemLoc.entrySet()) {
+                    var loadInst=new LoadInst("promote_exit", entry.getKey());
+                    suc.addInstBefore(insertPos, loadInst);
+                    suc.addInstBefore(insertPos,new StoreInst(loadInst,entry.getValue()));
+                }
+            }
+
+        }
+        Mem2reg mem2reg=new Mem2reg(function,dominatorAnalysis);
+        mem2reg.run();
+    }
     @Override
     public Object visit(Value value) {
         return value.accept(this);

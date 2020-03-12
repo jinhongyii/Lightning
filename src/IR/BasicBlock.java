@@ -228,7 +228,7 @@ public class BasicBlock extends  Value {
         this.head = head;
     }
 
-    //inst will be removed
+    //inst is in the first block
     public BasicBlock split(Instruction inst){
         var newBB=new BasicBlock("split");
         for (var suc : getSuccessors()) {

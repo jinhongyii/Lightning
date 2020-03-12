@@ -15,10 +15,17 @@ public class LoopAnalysis extends FunctionPass {
         Loop parent;
         ArrayList<Loop> subLoops;
         HashSet<BasicBlock> basicBlocks;
+        HashSet<BasicBlock> exitBlocks;
         BasicBlock header;
+
+        public HashSet<BasicBlock> getExitBlocks() {
+            return exitBlocks;
+        }
+
         public Loop(BasicBlock head) {
             this.subLoops = new ArrayList<>();
             this.basicBlocks=new HashSet<>();
+            exitBlocks=new HashSet<>();
             basicBlocks.add(head);
             this.header=head;
         }
@@ -52,6 +59,7 @@ public class LoopAnalysis extends FunctionPass {
             }
             return null;
         }
+
     }
     DominatorAnalysis dominatorAnalysis;
     ArrayList<Loop> topLoops=new ArrayList<>();
@@ -120,6 +128,13 @@ public class LoopAnalysis extends FunctionPass {
             loopMap.put(bbInLoop,loop);
             for (var pred : bbInLoop.getPredecessors()) {
                 workList.addLast(pred);
+            }
+        }
+        for (var basicblock : loop.basicBlocks) {
+            for (var suc : basicblock.getSuccessors()) {
+                if (!loop.basicBlocks.contains(suc)) {
+                    loop.exitBlocks.add(suc);
+                }
             }
         }
     }

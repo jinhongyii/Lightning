@@ -1,6 +1,9 @@
 package optim;
 
+import java.io.IOException;
 import java.util.ArrayList;
+
+import IR.IRPrinter;
 import IR.Module;
 import optim.dsa.DSA;
 
@@ -115,14 +118,27 @@ public class GlobalOptimizer implements Pass {
             changed|=adce();
             changed|=redundantLoadElim();
             loopAnalysis();
+            domUpdate();
             aa.run(module);
             changed|=strengthReduce();
             aa.run(module);
+//            try {
+//                IRPrinter printer=new IRPrinter(module, "step1.ll");
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             changed|=licm();
+//            try {
+//                IRPrinter printer=new IRPrinter(module, "step2.ll");
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             instComb();
             CFGSimplify();
             globalChanged|=changed;
+
         }
+
         return globalChanged;
     }
 }

@@ -204,7 +204,7 @@ public class GraphBuilder implements IRVisitor{
             return null;
         }
         var newHandle=handle.getNode().getNonNullOutEdge(handle.field);
-        newHandle.getNode().setRef();
+        handle.getNode().setRef();
         if (loadInst.getType() instanceof PointerType) {
             setValueNode(loadInst,newHandle);
         }

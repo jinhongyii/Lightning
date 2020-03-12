@@ -28,17 +28,22 @@ public class DSA extends AliasAnalysis {
         var mainGraph=bottomUp.graphs.get((Function)module.getSymbolTable().get("main"));
         var handle1=mainGraph.scalarMap.get(v1);
         var handle2=mainGraph.scalarMap.get(v2);
+        if (handle1 == null || handle2 == null) {
+            return super.alias(v1,v2);
+        }
         var node1=handle1.getNode();
         var node2=handle2.getNode();
 
-        if (node1 != node2) {
+        if (node1 != node2 || handle1.field!=handle2.field) {
             return AliasResult.NoAlias;
         } else {
+            if (node1.isArray()) {
+                return super.alias(v1,v2);
+            }
             if (node1.globalValue.size() == 1) {
                 return AliasResult.MustAlias;
             }
         }
-
         return super.alias(v1,v2);
     }
 //    DSGraph getGraph(Value value){
