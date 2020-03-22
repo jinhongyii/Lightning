@@ -2,7 +2,6 @@ package IR.instructions;
 
 import IR.*;
 import IR.Types.FunctionType;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -31,7 +30,6 @@ public class CallInst extends Instruction {
         return new CallInst(getName(), (Function) operands.get(0).getVal(),params );
     }
 
-    @NotNull
     public ArrayList<Value> getParams() {
         ArrayList<Value> params=new ArrayList<>();
         for (int i = 1; i < operands.size(); i++) {

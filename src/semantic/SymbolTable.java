@@ -1,17 +1,14 @@
 package semantic;
 
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Stack;
 
 import static java.lang.Math.abs;
 
 public class SymbolTable<Type> implements Iterable<SymbolTable.Entry<Type>>{
-    @NotNull
+
     @Override
     public Iterator<Entry<Type>> iterator() {
         int i=0;
