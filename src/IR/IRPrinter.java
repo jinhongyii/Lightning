@@ -25,10 +25,10 @@ public class IRPrinter implements IRVisitor {
 
     }
     public IRPrinter(Module module,String filename) throws IOException {
-        writer=new FileWriter("tmp/"+filename);
-        bufferedWriter=new BufferedWriter(writer,8096);
+//        writer=new FileWriter("tmp/"+filename);
+//        bufferedWriter=new BufferedWriter(writer,8096);
         visitModule(module);
-        bufferedWriter.flush();
+//        bufferedWriter.flush();
     }
     public IRPrinter(Function function,String fileName) throws IOException {
         writer=new FileWriter("tmp/"+fileName);
