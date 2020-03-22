@@ -5,7 +5,6 @@ import IR.*;
 import IR.instructions.BinaryOpInst;
 import IR.instructions.CastInst;
 import IR.instructions.IcmpInst;
-import semantic.NullType;
 
 public class ConstantFolding extends FunctionPass {
 

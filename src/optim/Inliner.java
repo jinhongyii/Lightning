@@ -2,11 +2,12 @@ package optim;
 
 import IR.BasicBlock;
 import IR.Function;
+import IR.Module;
 import IR.Value;
 import IR.instructions.BranchInst;
 import IR.instructions.CallInst;
 import IR.instructions.ReturnInst;
-import IR.Module;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

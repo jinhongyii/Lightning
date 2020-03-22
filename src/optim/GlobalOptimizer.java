@@ -1,11 +1,9 @@
 package optim;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
-import IR.IRPrinter;
 import IR.Module;
 import optim.dsa.DSA;
+
+import java.util.ArrayList;
 
 public class GlobalOptimizer implements Pass {
     Module module;

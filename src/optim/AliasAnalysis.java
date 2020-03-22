@@ -1,9 +1,10 @@
 package optim;
 
-import IR.*;
+import IR.Function;
+import IR.Instruction;
 import IR.Module;
+import IR.Value;
 import IR.instructions.CallInst;
-import IR.instructions.GetElementPtrInst;
 import IR.instructions.LoadInst;
 import IR.instructions.StoreInst;
 

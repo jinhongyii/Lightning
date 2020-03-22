@@ -1,7 +1,7 @@
 package optim;
 
-import IR.*;
 import IR.Module;
+import IR.*;
 import IR.instructions.*;
 
 import java.util.ArrayList;

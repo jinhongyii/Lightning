@@ -1,7 +1,10 @@
 package optim;
 
 
-import IR.*;
+import IR.BasicBlock;
+import IR.Function;
+import IR.Use;
+import IR.User;
 import IR.instructions.BranchInst;
 import IR.instructions.PhiNode;
 

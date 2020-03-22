@@ -25,8 +25,8 @@
   - strength reduction
   - redundant load elimination (dsa-based)
 - optims to be done  (sorted by priority)
-  - promote memory to scalar in licm
   - dead store elimination (dsa-based)
+  - pre
   - gvn
   - loop idiom recognition
   - loop rotation

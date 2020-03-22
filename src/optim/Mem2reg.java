@@ -3,7 +3,10 @@ package optim;
 import IR.Module;
 import IR.*;
 import IR.Types.PointerType;
-import IR.instructions.*;
+import IR.instructions.AllocaInst;
+import IR.instructions.LoadInst;
+import IR.instructions.PhiNode;
+import IR.instructions.StoreInst;
 
 import java.util.ArrayList;
 import java.util.HashMap;

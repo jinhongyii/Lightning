@@ -6,7 +6,6 @@ import IR.Instruction;
 import IR.Value;
 import IR.instructions.LoadInst;
 import IR.instructions.StoreInst;
-import edu.princeton.cs.algs4.BinaryStdIn;
 
 import java.util.ArrayList;
 import java.util.HashSet;

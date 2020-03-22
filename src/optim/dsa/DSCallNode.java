@@ -1,7 +1,6 @@
 package optim.dsa;
 
 import IR.Function;
-import ast.Node;
 
 import java.util.ArrayList;
 import java.util.HashMap;

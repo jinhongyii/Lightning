@@ -1,14 +1,11 @@
 package optim;
 
-import IR.*;
 import IR.Module;
+import IR.*;
 import IR.instructions.BranchInst;
 import IR.instructions.PhiNode;
-import ast.PrefixExpr;
-import semantic.NullType;
 
 import java.util.HashMap;
-import java.util.HashSet;
 //todo: a lot
 public class CFGSimplifier extends FunctionPass {
     public  CFGSimplifier(Function function) {

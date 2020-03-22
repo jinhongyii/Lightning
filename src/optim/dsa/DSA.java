@@ -1,12 +1,10 @@
 package optim.dsa;
 
-import IR.*;
+import IR.Function;
 import IR.Module;
+import IR.Value;
 import IR.instructions.CallInst;
-import ast.Node;
-import edu.princeton.cs.algs4.Graph;
 import optim.AliasAnalysis;
-import optim.LICM;
 
 import java.util.HashMap;
 

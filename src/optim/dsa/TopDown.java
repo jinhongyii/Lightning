@@ -1,12 +1,11 @@
 package optim.dsa;
 
 import IR.Function;
+import IR.Module;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import IR.Module;
 public class TopDown {
     HashMap<Function,DSGraph> graphs;
 

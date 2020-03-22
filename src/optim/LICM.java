@@ -1,10 +1,9 @@
 package optim;
 
-import IR.*;
 import IR.Module;
+import IR.*;
 import IR.Types.PointerType;
 import IR.instructions.*;
-import semantic.SymbolTable;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -228,6 +227,7 @@ public class LICM extends FunctionPass implements IRVisitor {
                 function.getEntryBB().addInstToFirst(allocaInst);
             }
             replaceMap.put(ptr,allocaInst);
+            changed=true;
         }
         return null;
     }
