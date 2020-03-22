@@ -3,7 +3,7 @@ package frontend;
 import ast.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import org.jetbrains.annotations.Nullable;
+
 import parser.mxBaseListener;
 import parser.mxParser;
 import semantic.*;
@@ -255,7 +255,7 @@ public class ASTBuilder extends mxBaseListener {
 
     }
 
-    @Nullable
+
     public Stmt getRealStmt(Object body) {
         Stmt newBody;
         if(body instanceof Stmt) {

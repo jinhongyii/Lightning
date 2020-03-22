@@ -1,7 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
-import org.jetbrains.annotations.Nullable;
+
 
 public class LiteralExpr extends  Expr {
 //    enum literal_type{integer,string,bool,Null};
@@ -10,7 +10,7 @@ public class LiteralExpr extends  Expr {
 //    String val2;
 //    Boolean val3;
     Object val;
-    @Nullable
+
     public Object getVal() {
         return val;
     }

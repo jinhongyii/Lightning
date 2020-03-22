@@ -1,7 +1,6 @@
 package ast;
 
 import frontend.ASTVisitor;
-import org.jetbrains.annotations.Nullable;
 import semantic.TypeChecker;
 
 public class IfStmt extends  Stmt {
@@ -16,7 +15,7 @@ public class IfStmt extends  Stmt {
     public Stmt getThen() {
         return then;
     }
-    @Nullable
+
     public Stmt getOtherwise() {
         return otherwise;
     }

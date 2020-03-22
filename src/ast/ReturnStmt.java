@@ -1,12 +1,11 @@
 package ast;
 
 import frontend.ASTVisitor;
-import org.jetbrains.annotations.Nullable;
 import semantic.TypeChecker;
 
 public class ReturnStmt extends Stmt{
     Expr val;
-    @Nullable
+
     public Expr getVal() {
         return val;
     }

@@ -1,7 +1,7 @@
 package ast;
 
 import frontend.ASTVisitor;
-import org.jetbrains.annotations.Nullable;
+
 import semantic.SemanticType;
 import semantic.TypeChecker;
 
@@ -26,7 +26,7 @@ public class VariableDeclStmt extends Stmt{
     public Type getType() {
         return type;
     }
-    @Nullable
+
     public Expr getInit() {
         return init;
     }
