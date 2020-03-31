@@ -1,6 +1,10 @@
 import IR.IRPrinter;
 import IR.Module;
+import Riscv.MachineModule;
+import Riscv.Move;
+import backend.AsmPrinter;
 import backend.IRBuilder;
+import backend.InstructionSelector;
 import frontend.ASTBuilder;
 import optim.*;
 import optim.dsa.DSA;
@@ -21,7 +25,7 @@ import java.io.InputStream;
 public class Main {
 
     public static void main(String[] args) throws IOException, TypeChecker.semanticException {
-        InputStream is = new FileInputStream("code.txt");
+        InputStream is = new FileInputStream(args[0]);
         ANTLRInputStream input = new ANTLRInputStream(is);
         mxLexer lexer=new mxLexer(input);
         lexer.addErrorListener(ThrowingErrorListener.INSTANCE);
@@ -40,9 +44,11 @@ public class Main {
         IRBuilder irBuilder=new IRBuilder(typeTable,valTable,builder.getASTStartNode());
         Module topModule = irBuilder.getTopModule();
         IRPrinter irPrinter=new IRPrinter(topModule,"main.ll");
-//        GlobalOptimizer optimizer=new GlobalOptimizer(topModule);
-//        optimizer.run();
-//        IRPrinter finalPrinter=new IRPrinter(topModule,"final.ll");
-
+        GlobalOptimizer optimizer=new GlobalOptimizer(topModule);
+        optimizer.run();
+        IRPrinter finalPrinter=new IRPrinter(topModule,"final.ll");
+        MachineModule mModule=new MachineModule();
+        InstructionSelector selector=new InstructionSelector(mModule,topModule);
+        AsmPrinter printer=new AsmPrinter(mModule,"test.s");
     }
 }

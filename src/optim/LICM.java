@@ -231,6 +231,12 @@ public class LICM extends FunctionPass implements IRVisitor {
         }
         return null;
     }
+
+    @Override
+    public Object visitMovInst(MovInst movInst) {
+        return null;
+    }
+
     private boolean checkMayAlias(Value ptr){
         for (var bb : curLoop.basicBlocks) {
             for (var inst = bb.getHead(); inst != null; inst = inst.getNext()) {

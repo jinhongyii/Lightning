@@ -3,6 +3,8 @@ package IR.instructions;
 import IR.*;
 import IR.Types.CompositeType;
 import IR.Types.PointerType;
+import IR.Types.StructType;
+import backend.IRBuilder;
 
 import java.util.ArrayList;
 
@@ -15,7 +17,43 @@ public class GetElementPtrInst extends Instruction {
             operands.add(new Use(val,this));
         }
     }
-
+    int getTypeSize(Type type){
+        return type.equals(Type.TheInt1)?1:4;
+    }
+    int getFieldOffset(Type struct, int idx){
+        var fieldTypes= ((StructType)struct).getRecordTypes();
+        int tot=0;
+        for (int i = 0; i < idx; i++) {
+            if (tot % 4 == 0) {
+                tot += getTypeSize(fieldTypes.get(i));
+            } else {
+                if (fieldTypes.get(i).equals(Type.TheInt1)) {
+                    tot += 1;
+                } else {
+                    tot+=8-(tot%4);
+                }
+            }
+        }
+        return tot;
+    }
+    public int getOffset(){
+        assert operands.size()<=3;
+        var object=operands.get(0).getVal();
+        if (operands.size() == 2) {
+            //array
+            var idx = operands.get(1).getVal();
+            if (idx instanceof ConstantInt) {
+                return getTypeSize(((PointerType) object.getType()).getPtrType()) * ((ConstantInt) idx).getVal();
+            } else {
+                return -1;
+            }
+        } else {
+            //struct
+            var idx=operands.get(2).getVal();
+            assert idx instanceof  ConstantInt;
+            return getFieldOffset(((PointerType) object.getType()).getPtrType(),((ConstantInt) idx).getVal());
+        }
+    }
     @Override
     public Instruction cloneInst() {
         ArrayList<Value> idx=new ArrayList<>();

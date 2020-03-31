@@ -18,7 +18,7 @@ import java.util.LinkedList;
 
 
 public class IRBuilder implements ASTVisitor {
-    private final int ptrSize=8;
+    public static final int ptrSize=8;
     private Module topModule=new Module();
     private semantic.SymbolTable<SemanticType> typeTable;
     private semantic.SymbolTable<NameEntry> valTable;

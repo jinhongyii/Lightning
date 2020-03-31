@@ -17,18 +17,18 @@ public class IRPrinter implements IRVisitor {
     private void dedent(){prefix=prefix.substring(0,prefix.length()-1);}
     private void print(String str){
 //        System.out.println(prefix+str);
-//        try {
-//            bufferedWriter.write(prefix + str + "\n");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//    }
+        try {
+            bufferedWriter.write(prefix + str + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+    }
 
     }
     public IRPrinter(Module module,String filename) throws IOException {
-//        writer=new FileWriter("tmp/"+filename);
-//        bufferedWriter=new BufferedWriter(writer,8096);
+        writer=new FileWriter("tmp/"+filename);
+        bufferedWriter=new BufferedWriter(writer,8096);
         visitModule(module);
-//        bufferedWriter.flush();
+        bufferedWriter.flush();
     }
     public IRPrinter(Function function,String fileName) throws IOException {
         writer=new FileWriter("tmp/"+fileName);
@@ -264,7 +264,15 @@ public class IRPrinter implements IRVisitor {
     }
 
     @Override
+    public Object visitMovInst(MovInst movInst) {
+        print("mov "+movInst.getTo()+", "+movInst.getFrom() );
+        return null;
+    }
+
+    @Override
     public Object visit(Value value) {
         return value.accept(this);
     }
+
+
 }

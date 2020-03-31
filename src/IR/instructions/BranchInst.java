@@ -32,6 +32,17 @@ public class BranchInst extends Instruction {
     public Value getCondition(){
         return operands.get(2).getVal();
     }
+    public void setConditional(BasicBlock dst,BasicBlock prev){
+        int idx;
+        if (getDstThen() == prev) {
+            idx = 0;
+        } else {
+            idx=1;
+        }
+        operands.get(idx).delete();
+        operands.remove(idx);
+        operands.add(idx, new Use(dst,this));
+    }
     public void setUnconditional(BasicBlock dst){
         for (var use : operands) {
             use.delete();

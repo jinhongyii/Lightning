@@ -18,5 +18,6 @@ public interface IRVisitor<ReturnType> {
     ReturnType visitPhiNode(PhiNode phiNode);
     ReturnType visitReturnInst(ReturnInst returnInst);
     ReturnType visitStoreInst(StoreInst storeInst);
+    ReturnType visitMovInst(MovInst movInst);
     ReturnType visit(Value value);
 }

@@ -9,6 +9,10 @@ public class ConstantString extends Value{
         this.val=val;
     }
 
+    public String getVal() {
+        return val;
+    }
+
     @Override
     public String toString() {
         var tmp=val.replace("\\", "\\5C");

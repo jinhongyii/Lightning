@@ -4,6 +4,11 @@ import IR.Types.PointerType;
 
 public class GlobalVariable extends User{
     Module parent;
+
+    public Value getInitializer() {
+        return initializer;
+    }
+
     Value initializer;
     public GlobalVariable(String name, Type type,Module parent) {
         super(name, new PointerType(type),ValueType.GlobalVariableVal);

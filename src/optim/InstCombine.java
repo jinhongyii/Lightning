@@ -630,6 +630,37 @@ public class InstCombine extends FunctionPass implements IRVisitor {
                 case NE:case GT:case LT:return replace(icmpInst,new ConstantBool(false));
             }
         }
+        //comparisons between reg and imm only have operator < , == and !=
+        var opcode=icmpInst.getOpcode();
+        if (lhs instanceof ConstantInt) {
+            int lhs_val=((ConstantInt) lhs).getVal();
+            Instruction newCmp=null;
+            if (opcode == Instruction.Opcode.LE) {
+                newCmp=new IcmpInst("cmp_codegen", Instruction.Opcode.LT,new ConstantInt(lhs_val-1), rhs);
+            } else if (opcode == Instruction.Opcode.GT) {
+                newCmp=new IcmpInst("cmp_codegen", Instruction.Opcode.LT,rhs,lhs);
+            } else if (opcode == Instruction.Opcode.GE) {
+                newCmp=new IcmpInst("cmp_codegen", Instruction.Opcode.LT,rhs,new ConstantInt(lhs_val+1));
+            }
+            if (newCmp != null) {
+                addInstBefore(icmpInst,newCmp);
+                return replace(icmpInst,newCmp);
+            }
+        } else if (rhs instanceof ConstantInt) {
+            int rhs_val=((ConstantInt) rhs).getVal();
+            Instruction newCmp=null;
+            if (opcode == Instruction.Opcode.LE) {
+                newCmp=new IcmpInst("cmp_codegen", Instruction.Opcode.LT,lhs,new ConstantInt(rhs_val+1));
+            } else if (opcode == Instruction.Opcode.GE) {
+                newCmp=new IcmpInst("cmp_codegen", Instruction.Opcode.LT,new ConstantInt(rhs_val-1),lhs);
+            } else if (opcode == Instruction.Opcode.GT) {
+                newCmp=new IcmpInst("cmp_codegen", Instruction.Opcode.LT,rhs,lhs);
+            }
+            if (newCmp != null) {
+                addInstBefore(icmpInst,newCmp);
+                return replace(icmpInst,newCmp);
+            }
+        }
         return icmpInst;
     }
 
@@ -654,6 +685,11 @@ public class InstCombine extends FunctionPass implements IRVisitor {
     @Override
     public Object visitStoreInst(StoreInst storeInst) {
         return storeInst;
+    }
+
+    @Override
+    public Object visitMovInst(MovInst movInst) {
+        return null;
     }
 
     @Override

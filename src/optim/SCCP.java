@@ -241,6 +241,11 @@ public class SCCP extends FunctionPass implements IRVisitor {
     }
 
     @Override
+    public Object visitMovInst(MovInst movInst) {
+        return null;
+    }
+
+    @Override
     public Object visit(Value value) {
         return value.accept(this);
     }

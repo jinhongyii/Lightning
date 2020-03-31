@@ -1,5 +1,6 @@
 package optim;
 
+import IR.Function;
 import IR.Module;
 import optim.dsa.DSA;
 
@@ -21,8 +22,17 @@ public class GlobalOptimizer implements Pass {
         boolean changed=true;
         while (changed) {
             changed=performLocalOptim();
-            changed|=inliner.run();
+//            changed|=inliner.run();
             dfe.run();
+        }
+        destructSSA();
+    }
+    private void destructSSA(){
+        for (var func : module.getFunctionList()) {
+            if(!func.isExternalLinkage()) {
+                SSADestructor destructor = new SSADestructor(func);
+                destructor.run();
+            }
         }
     }
     private boolean sccp(){
