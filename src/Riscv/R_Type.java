@@ -1,5 +1,7 @@
 package Riscv;
 
+import java.util.Set;
+
 public class R_Type extends MachineInstruction {
     Register rs1;
 
@@ -36,5 +38,15 @@ public class R_Type extends MachineInstruction {
 
     public Opcode getOpcode() {
         return opcode;
+    }
+
+    @Override
+    public Set<VirtualRegister> getUse() {
+        return Set.of((VirtualRegister)rs1,(VirtualRegister)rs2);
+    }
+
+    @Override
+    public Set<VirtualRegister> getDef() {
+        return Set.of((VirtualRegister)rd);
     }
 }

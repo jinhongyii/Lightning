@@ -1,5 +1,8 @@
 package Riscv;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class Load extends MachineInstruction{
     public boolean isGlobal;
     public int size;
@@ -37,5 +40,19 @@ public class Load extends MachineInstruction{
     @Override
     public void accept(Visitor visitor) {
         visitor.visitLoad(this);
+    }
+
+    @Override
+    public Set<VirtualRegister> getDef() {
+        return Set.of((VirtualRegister)rd);
+    }
+
+    @Override
+    public Set<VirtualRegister> getUse() {
+        if (src instanceof VirtualRegister) {
+            return Set.of((VirtualRegister) src);
+        } else {
+            return new HashSet<>();
+        }
     }
 }

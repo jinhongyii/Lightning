@@ -1,5 +1,7 @@
 package Riscv;
 
+import java.util.Set;
+
 public class Branch extends MachineInstruction{
     public enum Opcode{beq,bne,ble,bge,blt,bgt}
     Register rs;
@@ -35,4 +37,10 @@ public class Branch extends MachineInstruction{
     public void accept(Visitor visitor) {
         visitor.visitBranch(this);
     }
+
+    @Override
+    public Set<VirtualRegister> getUse() {
+        return Set.of((VirtualRegister)rs,(VirtualRegister)rt);
+    }
+
 }

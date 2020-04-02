@@ -30,7 +30,7 @@ public class InstructionSelector implements IRVisitor {
             visit(global_var);
         }
         for (var func : module.getFunctionList()) {
-            var machineFunc=new MachineFunction(func.getName(),func.isExternalLinkage() );
+            var machineFunc=new MachineFunction(func.getName(),func.isExternalLinkage(), func.getArguments().size());
             funcMap.put(func,machineFunc);
             machineModule.addFunc(machineFunc);
         }

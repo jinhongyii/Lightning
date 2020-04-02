@@ -7,6 +7,7 @@ public class MachineFunction {
     boolean externalLinkage;
     private LinkedList<MachineBasicBlock> basicBlocks=new LinkedList<>();
     int stackSize;
+    int argNum;
 
     public String getName() {
         return name;
@@ -20,9 +21,10 @@ public class MachineFunction {
         return externalLinkage;
     }
 
-    public MachineFunction(String name, boolean isExternalLinkage) {
+    public MachineFunction(String name, boolean isExternalLinkage, int argNum) {
         this.name=name;
         this.externalLinkage=isExternalLinkage;
+        this.argNum=argNum;
     }
     public void addBB(MachineBasicBlock basicBlock){
         this.basicBlocks.addLast(basicBlock);

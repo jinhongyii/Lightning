@@ -1,5 +1,7 @@
 package Riscv;
 
+import java.util.Set;
+
 public class I_Type extends MachineInstruction {
     public enum Opcode {
         addi,slti,xori,ori,andi,slli,srai,sltiu
@@ -34,5 +36,15 @@ public class I_Type extends MachineInstruction {
 
     public Opcode getOp() {
         return op;
+    }
+
+    @Override
+    public Set<VirtualRegister> getUse() {
+        return Set.of((VirtualRegister)rs1);
+    }
+
+    @Override
+    public Set<VirtualRegister> getDef() {
+        return Set.of((VirtualRegister)rd);
     }
 }

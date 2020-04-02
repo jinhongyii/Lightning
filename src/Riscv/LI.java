@@ -1,5 +1,7 @@
 package Riscv;
 
+import java.util.Set;
+
 public class LI extends MachineInstruction {
     public Register rd;
     public Imm imm;
@@ -19,5 +21,10 @@ public class LI extends MachineInstruction {
     @Override
     public void accept(Visitor visitor) {
         visitor.visitLI(this);
+    }
+
+    @Override
+    public Set<VirtualRegister> getDef() {
+        return Set.of((VirtualRegister)rd);
     }
 }

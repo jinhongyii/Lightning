@@ -1,5 +1,7 @@
 package Riscv;
 
+import java.util.Set;
+
 public class LA extends MachineInstruction{
     Register rd;
     GlobalVar symbol;
@@ -20,5 +22,10 @@ public class LA extends MachineInstruction{
     @Override
     public void accept(Visitor visitor) {
         visitor.visitLA(this);
+    }
+
+    @Override
+    public Set<VirtualRegister> getDef() {
+        return Set.of((VirtualRegister)rd);
     }
 }

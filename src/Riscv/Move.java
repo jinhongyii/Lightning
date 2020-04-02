@@ -1,5 +1,7 @@
 package Riscv;
 
+import java.util.Set;
+
 public class Move extends MachineInstruction {
     Register rs;
     Register rd;
@@ -20,5 +22,15 @@ public class Move extends MachineInstruction {
     @Override
     public void accept(Visitor visitor) {
         visitor.visitMove(this);
+    }
+
+    @Override
+    public Set<VirtualRegister> getUse() {
+        return Set.of((VirtualRegister)rs);
+    }
+
+    @Override
+    public Set<VirtualRegister> getDef() {
+        return Set.of((VirtualRegister)rd);
     }
 }
