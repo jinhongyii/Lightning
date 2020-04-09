@@ -1,10 +1,12 @@
 package IR;
 
 import IR.instructions.BranchInst;
+import IR.instructions.MovInst;
 import IR.instructions.PhiNode;
 import IR.instructions.ReturnInst;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class BasicBlock extends  Value {
     Function parent;
@@ -257,5 +259,12 @@ public class BasicBlock extends  Value {
         this.parent.addBB(newBB);
         return newBB;
     }
+    private HashSet<MovInst> pcopys=new HashSet<>();
+    public void addPCopy(MovInst movInst){
+        pcopys.add(movInst);
+    }
 
+    public HashSet<MovInst> getPcopys() {
+        return pcopys;
+    }
 }

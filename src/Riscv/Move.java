@@ -33,4 +33,14 @@ public class Move extends MachineInstruction {
     public Set<VirtualRegister> getDef() {
         return Set.of((VirtualRegister)rd);
     }
+
+    public void setRs(Register rs) {
+        this.rs = rs;
+    }
+
+    @Override
+    public void color() {
+        rs= ((VirtualRegister) rs).color;
+        rd= ((VirtualRegister) rd).color;
+    }
 }

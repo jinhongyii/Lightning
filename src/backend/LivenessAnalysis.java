@@ -15,9 +15,11 @@ public class LivenessAnalysis {
     private void preprocessBlock(MachineBasicBlock block){
         block.gen.clear();
         block.kill.clear();
-        for (var inst : block.getInstructions()) {
-            block.gen.removeAll(inst.getDef());
-            block.gen.addAll(inst.getUse());
+        for (var inst =block.getHead();inst!=null;inst=inst.getNext()) {
+            //todo:fix
+            var tmp=new HashSet<>(inst.getUse());
+            tmp.removeAll(block.kill);
+            block.gen.addAll(tmp);
             block.kill.addAll(inst.getDef());
         }
     }
@@ -41,7 +43,7 @@ public class LivenessAnalysis {
                 for (var suc : bb.getSuccessor()) {
                     bb.liveOut.addAll(suc.liveIn);
                 }
-                changed|=(live_in.equals(bb.liveIn) && live_out.equals(bb.liveOut));
+                changed|=(!live_in.equals(bb.liveIn) || !live_out.equals(bb.liveOut));
             }
         }
 

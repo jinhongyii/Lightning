@@ -28,4 +28,9 @@ public class LA extends MachineInstruction{
     public Set<VirtualRegister> getDef() {
         return Set.of((VirtualRegister)rd);
     }
+
+    @Override
+    public void color() {
+        rd= ((VirtualRegister) rd).color;
+    }
 }

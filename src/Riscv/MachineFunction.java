@@ -1,5 +1,7 @@
 package Riscv;
 
+import IR.Function;
+
 import java.util.LinkedList;
 
 public class MachineFunction {
@@ -8,7 +10,7 @@ public class MachineFunction {
     private LinkedList<MachineBasicBlock> basicBlocks=new LinkedList<>();
     int stackSize;
     int argNum;
-
+    Function IRfunction;
     public String getName() {
         return name;
     }
@@ -21,22 +23,23 @@ public class MachineFunction {
         return externalLinkage;
     }
 
-    public MachineFunction(String name, boolean isExternalLinkage, int argNum) {
+    public MachineFunction(String name, boolean isExternalLinkage, int argNum,Function IRfunction) {
         this.name=name;
         this.externalLinkage=isExternalLinkage;
         this.argNum=argNum;
+        this.IRfunction=IRfunction;
     }
     public void addBB(MachineBasicBlock basicBlock){
         this.basicBlocks.addLast(basicBlock);
     }
-    public MachineBasicBlock addBB(String name){
-        var newBB=new MachineBasicBlock(name);
-        this.basicBlocks.addLast(newBB);
-        return newBB;
-    }
+
 
     @Override
     public String toString() {
         return name;
+    }
+
+    public Function getIRfunction() {
+        return IRfunction;
     }
 }

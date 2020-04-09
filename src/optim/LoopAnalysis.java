@@ -84,6 +84,11 @@ public class LoopAnalysis extends FunctionPass {
         cleanUp();
         return false;
     }
+    public void runWithoutModify(){
+        topLoops.clear();
+        loopMap.clear();
+        dfs(dominatorAnalysis.treeRoot);
+    }
     private void cleanUp(){
         ADCE adce=new ADCE(function,dominatorAnalysis,aa);
         SCCP sccp=new SCCP(function);
@@ -245,5 +250,14 @@ public class LoopAnalysis extends FunctionPass {
             recursiveAddBackedgeBB(subLoop);
         }
         addBackedgeBB(loop);
+    }
+    public int getLoopDepth(BasicBlock basicBlock){
+        var deepLoop=loopMap.get(basicBlock);
+        int cnt=0;
+        while (deepLoop!= null) {
+            deepLoop=deepLoop.parent;
+            cnt++;
+        }
+        return cnt;
     }
 }

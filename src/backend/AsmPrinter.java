@@ -111,7 +111,7 @@ public class AsmPrinter implements Visitor {
         dedent();
         print(bb.name+":");
         indent();
-        for (var inst : bb.getInstructions()) {
+        for (var inst =bb.getHead();inst!=null;inst=inst.getNext()) {
             visit(inst);
         }
     }

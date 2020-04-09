@@ -19,6 +19,7 @@ public class InstructionSelector implements IRVisitor {
     private HashMap<Argument,VirtualRegister> argMap=new HashMap<>();
     private HashMap<GlobalVariable,GlobalVar> globalVarMap=new HashMap<>();
     private HashMap<VirtualRegister,VirtualRegister> calleeMap;
+    private VirtualRegister ra;
     private final int maxImm=(1<<12)-1;
     public InstructionSelector(MachineModule module,Module irModule){
         this.machineModule=module;
@@ -30,7 +31,7 @@ public class InstructionSelector implements IRVisitor {
             visit(global_var);
         }
         for (var func : module.getFunctionList()) {
-            var machineFunc=new MachineFunction(func.getName(),func.isExternalLinkage(), func.getArguments().size());
+            var machineFunc=new MachineFunction(func.getName(),func.isExternalLinkage(), func.getArguments().size(),func);
             funcMap.put(func,machineFunc);
             machineModule.addFunc(machineFunc);
         }
@@ -54,6 +55,8 @@ public class InstructionSelector implements IRVisitor {
             calleeMap.put(getVPhyReg(name),localReg);
             curBB.addInst(new Move(getVPhyReg(name),localReg));
         }
+        ra=new VirtualRegister("backup.ra");
+        curBB.addInst(new Move(getVPhyReg("ra"),ra));
         //create vreg for every argument
         int paramNum=function.getArguments().size();
         for (var arg : function.getArguments()) {
@@ -103,7 +106,7 @@ public class InstructionSelector implements IRVisitor {
         if (bbMap.containsKey(bb)) {
             return bbMap.get(bb);
         } else {
-            var newBB=new MachineBasicBlock(bb.getName());
+            var newBB=new MachineBasicBlock(bb);
             bbMap.put(bb,newBB);
             return newBB;
         }
@@ -361,6 +364,7 @@ public class InstructionSelector implements IRVisitor {
         for (var entry : calleeMap.entrySet()) {
             curBB.addInst(new Move(entry.getValue(),entry.getKey()));
         }
+        curBB.addInst(new Move(ra, getVPhyReg("ra")));
         curBB.addInst(new Return());
         return null;
     }

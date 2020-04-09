@@ -5,6 +5,7 @@ import Riscv.Move;
 import backend.AsmPrinter;
 import backend.IRBuilder;
 import backend.InstructionSelector;
+import backend.RegAlloc;
 import frontend.ASTBuilder;
 import optim.*;
 import optim.dsa.DSA;
@@ -46,9 +47,17 @@ public class Main {
         IRPrinter irPrinter=new IRPrinter(topModule,"main.ll");
         GlobalOptimizer optimizer=new GlobalOptimizer(topModule);
         optimizer.run();
-        IRPrinter finalPrinter=new IRPrinter(topModule,"final.ll");
         MachineModule mModule=new MachineModule();
         InstructionSelector selector=new InstructionSelector(mModule,topModule);
-        AsmPrinter printer=new AsmPrinter(mModule,"test.s");
+        AsmPrinter printer=new AsmPrinter(mModule,"pseudo.s");
+
+        for (var func : mModule.getFunctions()) {
+            if(!func.isExternalLinkage()) {
+                RegAlloc alloc = new RegAlloc(func, optimizer.localOptimizers.get(func.getIRfunction()).loopAnalysis);
+                alloc.alloc();
+            }
+        }
+        AsmPrinter printer2=new AsmPrinter(mModule,"test.s");
+
     }
 }

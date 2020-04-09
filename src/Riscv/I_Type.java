@@ -47,4 +47,18 @@ public class I_Type extends MachineInstruction {
     public Set<VirtualRegister> getDef() {
         return Set.of((VirtualRegister)rd);
     }
+
+    public void setRs1(Register rs1) {
+        this.rs1 = rs1;
+    }
+
+    public void setRd(Register rd) {
+        this.rd = rd;
+    }
+
+    @Override
+    public void color() {
+        this.rs1= ((VirtualRegister) rs1).color;
+        this.rd= ((VirtualRegister) rd).color;
+    }
 }

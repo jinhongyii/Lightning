@@ -1,30 +1,49 @@
 package Riscv;
 
+import IR.BasicBlock;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 
 public class MachineBasicBlock {
-    LinkedList<MachineInstruction> instructions=new LinkedList<>();
+    MachineInstruction head;
+    MachineInstruction tail;
+    BasicBlock basicBlock;
     public String name;
     public HashSet<VirtualRegister> liveOut=new HashSet<>();
     public HashSet<VirtualRegister> liveIn=new HashSet<>();
     public HashSet<VirtualRegister> gen=new HashSet<>();
     public HashSet<VirtualRegister> kill=new HashSet<>();
-    public LinkedList<MachineInstruction> getInstructions() {
-        return instructions;
-    }
+
 
     public String getName() {
         return name;
     }
-
-    public MachineBasicBlock(String name){
-        this.name=name;
+    public MachineBasicBlock(BasicBlock bb){
+        this.basicBlock=bb;
+        this.name=bb.getName();
     }
-    public void addInst(MachineInstruction instruction){
-        instructions.addLast(instruction);
+    public void addInst(MachineInstruction inst){
+        if (tail == null) {
+            head=tail=inst;
+            inst.setPrev(null);
+            inst.setNext(null);
+        }else {
+            tail.setNextInstruction(inst);
+            inst.setNext(null);
+            tail = inst;
+        }
+        inst.parent=this;
+    }
+
+    public MachineInstruction getHead() {
+        return head;
+    }
+
+    public MachineInstruction getTail() {
+        return tail;
     }
 
     @Override
@@ -33,17 +52,21 @@ public class MachineBasicBlock {
     }
     public ArrayList<MachineBasicBlock> getSuccessor(){
         var sucs=new ArrayList<MachineBasicBlock>();
-        var iter=instructions.descendingIterator();
-        var nextInst=iter.next();
-        if ( nextInst instanceof Jump) {
-            sucs.add(((Jump) nextInst).getTarget());
+
+        var inst=tail;
+        if ( inst instanceof Jump) {
+            sucs.add(((Jump) inst).getTarget());
         }
-        if (iter.hasNext()) {
-            nextInst=iter.next();
-            if (nextInst instanceof Branch) {
-                sucs.add(((Branch) nextInst).getTarget());
+        if (tail!=head) {
+            inst=tail.prev;
+            if (inst instanceof Branch) {
+                sucs.add(((Branch) inst).getTarget());
             }
         }
         return sucs;
+    }
+
+    public BasicBlock getIRBasicBlock() {
+        return basicBlock;
     }
 }

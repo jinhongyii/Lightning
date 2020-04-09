@@ -1,17 +1,20 @@
 package optim;
 
 import IR.Function;
+import IR.IRPrinter;
 import IR.Module;
 import optim.dsa.DSA;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class GlobalOptimizer implements Pass {
     Module module;
     Inliner inliner;
     AliasAnalysis aa;
     DeadFunctionElimination dfe;
-    ArrayList<Optimizer> localOptimizers=new ArrayList<>();
+    public HashMap<Function,Optimizer> localOptimizers=new HashMap<>();
     public GlobalOptimizer(Module module){
         this.module=module;
         inliner=new Inliner(module);
@@ -25,7 +28,18 @@ public class GlobalOptimizer implements Pass {
 //            changed|=inliner.run();
             dfe.run();
         }
+        try {
+            IRPrinter finalPrinter=new IRPrinter(module,"final.ll");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         destructSSA();
+        updateLoopAnalysis();
+    }
+    private void updateLoopAnalysis(){
+        for (var optim : localOptimizers.values()) {
+            optim.loopAnalysis.runWithoutModify();
+        }
     }
     private void destructSSA(){
         for (var func : module.getFunctionList()) {
@@ -37,70 +51,70 @@ public class GlobalOptimizer implements Pass {
     }
     private boolean sccp(){
         boolean changed=false;
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             changed|=optim.sccp();
         }
         return changed;
     }
     private void domUpdate(){
-        for(var optim:localOptimizers){
+        for(var optim:localOptimizers.values()){
             optim.domUpdate();
         }
     }
     private boolean cse(){
         boolean changed=false;
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             changed|=optim.cse();
         }
         return changed;
     }
     private boolean adce(){
         boolean changed=false;
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             changed|=optim.adce();
         }
         return changed;
     }
     private boolean redundantLoadElim(){
         boolean changed=false;
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             changed|=optim.redundantLoadElim();
         }
         return changed;
     }
     private void loopAnalysis(){
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             optim.loopAnalysis();
         }
     }
     private boolean strengthReduce(){
         boolean changed=false;
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             changed|=optim.strengthReduce();
         }
         return changed;
     }
     private boolean licm(){
         boolean changed=false;
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             changed|=optim.licm();
         }
         return changed;
     }
     private boolean instComb(){
         boolean changed=false;
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             changed|=optim.instCombine();
         }
         return changed;
     }
     private void CFGSimplify(){
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             optim.CFGSimplify();
         }
     }
     private void mem2reg(){
-        for (var optim : localOptimizers) {
+        for (var optim : localOptimizers.values()) {
             optim.mem2reg();
         }
     }
@@ -108,7 +122,7 @@ public class GlobalOptimizer implements Pass {
         localOptimizers.clear();
         for (var func : module.getFunctionList()) {
             if (!func.isExternalLinkage()) {
-                localOptimizers.add(new Optimizer(func,aa));
+                localOptimizers.put(func,new Optimizer(func,aa));
 
             }
         }

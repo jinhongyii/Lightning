@@ -55,4 +55,16 @@ public class Load extends MachineInstruction{
             return new HashSet<>();
         }
     }
+
+    public void setSrc(MachineOperand src) {
+        this.src = src;
+    }
+
+    @Override
+    public void color() {
+        if (src instanceof VirtualRegister) {
+            src=((VirtualRegister) src).color;
+        }
+        rd= ((VirtualRegister) rd).color;
+    }
 }

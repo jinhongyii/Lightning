@@ -69,7 +69,12 @@ public class DSHandle {
     }
 
     public static DSHandle mergeCells(DSHandle cell1, DSHandle cell2){
-        assert cell1!=null && cell2!=null;
+        if (cell1 == null) {
+            return cell2;
+        }
+        if (cell2 == null) {
+            return cell1;
+        }
         if (cell1.getNode() == null) {
             cell1.node = cell2.getNode();
             return new DSHandle(cell2);

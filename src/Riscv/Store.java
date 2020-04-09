@@ -53,4 +53,20 @@ public class Store extends MachineInstruction {
         uses.add((VirtualRegister)src);
         return uses;
     }
+
+    public void setPtr(MachineOperand ptr) {
+        this.ptr = ptr;
+    }
+
+    public void setSrc(Register src) {
+        this.src = src;
+    }
+
+    @Override
+    public void color() {
+        if (ptr instanceof VirtualRegister) {
+            ptr=((VirtualRegister) ptr).color;
+        }
+        src= ((VirtualRegister) src).color;
+    }
 }

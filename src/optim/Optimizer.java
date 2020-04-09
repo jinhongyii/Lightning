@@ -8,7 +8,7 @@ import java.io.IOException;
 public class Optimizer extends FunctionPass{
     private CFGSimplifier cfgSimplifier;
     private DominatorAnalysis dominatorAnalysis;
-    private LoopAnalysis loopAnalysis;
+    public LoopAnalysis loopAnalysis;
     private Mem2reg mem2reg;
     private ADCE adce;
     private SCCP sccp;

@@ -43,4 +43,17 @@ public class Branch extends MachineInstruction{
         return Set.of((VirtualRegister)rs,(VirtualRegister)rt);
     }
 
+    public void setRs(Register rs) {
+        this.rs = rs;
+    }
+
+    public void setRt(Register rt) {
+        this.rt = rt;
+    }
+
+    @Override
+    public void color() {
+        rs= ((VirtualRegister) rs).color;
+        rt= ((VirtualRegister) rt).color;
+    }
 }

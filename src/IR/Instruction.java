@@ -1,6 +1,10 @@
 package IR;
 
 public class Instruction extends User {
+    public Instruction() {
+        super("",null,ValueType.InstructionVal);
+    }
+
     public void setParent(BasicBlock parent) {
         this.parent = parent;
     }
