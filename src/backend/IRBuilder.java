@@ -669,7 +669,7 @@ public class IRBuilder implements ASTVisitor {
         assert firstDimV != null;
         int size=totdim==1?(type.isBoolType()?1:4):ptrSize;//元素大小
         var memberLength=new BinaryOpInst("mul", Instruction.Opcode.mul, firstDimV,new ConstantInt(size));
-        var totLength=new BinaryOpInst("add", Instruction.Opcode.add,memberLength,new ConstantInt(ptrSize));//int 大小
+        var totLength=new BinaryOpInst("add", Instruction.Opcode.add,memberLength,new ConstantInt(8));//int 大小
         params.add(totLength);
         var malloc=new CallInst("malloc", mallocFunc,params);
         var typePtrToArray=getPtrType(convertTypeLookUp(type),totdim);
