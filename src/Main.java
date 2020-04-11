@@ -44,7 +44,7 @@ public class Main {
         TypeChecker typeChecker=new TypeChecker(typeTable,valTable,builder.getASTStartNode());
         IRBuilder irBuilder=new IRBuilder(typeTable,valTable,builder.getASTStartNode());
         Module topModule = irBuilder.getTopModule();
-        IRPrinter irPrinter=new IRPrinter(topModule,"main.ll");
+//        IRPrinter irPrinter=new IRPrinter(topModule,"main.ll");
         GlobalOptimizer optimizer=new GlobalOptimizer(topModule);
         optimizer.run();
 //        MachineModule mModule=new MachineModule();
