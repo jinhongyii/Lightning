@@ -88,6 +88,17 @@ public class RegAlloc {
         run();
         color();
         removeRedundantMove();
+        modifySP();
+    }
+    private void modifySP(){
+        if(function.getStackSize()!=0) {
+            function.getBasicBlocks().getFirst().getHead().addInstBefore(new I_Type(I_Type.Opcode.addi, new PhysicalRegister("sp"), new PhysicalRegister("sp"), new Imm(-function.getStackSize() * 4)));
+            for (var bb : function.getBasicBlocks()) {
+                if (bb.getTail() instanceof Return) {
+                    bb.getTail().addInstBefore(new I_Type(I_Type.Opcode.addi, new PhysicalRegister("sp"), new PhysicalRegister("sp"), new Imm(function.getStackSize() * 4)));
+                }
+            }
+        }
     }
     private void init(){
         precoloured.clear();
@@ -178,7 +189,8 @@ public class RegAlloc {
         }
     }
     private void addEdge(VirtualRegister u,VirtualRegister v){
-        if (u != v && !adjSet.contains(new Edge(u, v))) {
+        var zero=TargetInfo.vPhysicalReg.get("zero");
+        if (u != v && !adjSet.contains(new Edge(u, v)) && u!=zero && v!=zero) {
             adjSet.add(new Edge(u,v));
             adjSet.add(new Edge(v,u));
             if (!precoloured.contains(u)) {

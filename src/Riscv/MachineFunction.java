@@ -42,4 +42,8 @@ public class MachineFunction {
     public Function getIRfunction() {
         return IRfunction;
     }
+
+    public int getStackSize() {
+        return stackSize;
+    }
 }

@@ -16,7 +16,7 @@ public class LivenessAnalysis {
         block.gen.clear();
         block.kill.clear();
         for (var inst =block.getHead();inst!=null;inst=inst.getNext()) {
-            //todo:fix
+
             var tmp=new HashSet<>(inst.getUse());
             tmp.removeAll(block.kill);
             block.gen.addAll(tmp);

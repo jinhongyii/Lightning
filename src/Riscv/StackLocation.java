@@ -17,6 +17,6 @@ public class StackLocation extends MachineOperand {
 
     @Override
     public String toString() {
-        return idx+"(sp)";
+        return 4*idx+"(sp)";
     }
 }

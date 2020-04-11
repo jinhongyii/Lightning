@@ -98,7 +98,7 @@ public class AsmPrinter implements Visitor {
                 assert false;
         }
         String src="";
-        if (inst.getSrc() instanceof VirtualRegister) {
+        if (inst.getSrc() instanceof Register) {
             src = "0(" + inst.getSrc() + ")";
         } else {
             src=inst.getSrc().toString();
@@ -192,7 +192,7 @@ public class AsmPrinter implements Visitor {
                 assert false;
         }
         String ptr="";
-        if (inst.getPtr() instanceof VirtualRegister) {
+        if (inst.getPtr() instanceof Register) {
             ptr=("0(" + inst.getPtr() + ")");
         } else {
             ptr=inst.getPtr().toString();
