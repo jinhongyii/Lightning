@@ -38,7 +38,7 @@ public class TopDown {
                 continue;
             }
             calleeG.resolveCaller(curGraph,callsite.callee,callsite,clonedFunction );
-//            calleeG.removeDeadNodes();
+            calleeG.removeDeadNodes();
         }
     }
 }

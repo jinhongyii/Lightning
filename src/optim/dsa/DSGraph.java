@@ -111,7 +111,7 @@ public class DSGraph {
         clonedFunc.add(calleeF);
         DSHandle.mergeCells(new DSHandle(NodeMap.get(callSite.returnValue.getNode()), callSite.returnValue.field), retNodes.get(calleeF));
         int j=0;
-        for (int i=0;i<callSite.arguments.size();i++) {
+        for (int i=0;i<calleeF.getArguments().size();i++) {
             if (calleeF.getArguments().get(i).getType() instanceof PointerType) {
                 var origArg=callSite.arguments.get(j);
                 var newArg=new DSHandle(NodeMap.get(origArg.getNode()),origArg.field);
