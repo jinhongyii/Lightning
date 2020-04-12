@@ -79,8 +79,8 @@ public class LoopAnalysis extends FunctionPass {
         dfs(dominatorAnalysis.treeRoot);
         addPreHeader();
         addBackedgeBB();
-        cleanUp();
         rewriteExitBlock();
+        cleanUp();
         return false;
     }
     public void runWithoutModify(){
@@ -112,6 +112,9 @@ public class LoopAnalysis extends FunctionPass {
             if (loop.contains(pred)) {
                 inLoopPred.add(pred);
             }
+        }
+        if(inLoopPred.isEmpty()){
+            return;
         }
         var newBB=splitBlock(exitBlock,inLoopPred);
         if (loop.parent != null) {
@@ -305,8 +308,10 @@ public class LoopAnalysis extends FunctionPass {
         for (var use : backedge) {
             use.setValue(backedgeBB);
         }
+
         loop.basicBlocks.add(backedgeBB);
         loopMap.put(backedgeBB,loop);
+        changeExitBlock(loop,header,backedgeBB);
     }
     private void addBackedgeBB(){
         for (var loop : topLoops) {
