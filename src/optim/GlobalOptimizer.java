@@ -6,7 +6,6 @@ import IR.Module;
 import optim.dsa.DSA;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class GlobalOptimizer implements Pass {
@@ -29,7 +28,7 @@ public class GlobalOptimizer implements Pass {
             dfe.run();
         }
         try {
-            IRPrinter finalPrinter=new IRPrinter(module,"final.ll");
+            IRPrinter finalPrinter=new IRPrinter(module,"final.ll", true);
         } catch (IOException e) {
             e.printStackTrace();
         }

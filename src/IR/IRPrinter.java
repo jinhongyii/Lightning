@@ -5,18 +5,19 @@ import IR.Types.PointerType;
 import IR.Types.StructType;
 import IR.instructions.*;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 
 public class IRPrinter implements IRVisitor {
     private String prefix="";
+    boolean print;
 //    private FileWriter writer;
 //    BufferedWriter bufferedWriter;
     private void indent(){prefix+="\t";}
     private void dedent(){prefix=prefix.substring(0,prefix.length()-1);}
     private void print(String str){
-        System.out.println(prefix+str);
+        if(print) {
+            System.out.println(prefix + str);
+        }
 //        try {
 //            bufferedWriter.write(prefix + str + "\n");
 //        } catch (IOException e) {
@@ -24,9 +25,10 @@ public class IRPrinter implements IRVisitor {
 //        }
 
     }
-    public IRPrinter(Module module,String filename) throws IOException {
+    public IRPrinter(Module module, String filename, boolean print) throws IOException {
 //        writer=new FileWriter("tmp/"+filename);
 //        bufferedWriter=new BufferedWriter(writer,8096);
+        this.print=print;
         visitModule(module);
 //        bufferedWriter.flush();
 //        bufferedWriter.close();

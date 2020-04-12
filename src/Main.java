@@ -1,16 +1,9 @@
 import IR.IRPrinter;
 import IR.Module;
-import Riscv.MachineModule;
-import Riscv.Move;
-import backend.AsmPrinter;
 import backend.IRBuilder;
-import backend.InstructionSelector;
-import backend.RegAlloc;
 import frontend.ASTBuilder;
 import optim.*;
-import optim.dsa.DSA;
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -45,7 +38,7 @@ public class Main {
         IRBuilder irBuilder=new IRBuilder(typeTable,valTable,builder.getASTStartNode());
         Module topModule = irBuilder.getTopModule();
         if(args[0].equals("0")) {
-            IRPrinter irPrinter = new IRPrinter(topModule, "main.ll");
+            IRPrinter irPrinter = new IRPrinter(topModule, "main.ll", false);
         }else if(args[0].equals("1")){
             GlobalOptimizer optimizer = new GlobalOptimizer(topModule);
             optimizer.run();

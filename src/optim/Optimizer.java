@@ -91,7 +91,7 @@ public class Optimizer extends FunctionPass{
             cfgSimplifier.run();
             global_changed|=changed;
             try {
-                IRPrinter ssaPrinter=new IRPrinter(function.getParent(),"ssa.ll");
+                IRPrinter ssaPrinter=new IRPrinter(function.getParent(),"ssa.ll", true);
             } catch (IOException e) {
                 e.printStackTrace();
             }
