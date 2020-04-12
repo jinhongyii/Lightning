@@ -11,31 +11,31 @@ import java.io.IOException;
 
 public class IRPrinter implements IRVisitor {
     private String prefix="";
-    private FileWriter writer;
-    BufferedWriter bufferedWriter;
+//    private FileWriter writer;
+//    BufferedWriter bufferedWriter;
     private void indent(){prefix+="\t";}
     private void dedent(){prefix=prefix.substring(0,prefix.length()-1);}
     private void print(String str){
-//        System.out.println(prefix+str);
-        try {
-            bufferedWriter.write(prefix + str + "\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println(prefix+str);
+//        try {
+//            bufferedWriter.write(prefix + str + "\n");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
     }
     public IRPrinter(Module module,String filename) throws IOException {
-        writer=new FileWriter("tmp/"+filename);
-        bufferedWriter=new BufferedWriter(writer,8096);
+//        writer=new FileWriter("tmp/"+filename);
+//        bufferedWriter=new BufferedWriter(writer,8096);
         visitModule(module);
-        bufferedWriter.flush();
-        bufferedWriter.close();
+//        bufferedWriter.flush();
+//        bufferedWriter.close();
     }
     public IRPrinter(Function function,String fileName) throws IOException {
-        writer=new FileWriter("tmp/"+fileName);
-        bufferedWriter=new BufferedWriter(writer,8096);
+//        writer=new FileWriter("tmp/"+fileName);
+//        bufferedWriter=new BufferedWriter(writer,8096);
         visitFunction(function);
-        bufferedWriter.flush();
+//        bufferedWriter.flush();
     }
     @Override
     public Object visitModule(Module module) {
