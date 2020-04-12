@@ -1,13 +1,11 @@
 package optim;
 
 
-import IR.BasicBlock;
-import IR.Function;
-import IR.Use;
-import IR.User;
+import IR.*;
 import IR.instructions.BranchInst;
 import IR.instructions.PhiNode;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,6 +80,7 @@ public class LoopAnalysis extends FunctionPass {
         addPreHeader();
         addBackedgeBB();
         cleanUp();
+        rewriteExitBlock();
         return false;
     }
     public void runWithoutModify(){
@@ -89,9 +88,78 @@ public class LoopAnalysis extends FunctionPass {
         loopMap.clear();
         dfs(dominatorAnalysis.treeRoot);
     }
+    private void rewriteExitBlock(){
+        for (var loop : topLoops) {
+            recursiveRewriteExitBlock(loop);
+        }
+    }
+    private void recursiveRewriteExitBlock(Loop loop){
+        for (var subLoop : loop.subLoops) {
+            recursiveRewriteExitBlock(subLoop);
+        }
+        var headerNode=dominatorAnalysis.DominantTree.get(loop.header);
+        var exitBlocks=new HashSet<>(loop.getExitBlocks());
+        for (var exitBlock : exitBlocks) {
+            var exitNode=dominatorAnalysis.DominantTree.get(exitBlock);
+            if (!headerNode.dominate(exitNode)) {
+                rewriteExitBlock(loop,exitBlock);
+            }
+        }
+    }
+    private void rewriteExitBlock(Loop loop,BasicBlock exitBlock){
+        ArrayList<BasicBlock> inLoopPred=new ArrayList<>();
+        for (var pred : exitBlock.getPredecessors()) {
+            if (loop.contains(pred)) {
+                inLoopPred.add(pred);
+            }
+        }
+        var newBB=splitBlock(exitBlock,inLoopPred);
+        if (loop.parent != null) {
+            loopMap.put(newBB,loop.parent);
+            var l=loop.parent;
+            while (l != null) {
+                l.basicBlocks.add(newBB);
+                l=l.parent;
+            }
+        }
+        changeExitBlock(loop,exitBlock,newBB);
+    }
+    private void changeExitBlock(Loop loop,BasicBlock predExit, BasicBlock newExit){
+        if (loop.exitBlocks.contains(predExit)) {
+            loop.exitBlocks.remove(predExit);
+            loop.exitBlocks.add(newExit);
+        }
+        for (var subLoop : loop.subLoops) {
+            changeExitBlock(subLoop,predExit,newExit);
+        }
+    }
+
+    private BasicBlock splitBlock(BasicBlock basicBlock,ArrayList<BasicBlock> preds) {
+        var newBB=function.addBB("loop.exit");
+        newBB.addInst(new BranchInst(basicBlock,null,null));
+        for (var phi = basicBlock.getHead(); phi instanceof PhiNode; phi = phi.getNext()) {
+            var newPhi = new PhiNode("phi", phi.getType());
+            newBB.addInstBefore(newBB.getTerminator(),newPhi);
+            for (var pred : preds) {
+                newPhi.addIncoming(((PhiNode) phi).findValue(pred),pred);
+                ((PhiNode) phi).removeIncoming(pred);
+            }
+            ((PhiNode) phi).addIncoming(newPhi,newBB);
+        }
+        for (var pred : preds) {
+            var term=(BranchInst)pred.getTerminator();
+            if (term.isConditional()) {
+                term.setConditional(newBB, basicBlock);
+            } else {
+                term.setUnconditional(newBB);
+            }
+        }
+        return newBB;
+    }
     private void cleanUp(){
         ADCE adce=new ADCE(function,dominatorAnalysis,aa);
         SCCP sccp=new SCCP(function);
+
         dominatorAnalysis.run();
         boolean changed=true;
         while (changed) {

@@ -63,12 +63,15 @@ public class Inliner implements Pass {
                         if (!callee.isExternalLinkage() && instNum.get(callee) < instNumThreshold && callee==function) {
                             changed = true;
                             doFunctionInline((CallInst) inst);
+                            getInstNum(function);
+
                         }
                     }
                 }
             }
         }
         getInstNum(function);
+
         return changed;
     }
     //return the exit block of the cloned function

@@ -98,10 +98,6 @@ public class Mem2reg extends FunctionPass {
                         theOnlyNotNull = i;
                     }
                 }
-                if (notnullcnt == 1) {
-                    phi.getValue().transferUses(ops.get(theOnlyNotNull).getVal());
-                    phi.getValue().delete();
-                }
             }
         }
     }

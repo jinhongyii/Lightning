@@ -40,11 +40,6 @@ public class DeadFunctionElimination implements Pass {
         }
         if (!hasUseOutsideFunc) {
             toDelete.add(func);
-            for (var bb = func.getHead(); bb != null; ) {
-                var tmp=bb.getNext();
-                bb.delete();
-                bb=tmp;
-            }
         }
         return !hasUseOutsideFunc;
     }

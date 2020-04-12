@@ -27,6 +27,7 @@ public class IRBuilder implements ASTVisitor {
     private Function curFunc;
     private BasicBlock curBB;
     private BasicBlock curLoopBB;
+    private BasicBlock curForStepBB;
     private BasicBlock curAfterLoopBB;
     private HashMap<VariableDeclStmt,Value> varResolveMap=new HashMap<>();
     private Function InitializerFunc=new Function(".initializer",topModule, Type.theVoidType,new ArrayList<>(),new ArrayList<>());
@@ -237,8 +238,10 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public Object visitBlockStmt(BlockStmt node) throws TypeChecker.semanticException {
+        int cnt=0;
         for (var stmt : node.getStatements()) {
             visit(stmt);
+            cnt++;
         }
         return null;
     }
@@ -278,7 +281,7 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public Object visitContinueStmt(ContinueStmt node) throws TypeChecker.semanticException {
-        curBB.addInst(new BranchInst(curLoopBB,null,null));
+        curBB.addInst(new BranchInst(curForStepBB,null,null));
         return null;
     }
 
@@ -308,8 +311,10 @@ public class IRBuilder implements ASTVisitor {
         }
         var prevLoopBB=curLoopBB;
         var prevAfterLoopBB=curAfterLoopBB;
+        var prevForStepBB=curForStepBB;
         curLoopBB=loopBB;
         curAfterLoopBB=afterLoopBB;
+        curForStepBB=stepBB;
         curFunc.addBB(loopBB);
         curBB=loopBB;
         visit(node.getLoopBody());
@@ -322,6 +327,7 @@ public class IRBuilder implements ASTVisitor {
         curBB.addInst(new BranchInst(condBB,null,null));
         curLoopBB=prevLoopBB;
         curAfterLoopBB=prevAfterLoopBB;
+        curForStepBB=prevForStepBB;
         curFunc.addBB(afterLoopBB);
         curBB=afterLoopBB;
         return null;
@@ -647,7 +653,7 @@ public class IRBuilder implements ASTVisitor {
             var getelement=new GetElementPtrInst("getelementptr", thisV, idx);
             ptr=getelement;
             curBB.addInst(getelement);
-            if (!lhs && thisType.getFieldType().get(i).isPrimitiveType()) {
+            if (!lhs ) {
                 var loadInst=new LoadInst("load", getelement);
                 curBB.addInst(loadInst);
                 return loadInst;
@@ -667,7 +673,7 @@ public class IRBuilder implements ASTVisitor {
         ArrayList<Value> params = new ArrayList<>();
         Value firstDimV= dims.pollFirst();
         assert firstDimV != null;
-        int size=totdim==1?(type.isBoolType()?1:4):ptrSize;//元素大小
+        int size=totdim==1?(type.isBoolType()?1:ptrSize):ptrSize;//元素大小
         var memberLength=new BinaryOpInst("mul", Instruction.Opcode.mul, firstDimV,new ConstantInt(size));
         var totLength=new BinaryOpInst("add", Instruction.Opcode.add,memberLength,new ConstantInt(8));//int 大小
         params.add(totLength);
@@ -915,12 +921,15 @@ public class IRBuilder implements ASTVisitor {
         curBB=loopBB;
         var prevLoopBB=curLoopBB;
         var prevAfterLoopBB=curAfterLoopBB;
+        var prevForStepBB=curForStepBB;
         curLoopBB=loopBB;
         curAfterLoopBB=afterLoopBB;
+        curForStepBB=condBB;
         visit(node.getLoopBody());
         curBB.addInst(new BranchInst(condBB,null,null));
         curLoopBB=prevLoopBB;
         curAfterLoopBB=prevAfterLoopBB;
+        curForStepBB=prevForStepBB;
         curFunc.addBB(afterLoopBB);
         curBB=afterLoopBB;
         return null;

@@ -5,6 +5,7 @@ import IR.*;
 import IR.Types.PointerType;
 import IR.instructions.*;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 //todo:maybe we can hoist call and store
@@ -258,6 +259,7 @@ public class LICM extends FunctionPass implements IRVisitor {
         return false;
     }
     private void doPromotion(){
+
         HashMap<AllocaInst,Value> realMemLoc=new HashMap<>();
         HashSet<BasicBlock> exitBB=new HashSet<>();
         var preheader=curLoop.getPreHeader();
@@ -314,8 +316,11 @@ public class LICM extends FunctionPass implements IRVisitor {
             }
 
         }
+
         Mem2reg mem2reg=new Mem2reg(function,dominatorAnalysis);
         mem2reg.run();
+
+
     }
     @Override
     public Object visit(Value value) {

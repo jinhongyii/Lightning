@@ -31,14 +31,14 @@ public class TopDown {
         }
     }
     private void mergeToCallee(DSGraph curGraph){
-
+        HashSet<Function> clonedFunction=new HashSet<>();
         for (var callsite : curGraph.callSites) {
             var calleeG=graphs.get(callsite.callee);
             if (calleeG == null  || calleeG==curGraph) {
                 continue;
             }
-            calleeG.resolveCaller(curGraph,callsite.callee,callsite);
-            calleeG.removeDeadNodes();
+            calleeG.resolveCaller(curGraph,callsite.callee,callsite,clonedFunction );
+//            calleeG.removeDeadNodes();
         }
     }
 }

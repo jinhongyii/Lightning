@@ -203,7 +203,7 @@ public class StrengthReduction extends FunctionPass {
             header.addInstToFirst(newPhi);
             newPhi.addIncoming(indVar.start, preheader);
             var stepInst=new BinaryOpInst("indvar_step", Instruction.Opcode.add,indVar.step,newPhi);
-            original.getParent().addInstBefore(original,stepInst);
+            header.addInstBefore(header.getTerminator(),stepInst);
             original.transferUses(newPhi);
             original.delete();
             newPhi.addIncoming(stepInst,backedge);

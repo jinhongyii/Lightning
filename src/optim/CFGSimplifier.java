@@ -58,6 +58,18 @@ public class CFGSimplifier extends FunctionPass {
         if (inst instanceof BranchInst && !((BranchInst) inst).isConditional()) {
             var theOnlySuccessor=basicBlock.getSuccessors().get(0);
             if (notifySuccessor(basicBlock, theOnlySuccessor)) {
+                for (var phi = basicBlock.getHead(); phi instanceof PhiNode;) {
+                    var tmp=phi.getNext();
+                    phi.detach();
+                    theOnlySuccessor.attachBefore(theOnlySuccessor.getHead(),phi);
+                    for (var pred : theOnlySuccessor.getPredecessors()) {
+                        if (pred != basicBlock) {
+                            ((PhiNode) phi).addIncoming(phi,pred);
+                        }
+                    }
+                    phi=tmp;
+                }
+
                 basicBlock.transferUses(theOnlySuccessor);
                 basicBlock.delete();
                 return true;

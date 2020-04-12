@@ -48,7 +48,7 @@ public class DSGraph {
             newNode.flag &=mask;
             nodeMap.put(node,newNode);
         }
-        for (var node : nodes) {
+        for (var node : nodeMap.values()) {
             for (var outEdge : node.outGoingEdge) {
                 DSNode cloneNode = nodeMap.get(outEdge.getNode());
                 if (cloneNode != null) {
@@ -97,7 +97,7 @@ public class DSGraph {
         }
     }
 
-    public void resolveCaller(DSGraph caller,Function calleeF,DSCallNode callSite){
+    public void resolveCaller(DSGraph caller, Function calleeF, DSCallNode callSite, HashSet<Function> clonedFunc){
 //        if (calleeF.isExternalLinkage()) {
 //            return;
 //        }
@@ -105,7 +105,10 @@ public class DSGraph {
 
         var clonedRetNodes=new HashMap<Function,DSHandle>();
         var NodeMap=new HashMap<DSNode,DSNode>();
-        cloneGraphInto(caller, clonedRetNodes, false, NodeMap, ~0x30);
+        if(!clonedFunc.contains(calleeF)) {
+            cloneGraphInto(caller, clonedRetNodes, false, NodeMap, ~0x30);
+        }
+        clonedFunc.add(calleeF);
         DSHandle.mergeCells(new DSHandle(NodeMap.get(callSite.returnValue.getNode()), callSite.returnValue.field), retNodes.get(calleeF));
         int j=0;
         for (int i=0;i<callSite.arguments.size();i++) {

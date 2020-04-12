@@ -25,7 +25,7 @@ public class GlobalOptimizer implements Pass {
         boolean changed=true;
         while (changed) {
             changed=performLocalOptim();
-//            changed|=inliner.run();
+            changed|=inliner.run();
             dfe.run();
         }
         try {
@@ -133,7 +133,6 @@ public class GlobalOptimizer implements Pass {
         boolean globalChanged=false;
         while(changed){
             changed=false;
-            domUpdate();
             changed|=sccp();
             changed|=cse();
             aa.run(module);
@@ -144,20 +143,13 @@ public class GlobalOptimizer implements Pass {
             aa.run(module);
             changed|=strengthReduce();
             aa.run(module);
-//            try {
-//                IRPrinter printer=new IRPrinter(module, "step1.ll");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
             changed|=licm();
-//            try {
-//                IRPrinter printer=new IRPrinter(module, "step2.ll");
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
             instComb();
             CFGSimplify();
+            domUpdate();
+            adce();
             globalChanged|=changed;
+
 
         }
 
