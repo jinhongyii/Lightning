@@ -197,7 +197,7 @@ public class AsmPrinter implements Visitor {
         } else {
             ptr=inst.getPtr().toString();
         }
-        print(opcode+"\t"+inst.getSrc()+","+ptr);
+        print(opcode+"\t"+inst.getSrc()+","+ptr+((inst.helperReg==null)?"":(", "+inst.helperReg)));
     }
 
     @Override

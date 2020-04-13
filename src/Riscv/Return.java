@@ -1,6 +1,8 @@
 package Riscv;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Return extends MachineInstruction{
     @Override
@@ -10,6 +12,6 @@ public class Return extends MachineInstruction{
 
     @Override
     public Set<VirtualRegister> getUse() {
-        return Set.of(TargetInfo.vPhysicalReg.get("ra"));
+        return Stream.of(TargetInfo.vPhysicalReg.get("ra")).collect(Collectors.toSet());
     }
 }

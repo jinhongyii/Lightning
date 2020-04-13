@@ -324,7 +324,7 @@ public class InstructionSelector implements IRVisitor {
                     curBB.addInst(getTranslatedInst(Instruction.Opcode.LT,rReg,lReg, (Register) rd));
                     curBB.addInst(getTranslatedInst(Instruction.Opcode.xor,rd,new Imm(1), (Register) rd));
                 } else if (opcode == Instruction.Opcode.GT) {
-                    curBB.addInst(getTranslatedInst(Instruction.Opcode.GT,rReg,lReg, (Register) rd));
+                    curBB.addInst(getTranslatedInst(Instruction.Opcode.LT,rReg,lReg, (Register) rd));
                 } else if (opcode == Instruction.Opcode.GE) {
                     curBB.addInst(getTranslatedInst(Instruction.Opcode.LT, lReg, rReg, (Register) rd));
                     curBB.addInst(getTranslatedInst(Instruction.Opcode.xor, rd, new Imm(1), (Register) rd));

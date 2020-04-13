@@ -26,6 +26,11 @@ public class GlobalOptimizer implements Pass {
             changed=performLocalOptim();
             changed|=inliner.run();
             dfe.run();
+//            try {
+//                new IRPrinter(module,"inline.ll",true);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         }
         try {
             IRPrinter finalPrinter=new IRPrinter(module,"final.ll", true);
@@ -33,6 +38,11 @@ public class GlobalOptimizer implements Pass {
             e.printStackTrace();
         }
         destructSSA();
+        try {
+            new IRPrinter(module,"after_phi_elim.ll",true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         updateLoopAnalysis();
     }
     private void updateLoopAnalysis(){
@@ -133,6 +143,7 @@ public class GlobalOptimizer implements Pass {
         while(changed){
             changed=false;
             changed|=sccp();
+            CFGSimplify();
             changed|=cse();
             aa.run(module);
             changed|=adce();

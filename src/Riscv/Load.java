@@ -2,6 +2,8 @@ package Riscv;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Load extends MachineInstruction{
     public boolean isGlobal;
@@ -44,13 +46,13 @@ public class Load extends MachineInstruction{
 
     @Override
     public Set<VirtualRegister> getDef() {
-        return Set.of((VirtualRegister)rd);
+        return Stream.of((VirtualRegister)rd).collect(Collectors.toSet());
     }
 
     @Override
     public Set<VirtualRegister> getUse() {
         if (src instanceof VirtualRegister) {
-            return Set.of((VirtualRegister) src);
+            return Stream.of((VirtualRegister) src).collect(Collectors.toSet());
         } else {
             return new HashSet<>();
         }

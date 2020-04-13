@@ -1,6 +1,8 @@
 package Riscv;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LI extends MachineInstruction {
     public Register rd;
@@ -25,7 +27,7 @@ public class LI extends MachineInstruction {
 
     @Override
     public Set<VirtualRegister> getDef() {
-        return Set.of((VirtualRegister)rd);
+        return Stream.of((VirtualRegister)rd).collect(Collectors.toSet());
     }
 
     @Override

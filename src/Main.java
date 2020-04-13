@@ -1,6 +1,10 @@
 import IR.IRPrinter;
 import IR.Module;
+import Riscv.MachineModule;
+import backend.AsmPrinter;
 import backend.IRBuilder;
+import backend.InstructionSelector;
+import backend.RegAlloc;
 import frontend.ASTBuilder;
 import optim.*;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -39,21 +43,22 @@ public class Main {
         Module topModule = irBuilder.getTopModule();
         if(args[0].equals("0")) {
             IRPrinter irPrinter = new IRPrinter(topModule, "main.ll", false);
-        }else if(args[0].equals("1")){
+        }else {
             GlobalOptimizer optimizer = new GlobalOptimizer(topModule);
             optimizer.run();
+            MachineModule mModule=new MachineModule();
+            InstructionSelector selector=new InstructionSelector(mModule,topModule);
+//            AsmPrinter printer=new AsmPrinter(mModule,"pseudo.s");
+
+            for (var func : mModule.getFunctions()) {
+                if(!func.isExternalLinkage()) {
+                    RegAlloc alloc = new RegAlloc(func, optimizer.localOptimizers.get(func.getIRfunction()).loopAnalysis);
+                    alloc.alloc();
+                }
+            }
+            AsmPrinter printer2=new AsmPrinter(mModule,"test.s");
+
         }
-//        MachineModule mModule=new MachineModule();
-//        InstructionSelector selector=new InstructionSelector(mModule,topModule);
-//        AsmPrinter printer=new AsmPrinter(mModule,"pseudo.s");
-//
-//        for (var func : mModule.getFunctions()) {
-//            if(!func.isExternalLinkage()) {
-//                RegAlloc alloc = new RegAlloc(func, optimizer.localOptimizers.get(func.getIRfunction()).loopAnalysis);
-//                alloc.alloc();
-//            }
-//        }
-//        AsmPrinter printer2=new AsmPrinter(mModule,"test.s");
 
     }
 }

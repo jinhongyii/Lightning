@@ -38,7 +38,7 @@ public class RegAlloc {
         }
     }
     private void debug(String message){
-        System.out.println(message);
+        //System.out.println(message);
     }
     private MachineFunction function;
     private LoopAnalysis loopAnalysis;
@@ -92,10 +92,11 @@ public class RegAlloc {
     }
     private void modifySP(){
         if(function.getStackSize()!=0) {
-            function.getBasicBlocks().getFirst().getHead().addInstBefore(new I_Type(I_Type.Opcode.addi, new PhysicalRegister("sp"), new PhysicalRegister("sp"), new Imm(-function.getStackSize() * 4)));
+            int stackSize=function.getStackSize()*4+(16-function.getStackSize()*4%16);
+            function.getBasicBlocks().getFirst().getHead().addInstBefore(new I_Type(I_Type.Opcode.addi, new PhysicalRegister("sp"), new PhysicalRegister("sp"), new Imm(-stackSize)));
             for (var bb : function.getBasicBlocks()) {
                 if (bb.getTail() instanceof Return) {
-                    bb.getTail().addInstBefore(new I_Type(I_Type.Opcode.addi, new PhysicalRegister("sp"), new PhysicalRegister("sp"), new Imm(function.getStackSize() * 4)));
+                    bb.getTail().addInstBefore(new I_Type(I_Type.Opcode.addi, new PhysicalRegister("sp"), new PhysicalRegister("sp"), new Imm(stackSize)));
                 }
             }
         }

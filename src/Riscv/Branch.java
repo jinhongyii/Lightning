@@ -1,6 +1,8 @@
 package Riscv;
 
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Branch extends MachineInstruction{
     public enum Opcode{beq,bne,ble,bge,blt,bgt}
@@ -40,7 +42,7 @@ public class Branch extends MachineInstruction{
 
     @Override
     public Set<VirtualRegister> getUse() {
-        return Set.of((VirtualRegister)rs,(VirtualRegister)rt);
+        return Stream.of((VirtualRegister)rs,(VirtualRegister)rt).collect(Collectors.toSet());
     }
 
     public void setRs(Register rs) {
