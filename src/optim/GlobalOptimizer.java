@@ -142,8 +142,10 @@ public class GlobalOptimizer implements Pass {
         boolean globalChanged=false;
         while(changed){
             changed=false;
+
             changed|=sccp();
             CFGSimplify();
+            domUpdate();
             changed|=cse();
             aa.run(module);
             changed|=adce();
