@@ -21,7 +21,8 @@ public class InstructionSelector implements IRVisitor {
     private HashMap<GlobalVariable,GlobalVar> globalVarMap=new HashMap<>();
     private HashMap<VirtualRegister,VirtualRegister> calleeMap;
     private VirtualRegister ra;
-    private final int maxImm=(1<<12)-1;
+    private final int maxImm=(1<<11)-1;
+    private final int minImm=-(1<<11);
     public InstructionSelector(MachineModule module,Module irModule){
         this.machineModule=module;
         visitModule(irModule);
@@ -115,7 +116,7 @@ public class InstructionSelector implements IRVisitor {
     private MachineOperand getOperand(Value value, boolean enableImm){
         if (value instanceof ConstantInt) {
             int val = ((ConstantInt) value).getVal();
-            if (val > maxImm || !enableImm) {
+            if (val > maxImm||val<minImm || !enableImm) {
                 var tmpVReg = new VirtualRegister("tmp");
                 curBB.addInst(new LI(tmpVReg,new Imm(val)));
                 return tmpVReg;
