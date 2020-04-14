@@ -13,22 +13,13 @@ public class Store extends MachineInstruction {
     public MachineOperand ptr;
     public Register src;
     public Register helperReg;
-    public Store(  MachineOperand ptr, Register src) {
-        this.isGlobal = ptr instanceof GlobalVar;
-        this.size = ptr.getSize();
-        this.ptr = ptr;
-        this.src = src;
-        if(isGlobal) {
-            helperReg = new VirtualRegister("helper");
-        }
-    }
-    public Store(  MachineOperand ptr, Register src,int size) {
+    public Store(  MachineOperand ptr, Register src,int size,Register helperReg) {
         this.isGlobal = ptr instanceof GlobalVar;
         this.size =size;
         this.ptr = ptr;
         this.src = src;
         if(isGlobal) {
-            helperReg = new VirtualRegister("helper");
+            this.helperReg = helperReg;
         }
     }
     @Override
@@ -59,17 +50,13 @@ public class Store extends MachineInstruction {
             uses.add((VirtualRegister) ptr);
         }
         uses.add((VirtualRegister)src);
+        if (helperReg != null) {
+            uses.add((VirtualRegister) helperReg);
+        }
         return uses;
     }
 
-    @Override
-    public Set<VirtualRegister> getDef() {
-        if (helperReg != null) {
-            return Stream.of(((VirtualRegister) helperReg)).collect(Collectors.toSet());
-        } else {
-            return super.getDef();
-        }
-    }
+
 
     public void setPtr(MachineOperand ptr) {
         this.ptr = ptr;

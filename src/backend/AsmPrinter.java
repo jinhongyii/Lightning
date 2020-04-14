@@ -8,24 +8,24 @@ import java.io.IOException;
 
 public class AsmPrinter implements Visitor {
     private String prefix="";
-    private FileWriter writer;
-    BufferedWriter bufferedWriter;
+//    private FileWriter writer;
+//    BufferedWriter bufferedWriter;
     private void indent(){prefix+="\t";}
     private void dedent(){prefix=prefix.substring(0,prefix.length()-1);}
     private void print(String str){
-//        System.out.println(prefix+str);
-        try {
-            bufferedWriter.write(prefix + str + "\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        System.out.println(prefix+str);
+//        try {
+//            bufferedWriter.write(prefix + str + "\n");
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
     }
     public AsmPrinter(MachineModule module,String filename) throws IOException {
-        writer=new FileWriter("tmp/"+filename);
-        bufferedWriter=new BufferedWriter(writer,8096);
+//        writer=new FileWriter("tmp/"+filename);
+//        bufferedWriter=new BufferedWriter(writer,8096);
         visitModule(module);
-        bufferedWriter.flush();
+//        bufferedWriter.flush();
     }
     @Override
     public void visitBranch(Branch inst) {
@@ -194,10 +194,17 @@ public class AsmPrinter implements Visitor {
         String ptr="";
         if (inst.getPtr() instanceof Register) {
             ptr=("0(" + inst.getPtr() + ")");
+        } else if (inst.getPtr() instanceof StackLocation) {
+            ptr = inst.getPtr().toString();
         } else {
-            ptr=inst.getPtr().toString();
+            ptr="%lo("+inst.getPtr()+")("+inst.helperReg+")";
         }
-        print(opcode+"\t"+inst.getSrc()+","+ptr+((inst.helperReg==null)?"":(", "+inst.helperReg)));
+        print(opcode+"\t"+inst.getSrc()+","+ptr);
+    }
+
+    @Override
+    public void visitLUI(LUI inst) {
+        print("lui\t"+inst.getRt()+", %hi("+inst.getSymbol()+")");
     }
 
     @Override

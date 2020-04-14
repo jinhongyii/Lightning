@@ -3,6 +3,7 @@ package backend;
 import IR.*;
 import IR.Module;
 
+import IR.Types.PointerType;
 import IR.instructions.*;
 import Riscv.*;
 
@@ -65,7 +66,7 @@ public class InstructionSelector implements IRVisitor {
         //mov arguments to its vreg
         for (int i = 8; i < paramNum; i++) {
             var argVReg= getOperand(function.getArguments().get(i), false);
-            curBB.addInst(new Load(new StackLocation(i-8), (Register) argVReg));
+            curBB.addInst(new Load(new StackLocation(curFunc,i-8,true), (Register) argVReg));
         }
         for (int i = 0; i < Integer.min(paramNum, 8);i++) {
             var argVReg= getOperand(function.getArguments().get(i), false);
@@ -218,8 +219,8 @@ public class InstructionSelector implements IRVisitor {
         var lhs=binaryOpInst.getLhs();
         var rhs=binaryOpInst.getRhs();
         var opcode=binaryOpInst.getOpcode();
-        var enableImm_L=opcode!= Instruction.Opcode.div && opcode!= Instruction.Opcode.rem && opcode!= Instruction.Opcode.sub && opcode!= Instruction.Opcode.shl && opcode!= Instruction.Opcode.shr;
-        var enableImm_R= opcode!= Instruction.Opcode.div && opcode!= Instruction.Opcode.rem ;
+        var enableImm_L=opcode!= Instruction.Opcode.div && opcode!= Instruction.Opcode.rem && opcode!= Instruction.Opcode.sub && opcode!= Instruction.Opcode.shl && opcode!= Instruction.Opcode.shr && opcode!= Instruction.Opcode.mul;
+        var enableImm_R= opcode!= Instruction.Opcode.div && opcode!= Instruction.Opcode.rem & opcode!= Instruction.Opcode.mul;
         var lReg= getOperand(lhs,enableImm_L);
         var rReg= getOperand(rhs,enableImm_R);
         var rd= getOperand(binaryOpInst,false);
@@ -251,7 +252,7 @@ public class InstructionSelector implements IRVisitor {
         var callee=funcMap.get(callInst.getCallee());
         for (int i = 8; i < paramNum; i++) {
             var vreg= getOperand(callInst.getParams().get(i), false);
-            curBB.addInst(new Store(new StackLocation(callee), (Register) vreg));
+            curBB.addInst(new Store(new StackLocation(curFunc), (Register) vreg,4,null));
         }
         for (int i = 0; i < Integer.min(paramNum, 8); i++) {
             var vreg= getOperand(callInst.getParams().get(i), false);
@@ -285,6 +286,11 @@ public class InstructionSelector implements IRVisitor {
         var base= getOperand(GEPInst.getOperands().get(0).getVal(), false);
         if (offset == -1) {
             var idx = getOperand(GEPInst.getOperands().get(1).getVal(), false);
+            var tmp=new VirtualRegister("gep");
+            if(!((PointerType) GEPInst.getType()).getPtrType().equals(Type.TheInt1)){
+                curBB.addInst(new I_Type(I_Type.Opcode.slli, (Register) idx,tmp,new Imm(2)));
+                idx=tmp;
+            }
             curBB.addInst(getTranslatedInst(Instruction.Opcode.add, idx, base, (Register) rd));
         } else {
             curBB.addInst(getTranslatedInst(Instruction.Opcode.add,new Imm(offset),base, (Register) rd));
@@ -374,10 +380,15 @@ public class InstructionSelector implements IRVisitor {
         var src= getOperand(storeInst.getStoreVal(), false);
         var ptr= getOperand(storeInst.getPtr(),false);
         assert ptr != null;
+        VirtualRegister helper=null;
+        if (ptr instanceof GlobalVar) {
+            helper=new VirtualRegister("helper");
+            curBB.addInst(new LUI(helper, (GlobalVar) ptr));
+        }
         if (storeInst.getStoreVal().getType().equals(Type.TheInt1)) {
-            curBB.addInst(new Store(ptr, (Register) src, 1));
+            curBB.addInst(new Store(ptr, (Register) src, 1,helper));
         } else {
-            curBB.addInst(new Store(ptr, (Register) src, 4));
+            curBB.addInst(new Store(ptr, (Register) src, 4,helper));
         }
         return null;
     }

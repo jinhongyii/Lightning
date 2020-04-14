@@ -16,5 +16,6 @@ public interface  Visitor {
       void visitReturn(Return inst);
       void visitR_type(R_Type inst);
       void visitStore(Store inst);
+      void visitLUI(LUI inst);
       void visit(MachineInstruction inst);
 }

@@ -17,13 +17,14 @@ public class MachineBasicBlock {
     public HashSet<VirtualRegister> gen=new HashSet<>();
     public HashSet<VirtualRegister> kill=new HashSet<>();
 
-
+    static  int cnt=0;
     public String getName() {
         return name;
     }
     public MachineBasicBlock(BasicBlock bb){
         this.basicBlock=bb;
-        this.name=bb.getName();
+        this.name=bb.getName()+"_"+cnt;
+        cnt++;
     }
     public void addInst(MachineInstruction inst){
         if (tail == null) {

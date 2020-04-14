@@ -24,7 +24,7 @@ public class GlobalOptimizer implements Pass {
         boolean changed=true;
         while (changed) {
             changed=performLocalOptim();
-            changed|=inliner.run();
+//            changed|=inliner.run();
             dfe.run();
 //            try {
 //                new IRPrinter(module,"inline.ll",true);

@@ -46,4 +46,8 @@ public class MachineFunction {
     public int getStackSize() {
         return stackSize;
     }
+
+    public int getRealStackSize(){
+        return getStackSize()*4+(16-getStackSize()*4%16);
+    }
 }

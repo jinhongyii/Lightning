@@ -92,7 +92,7 @@ public class RegAlloc {
     }
     private void modifySP(){
         if(function.getStackSize()!=0) {
-            int stackSize=function.getStackSize()*4+(16-function.getStackSize()*4%16);
+            int stackSize=function.getRealStackSize();
             function.getBasicBlocks().getFirst().getHead().addInstBefore(new I_Type(I_Type.Opcode.addi, new PhysicalRegister("sp"), new PhysicalRegister("sp"), new Imm(-stackSize)));
             for (var bb : function.getBasicBlocks()) {
                 if (bb.getTail() instanceof Return) {
@@ -473,7 +473,7 @@ public class RegAlloc {
         }
 
         private void spillDef(MachineInstruction inst, VirtualRegister vreg) {
-            inst.addInstAfter(new Store(getAddr(vreg),vreg));
+            inst.addInstAfter(new Store(getAddr(vreg),vreg,4,null));
         }
         @Override
         public void visitBranch(Branch inst) {
@@ -600,6 +600,13 @@ public class RegAlloc {
             if (canSpill(inst.getSrc())) {
                 var tmp = spillUse(inst, (VirtualRegister) inst.getSrc());
                 inst.setSrc(tmp);
+            }
+        }
+
+        @Override
+        public void visitLUI(LUI inst) {
+            if (canSpill(inst.getRt())) {
+                spillDef(inst, (VirtualRegister) inst.getRt());
             }
         }
 
