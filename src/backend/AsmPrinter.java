@@ -142,7 +142,7 @@ public class AsmPrinter implements Visitor {
                 visitFunction(func);
             }
         }
-        print(".section\t.sdata,\"aw\",@nobits");
+        print(".section\t.sdata,\"aw\",@progbits");
         for (var globl : module.getGlobalVars()) {
             if(!globl.isString()) {
                 visitGlobalVar(globl);
