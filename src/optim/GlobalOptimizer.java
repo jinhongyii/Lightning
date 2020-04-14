@@ -32,17 +32,17 @@ public class GlobalOptimizer implements Pass {
 //                e.printStackTrace();
 //            }
         }
-        try {
-            IRPrinter finalPrinter=new IRPrinter(module,"final.ll", true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            IRPrinter finalPrinter=new IRPrinter(module,"final.ll", true);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         destructSSA();
-        try {
-            new IRPrinter(module,"after_phi_elim.ll",true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            new IRPrinter(module,"after_phi_elim.ll",true);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         updateLoopAnalysis();
     }
     private void updateLoopAnalysis(){
