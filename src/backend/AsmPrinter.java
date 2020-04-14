@@ -8,24 +8,24 @@ import java.io.IOException;
 
 public class AsmPrinter implements Visitor {
     private String prefix="";
-//    private FileWriter writer;
-//    BufferedWriter bufferedWriter;
+    private FileWriter writer;
+    BufferedWriter bufferedWriter;
     private void indent(){prefix+="\t";}
     private void dedent(){prefix=prefix.substring(0,prefix.length()-1);}
     private void print(String str){
-        System.out.println(prefix+str);
-//        try {
-//            bufferedWriter.write(prefix + str + "\n");
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+//        System.out.println(prefix+str);
+        try {
+            bufferedWriter.write(prefix + str + "\n");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
     public AsmPrinter(MachineModule module,String filename) throws IOException {
-//        writer=new FileWriter("tmp/"+filename);
-//        bufferedWriter=new BufferedWriter(writer,8096);
+        writer=new FileWriter("tmp/"+filename);
+        bufferedWriter=new BufferedWriter(writer,8096);
         visitModule(module);
-//        bufferedWriter.flush();
+        bufferedWriter.flush();
     }
     @Override
     public void visitBranch(Branch inst) {
@@ -142,13 +142,13 @@ public class AsmPrinter implements Visitor {
                 visitFunction(func);
             }
         }
-        print(".section\t.sbss,\"aw\",@nobits");
+        print(".section\t.sdata,\"aw\",@nobits");
         for (var globl : module.getGlobalVars()) {
             if(!globl.isString()) {
                 visitGlobalVar(globl);
             }
         }
-        print(".section\t.sdata,\"aw\",@progbits");
+//        print(".section\t.sdata,\"aw\",@progbits");
         for (var globl : module.getGlobalVars()) {
             if (globl.isString()) {
                 visitGlobalVar(globl);
