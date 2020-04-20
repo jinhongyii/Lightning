@@ -109,7 +109,7 @@ public class AsmPrinter implements Visitor {
     @Override
     public void visitBB(MachineBasicBlock bb) {
         dedent();
-        print(bb.name+":");
+        print((bb.merged?"#":"")+bb.name+":");
         indent();
         for (var inst =bb.getHead();inst!=null;inst=inst.getNext()) {
             visit(inst);
@@ -126,8 +126,14 @@ public class AsmPrinter implements Visitor {
         dedent();
         print(name+":");
         indent();
-        for (var bb : function.getBasicBlocks()) {
-            visitBB(bb);
+        if (function.getHead() != null) {
+            for (var bb = function.getHead(); bb != null; bb = bb.getNext()) {
+                visitBB(bb);
+            }
+        } else {
+            for (var bb : function.getBasicBlocks()) {
+                visitBB(bb);
+            }
         }
         print("\t\t\t\t\t # -- End function");
 
