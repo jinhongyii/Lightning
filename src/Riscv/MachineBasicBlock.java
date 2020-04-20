@@ -11,6 +11,9 @@ public class MachineBasicBlock {
     MachineInstruction head;
     MachineInstruction tail;
     BasicBlock basicBlock;
+    MachineBasicBlock next;
+    MachineBasicBlock prev;
+    public boolean merged=true;
     public String name;
     public HashSet<VirtualRegister> liveOut=new HashSet<>();
     public HashSet<VirtualRegister> liveIn=new HashSet<>();
@@ -55,19 +58,43 @@ public class MachineBasicBlock {
         var sucs=new ArrayList<MachineBasicBlock>();
 
         var inst=tail;
-        if ( inst instanceof Jump) {
+        if (inst instanceof Jump) {
             sucs.add(((Jump) inst).getTarget());
-        }
-        if (tail!=head) {
-            inst=tail.prev;
-            if (inst instanceof Branch) {
-                sucs.add(((Branch) inst).getTarget());
+            if (tail != head) {
+                inst = tail.prev;
+                if (inst instanceof Branch) {
+                    sucs.add(((Branch) inst).getTarget());
+                }
             }
+        } else if(inst instanceof Branch){
+            sucs.add(((Branch) inst).getTarget());
         }
         return sucs;
     }
 
     public BasicBlock getIRBasicBlock() {
         return basicBlock;
+    }
+
+    public void setNextBasicBlock(MachineBasicBlock basicBlock){
+        this.next=basicBlock;
+        basicBlock.prev=this;
+    }
+
+    public MachineBasicBlock getNext() {
+        return next;
+    }
+
+    public MachineBasicBlock getPrev() {
+        return prev;
+    }
+
+    public void flipTerminator(){
+        var sucs=getSuccessor();
+        assert getSuccessor().size()==2;
+        var jmpTarget=sucs.get(0);
+        var branchTarget=sucs.get(1);
+        ((Branch) tail.prev).flip(jmpTarget);
+        ((Jump) tail).setTarget(branchTarget);
     }
 }

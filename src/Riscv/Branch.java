@@ -58,4 +58,19 @@ public class Branch extends MachineInstruction{
         rs= ((VirtualRegister) rs).color;
         rt= ((VirtualRegister) rt).color;
     }
+    public void flip(MachineBasicBlock newTarget){
+        opcode=getReverseOpcode();
+        target=newTarget;
+    }
+    private Opcode getReverseOpcode(){
+        switch (opcode) {
+            case beq:return Opcode.bne;
+            case bge:return Opcode.blt;
+            case bgt:return Opcode.ble;
+            case ble:return Opcode.bgt;
+            case blt:return Opcode.bge;
+            case bne:return Opcode.beq;
+            default:return null;
+        }
+    }
 }

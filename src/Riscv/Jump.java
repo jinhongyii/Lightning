@@ -15,4 +15,8 @@ public class Jump extends MachineInstruction {
     public MachineBasicBlock getTarget() {
         return target;
     }
+
+    public void setTarget(MachineBasicBlock target) {
+        this.target = target;
+    }
 }

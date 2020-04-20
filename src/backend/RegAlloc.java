@@ -3,10 +3,7 @@ package backend;
 import Riscv.*;
 import optim.LoopAnalysis;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Stack;
+import java.util.*;
 
 public class RegAlloc {
     private static class Edge{
@@ -38,7 +35,7 @@ public class RegAlloc {
         }
     }
     private void debug(String message){
-        //System.out.println(message);
+//        System.out.println(message);
     }
     private MachineFunction function;
     private LoopAnalysis loopAnalysis;
@@ -89,6 +86,45 @@ public class RegAlloc {
         color();
         removeRedundantMove();
         modifySP();
+        reschedule();
+    }
+    private void reschedule(){
+        var oldBBList=new LinkedList<>(function.getBasicBlocks());
+        var bbSortedByDepth=new HashSet[loopAnalysis.getTotalLoopDepth()+2];
+        for (int i = 0; i < loopAnalysis.getTotalLoopDepth() + 2; i++) {
+            bbSortedByDepth[i]=new HashSet();
+        }
+        for (var bb : oldBBList) {
+            bbSortedByDepth[loopAnalysis.getLoopDepth(bb.getIRBasicBlock())].add(bb);
+        }
+        for (int i = bbSortedByDepth.length - 1; i >= 0; i--) {
+            for (var basicBlock : bbSortedByDepth[i]) {
+                var curBB= ((MachineBasicBlock) basicBlock);
+                var suc=curBB.getSuccessor();
+                if (suc.size() == 1) {
+                    trySetNext(curBB, suc.get(0));
+                } else if(suc.size()==2){
+                    var jmpDepth=loopAnalysis.getLoopDepth(suc.get(0).getIRBasicBlock());
+                    var branchDepth=loopAnalysis.getLoopDepth(suc.get(1).getIRBasicBlock());
+                    if (jmpDepth < branchDepth) {
+                        curBB.flipTerminator();
+                    }
+                    trySetNext(curBB,curBB.getSuccessor().get(0));
+                }
+            }
+        }
+        function.cleanJump();
+    }
+    private void trySetNext(MachineBasicBlock prev,MachineBasicBlock next){
+        if (prev.getNext() != null || next.getPrev()!=null) {
+            return;
+        }
+        for (var bb = next; bb != null; bb = bb.getNext()) {
+            if (bb == prev) {
+                return;
+            }
+        }
+        prev.setNextBasicBlock(next);
     }
     private void modifySP(){
         if(function.getStackSize()!=0) {

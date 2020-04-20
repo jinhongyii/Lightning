@@ -333,4 +333,21 @@ public class LoopAnalysis extends FunctionPass {
         }
         return cnt;
     }
+    public int getTotalLoopDepth(){
+        int depth=0;
+        for (var loop : topLoops) {
+            depth=Integer.max(depth,getTotalLoopDepth(loop,0));
+        }
+        return depth;
+    }
+    private int getTotalLoopDepth(Loop curLoop,int depth){
+        if (curLoop.subLoops.isEmpty()) {
+            return depth;
+        }
+        int maxDepth=-1;
+        for (var subLoop : curLoop.subLoops) {
+            maxDepth=Integer.max(maxDepth,getTotalLoopDepth(subLoop,depth+1));
+        }
+        return maxDepth;
+    }
 }
