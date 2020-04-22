@@ -298,7 +298,7 @@ public class InstructionSelector implements IRVisitor {
     }
     private boolean hasOnlyLoadAndStoreUse(GetElementPtrInst gep){
         for (var use = gep.getUse_head(); use != null; use = use.getNext()) {
-            if (!(use.getUser() instanceof LoadInst || use.getUser() instanceof StoreInst)) {
+            if (!(use.getUser() instanceof LoadInst || (use.getUser() instanceof StoreInst && ((StoreInst) use.getUser()).getPtr()==gep))) {
                 return false;
             }
         }
