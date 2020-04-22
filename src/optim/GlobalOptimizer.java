@@ -22,10 +22,15 @@ public class GlobalOptimizer implements Pass {
     }
     public void run(){
         boolean changed=true;
+        int optim_cnt=0;
         while (changed) {
             changed=performLocalOptim();
+            if (optim_cnt > 500) {
+                break;
+            }
             changed|=inliner.run();
             dfe.run();
+            optim_cnt++;
 //            try {
 //                new IRPrinter(module,"inline.ll",true);
 //            } catch (IOException e) {

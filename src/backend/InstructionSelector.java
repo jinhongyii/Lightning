@@ -14,7 +14,7 @@ public class InstructionSelector implements IRVisitor {
     public MachineModule machineModule;
     private MachineBasicBlock curBB;
     private MachineFunction curFunc;
-    private HashMap<Instruction,VirtualRegister> vRegMap=new HashMap<>();
+    private HashMap<Instruction,MachineOperand> vRegMap=new HashMap<>();
     private HashMap<BasicBlock,MachineBasicBlock> bbMap=new HashMap<>();
     private HashMap<Function,MachineFunction> funcMap=new HashMap<>();
     private HashMap<Argument,VirtualRegister> argMap=new HashMap<>();
@@ -236,8 +236,26 @@ public class InstructionSelector implements IRVisitor {
         if (branchInst.isConditional()) {
             var thenBB = getMachineBB(branchInst.getDstThen());
             var elseBB = getMachineBB(branchInst.getDstElse());
-            var cmp = getOperand(branchInst.getCondition(), false);
-            curBB.addInst(new Branch((Register) cmp, getVPhyReg("zero"), Branch.Opcode.bne, thenBB));
+            var condition=branchInst.getCondition();
+            if (condition instanceof IcmpInst && hasOnlyBranchUse((IcmpInst) condition)) {
+                var icmp= ((IcmpInst) condition);
+                var lhs=getOperand(icmp.getLhs(),false);
+                var rhs=getOperand(icmp.getRhs(),false);
+                Branch.Opcode opcode;
+                switch (icmp.getOpcode()) {
+                    case GE:opcode= Branch.Opcode.bge;break;
+                    case GT:opcode= Branch.Opcode.bgt;break;
+                    case LE:opcode= Branch.Opcode.ble;break;
+                    case LT:opcode= Branch.Opcode.blt;break;
+                    case EQ:opcode= Branch.Opcode.beq;break;
+                    case NE:opcode= Branch.Opcode.bne;break;
+                    default:throw new Error("invalid operator");
+                }
+                curBB.addInst(new Branch((Register)lhs,(Register)rhs,opcode,thenBB));
+            }else {
+                var cmp = getOperand(branchInst.getCondition(), false);
+                curBB.addInst(new Branch((Register) cmp, getVPhyReg("zero"), Branch.Opcode.bne, thenBB));
+            }
             curBB.addInst(new Jump(elseBB));
         } else {
             var nextBB=getMachineBB(branchInst.getDstThen());
@@ -278,14 +296,25 @@ public class InstructionSelector implements IRVisitor {
         }
         return null;
     }
-
+    private boolean hasOnlyLoadAndStoreUse(GetElementPtrInst gep){
+        for (var use = gep.getUse_head(); use != null; use = use.getNext()) {
+            if (!(use.getUser() instanceof LoadInst || use.getUser() instanceof StoreInst)) {
+                return false;
+            }
+        }
+        return true;
+    }
     @Override
     public Object visitGEPInst(GetElementPtrInst GEPInst) {
         //todo: can be merged into the load/store
-        var rd= getOperand(GEPInst,false);
+        var needInst=true;
+        if (hasOnlyLoadAndStoreUse(GEPInst)) {
+            needInst=false;
+        }
         int offset=GEPInst.getOffset();
         var base= getOperand(GEPInst.getOperands().get(0).getVal(), false);
         if (offset == -1) {
+            var rd= getOperand(GEPInst,false);
             var idx = getOperand(GEPInst.getOperands().get(1).getVal(), false);
             var tmp=new VirtualRegister("gep");
             if(!((PointerType) GEPInst.getType()).getPtrType().equals(Type.TheInt1)){
@@ -294,11 +323,21 @@ public class InstructionSelector implements IRVisitor {
             }
             curBB.addInst(getTranslatedInst(Instruction.Opcode.add, idx, base, (Register) rd));
         } else {
-            curBB.addInst(getTranslatedInst(Instruction.Opcode.add,new Imm(offset),base, (Register) rd));
+            if (needInst) {
+                var rd = getOperand(GEPInst, false);
+                curBB.addInst(getTranslatedInst(Instruction.Opcode.add, new Imm(offset), base, (Register) rd));
+            }
         }
         return null;
     }
-
+    private boolean hasOnlyBranchUse(IcmpInst icmpInst){
+        for (var use = icmpInst.getUse_head(); use != null; use = use.getNext()) {
+            if (!(use.getUser() instanceof BranchInst)) {
+                return false;
+            }
+        }
+        return true;
+    }
     @Override
     public Object visitIcmpInst(IcmpInst icmpInst) {
         var opcode=icmpInst.getOpcode();
@@ -307,6 +346,9 @@ public class InstructionSelector implements IRVisitor {
         var lReg= getOperand(lhs,true);
         var rReg= getOperand(rhs,true);
         var rd= getOperand(icmpInst,false);
+        if (hasOnlyBranchUse(icmpInst)) {
+            return null;
+        }
         if (opcode == Instruction.Opcode.EQ) {
             var tmp = new VirtualRegister("tmp");
             curBB.addInst(getTranslatedInst(Instruction.Opcode.xor, lReg, rReg, tmp));
@@ -347,11 +389,20 @@ public class InstructionSelector implements IRVisitor {
     public Object visitLoadInst(LoadInst loadInst) {
         var rd= getOperand(loadInst, false);
         var src= getOperand(loadInst.getLoadTarget(),false);
+        int realOffset=0;
+        if(loadInst.getLoadTarget() instanceof GetElementPtrInst){
+            var gep= ((GetElementPtrInst) loadInst.getLoadTarget());
+            int offset=gep.getOffset();
+            if (offset != -1 && hasOnlyLoadAndStoreUse(gep)) {
+                realOffset=offset;
+                src=getOperand(gep.getOperands().get(0).getVal(), false);
+            }
+        }
         assert src != null;
         if(loadInst.getType().equals(Type.TheInt1)){
-            curBB.addInst(new Load(src, (Register) rd,1));
+            curBB.addInst(new Load(1,src,realOffset, (Register) rd));
         }else {
-            curBB.addInst(new Load(src, (Register) rd,4));
+            curBB.addInst(new Load(4,src, realOffset,(Register) rd));
         }
         return null;
     }
@@ -380,6 +431,15 @@ public class InstructionSelector implements IRVisitor {
     public Object visitStoreInst(StoreInst storeInst) {
         var src= getOperand(storeInst.getStoreVal(), false);
         var ptr= getOperand(storeInst.getPtr(),false);
+        int realOffset=0;
+        if(storeInst.getPtr() instanceof GetElementPtrInst){
+            var gep= ((GetElementPtrInst) storeInst.getPtr());
+            int offset=gep.getOffset();
+            if (offset != -1 && hasOnlyLoadAndStoreUse(gep)) {
+                realOffset=offset;
+                ptr=getOperand(gep.getOperands().get(0).getVal(), false);
+            }
+        }
         assert ptr != null;
         VirtualRegister helper=null;
         if (ptr instanceof GlobalVar) {
@@ -387,9 +447,9 @@ public class InstructionSelector implements IRVisitor {
             curBB.addInst(new LUI(helper, (GlobalVar) ptr));
         }
         if (storeInst.getStoreVal().getType().equals(Type.TheInt1)) {
-            curBB.addInst(new Store(ptr, (Register) src, 1,helper));
+            curBB.addInst(new Store(1,ptr, (Register) src, realOffset,helper));
         } else {
-            curBB.addInst(new Store(ptr, (Register) src, 4,helper));
+            curBB.addInst(new Store(4,ptr, (Register) src, realOffset,helper));
         }
         return null;
     }

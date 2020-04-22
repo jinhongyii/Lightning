@@ -13,6 +13,7 @@ public class Store extends MachineInstruction {
     public MachineOperand ptr;
     public Register src;
     public Register helperReg;
+    public int offset=0;
     public Store(  MachineOperand ptr, Register src,int size,Register helperReg) {
         this.isGlobal = ptr instanceof GlobalVar;
         this.size =size;
@@ -22,6 +23,18 @@ public class Store extends MachineInstruction {
             this.helperReg = helperReg;
         }
     }
+
+    public Store(int size, MachineOperand ptr, Register src, int offset,Register helperReg) {
+        this.isGlobal = ptr instanceof GlobalVar;
+        this.size = size;
+        this.ptr = ptr;
+        this.src = src;
+        this.offset = offset;
+        if(isGlobal) {
+            this.helperReg = helperReg;
+        }
+    }
+
     @Override
     public void accept(Visitor visitor) {
         visitor.visitStore(this);

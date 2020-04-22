@@ -9,6 +9,7 @@ public class Load extends MachineInstruction{
     public boolean isGlobal;
     public int size;
     public MachineOperand src;
+    public int offset=0;
     public Register rd;
 
     public boolean isGlobal() {
@@ -33,7 +34,15 @@ public class Load extends MachineInstruction{
         this.src = src;
         this.rd = rd;
     }
-    public Load(MachineOperand src, Register rd,int size) {
+
+    public Load(int size, MachineOperand src, int offset, Register rd) {
+        this.size = size;
+        this.src = src;
+        this.offset = offset;
+        this.rd = rd;
+    }
+
+    public Load(MachineOperand src, Register rd, int size) {
         this.isGlobal = src instanceof GlobalVar;
         this.size = size;
         this.src = src;
