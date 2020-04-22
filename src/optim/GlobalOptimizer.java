@@ -48,6 +48,7 @@ public class GlobalOptimizer implements Pass {
 //        } catch (IOException e) {
 //            e.printStackTrace();
 //        }
+        domUpdate();
         updateLoopAnalysis();
     }
     private void updateLoopAnalysis(){

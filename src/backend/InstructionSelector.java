@@ -117,6 +117,9 @@ public class InstructionSelector implements IRVisitor {
         if (value instanceof ConstantInt) {
             int val = ((ConstantInt) value).getVal();
             if (val > maxImm||val<minImm || !enableImm) {
+                if (val == 0) {
+                    return getVPhyReg("zero");
+                }
                 var tmpVReg = new VirtualRegister("tmp");
                 curBB.addInst(new LI(tmpVReg,new Imm(val)));
                 return tmpVReg;

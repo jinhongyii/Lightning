@@ -56,7 +56,7 @@ public class RegAlloc {
     private HashSet<Move> activeMoves=new HashSet<>();
 
     private HashSet<Edge> adjSet=new HashSet<>();
-    private final int K= TargetInfo.AllocableRegister.length;
+    private final int K= TargetInfo.AllocableRegister.length+1;
     public RegAlloc(MachineFunction function,LoopAnalysis loopAnalysis){
         this.function=function;
         this.loopAnalysis=loopAnalysis;
@@ -103,11 +103,18 @@ public class RegAlloc {
                 var suc=curBB.getSuccessor();
                 if (suc.size() == 1) {
                     trySetNext(curBB, suc.get(0));
-                } else if(suc.size()==2){
+                }
+            }
+            for (var basicBlock : bbSortedByDepth[i]) {
+                var curBB= ((MachineBasicBlock) basicBlock);
+                var suc=curBB.getSuccessor();
+                if(suc.size()==2){
                     var jmpDepth=loopAnalysis.getLoopDepth(suc.get(0).getIRBasicBlock());
                     var branchDepth=loopAnalysis.getLoopDepth(suc.get(1).getIRBasicBlock());
-                    if (jmpDepth < branchDepth) {
-                        curBB.flipTerminator();
+                    if(!checkConnectable(curBB,suc.get(0)) && !checkConnectable(curBB,suc.get(1))) {
+                        if (jmpDepth > branchDepth) {
+                            curBB.flipTerminator();
+                        }
                     }
                     trySetNext(curBB,curBB.getSuccessor().get(0));
                 }
@@ -115,14 +122,20 @@ public class RegAlloc {
         }
         function.cleanJump();
     }
-    private void trySetNext(MachineBasicBlock prev,MachineBasicBlock next){
+    private boolean checkConnectable(MachineBasicBlock prev, MachineBasicBlock next){
         if (prev.getNext() != null || next.getPrev()!=null) {
-            return;
+            return false;
         }
         for (var bb = next; bb != null; bb = bb.getNext()) {
             if (bb == prev) {
-                return;
+                return false;
             }
+        }
+        return true;
+    }
+    private void trySetNext(MachineBasicBlock prev,MachineBasicBlock next){
+        if (!checkConnectable(prev, next)) {
+            return;
         }
         prev.setNextBasicBlock(next);
     }
@@ -215,6 +228,7 @@ public class RegAlloc {
                     worklistMoves.add((Move) inst);
                 }
                 live.addAll(inst.getDef());
+                live.add(TargetInfo.vPhysicalReg.get("zero"));
                 for (var d : inst.getDef()) {
                     for (var l : live) {
                         addEdge(l,d);
@@ -226,8 +240,7 @@ public class RegAlloc {
         }
     }
     private void addEdge(VirtualRegister u,VirtualRegister v){
-        var zero=TargetInfo.vPhysicalReg.get("zero");
-        if (u != v && !adjSet.contains(new Edge(u, v)) && u!=zero && v!=zero) {
+        if (u != v && !adjSet.contains(new Edge(u, v)) ) {
             adjSet.add(new Edge(u,v));
             adjSet.add(new Edge(v,u));
             if (!precoloured.contains(u)) {
