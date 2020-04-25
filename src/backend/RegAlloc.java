@@ -476,12 +476,12 @@ public class RegAlloc {
                 }
             }
             if (okColors.isEmpty()) {
-//                boolean split=findColor(n);
-//                if (split) {
-//                    splitNodes.add(n);
-//                }else {
+                boolean split=findColor(n);
+                if (split) {
+                    splitNodes.add(n);
+                }else {
                     spilledNodes.add(n);
-//                }
+                }
             } else {
                 coloredNodes.add(n);
                 //assign caller-saved register first
