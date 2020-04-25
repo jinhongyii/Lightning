@@ -17,6 +17,7 @@ public class GetElementPtrInst extends Instruction {
             operands.add(new Use(val,this));
         }
     }
+
     int getTypeSize(Type type){
         return type.equals(Type.TheInt1)?1:4;
     }

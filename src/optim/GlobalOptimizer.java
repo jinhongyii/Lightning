@@ -1,6 +1,7 @@
 package optim;
 
 import IR.Function;
+import IR.GlobalVariable;
 import IR.IRPrinter;
 import IR.Module;
 import optim.dsa.DSA;
@@ -13,12 +14,14 @@ public class GlobalOptimizer implements Pass {
     Inliner inliner;
     AliasAnalysis aa;
     DeadFunctionElimination dfe;
+    GlobalVariablePromotion gvp;
     public HashMap<Function,Optimizer> localOptimizers=new HashMap<>();
     public GlobalOptimizer(Module module){
         this.module=module;
         inliner=new Inliner(module);
         aa=new DSA(module);
         dfe=new DeadFunctionElimination(module);
+        gvp=new GlobalVariablePromotion(module);
     }
     public void run(){
         boolean changed=true;
@@ -29,6 +32,7 @@ public class GlobalOptimizer implements Pass {
                 break;
             }
             changed|=inliner.run();
+            changed|=gvp.run();
             dfe.run();
             optim_cnt++;
 //            try {
@@ -141,14 +145,13 @@ public class GlobalOptimizer implements Pass {
 
             }
         }
-        CFGSimplify();
-        domUpdate();
-        mem2reg();
         boolean changed=true;
         boolean globalChanged=false;
         while(changed){
             changed=false;
-
+            CFGSimplify();
+            domUpdate();
+            mem2reg();
             changed|=sccp();
             CFGSimplify();
             domUpdate();
