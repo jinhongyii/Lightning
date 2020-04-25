@@ -35,7 +35,7 @@ public class RegAlloc {
         }
     }
     private void debug(String message){
-//        System.out.println(message);
+        System.err.println(message);
     }
     private MachineFunction function;
     private LoopAnalysis loopAnalysis;

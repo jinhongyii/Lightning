@@ -343,15 +343,16 @@ public class InstructionSelector implements IRVisitor {
     }
     @Override
     public Object visitIcmpInst(IcmpInst icmpInst) {
+        if (hasOnlyBranchUse(icmpInst)) {
+            return null;
+        }
         var opcode=icmpInst.getOpcode();
         var lhs=icmpInst.getLhs();
         var rhs=icmpInst.getRhs();
         var lReg= getOperand(lhs,true);
         var rReg= getOperand(rhs,true);
         var rd= getOperand(icmpInst,false);
-        if (hasOnlyBranchUse(icmpInst)) {
-            return null;
-        }
+
         if (opcode == Instruction.Opcode.EQ) {
             var tmp = new VirtualRegister("tmp");
             curBB.addInst(getTranslatedInst(Instruction.Opcode.xor, lReg, rReg, tmp));
