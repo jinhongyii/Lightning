@@ -3,8 +3,22 @@ package Riscv;
 import java.util.HashSet;
 
 public class VirtualRegister extends Register{
-    String name;
     private static int cnt=0;
+    public int degree=0;
+    public double spillCost=0;
+    public boolean spillTemporary=false;
+    public int splitLoads=0;
+    public int splitStores=0;
+    String name;
+    HashSet<VirtualRegister> adjList=new HashSet<>();
+    HashSet<Move> moveList=new HashSet<>();
+    VirtualRegister alias=null;
+    PhysicalRegister color=null;
+    HashSet<VirtualRegister> containList=new HashSet<>();
+    HashSet<VirtualRegister> splitAround=new HashSet<>();
+    private boolean rematerializable=false;
+    private int rematerializeVal=0;
+    public StackLocation splitAddr;
     public VirtualRegister(String name) {
         this.name = name+ "_"+cnt;
         cnt++;
@@ -15,16 +29,9 @@ public class VirtualRegister extends Register{
         return name;
     }
 
-    HashSet<VirtualRegister> adjList=new HashSet<>();
-    public int degree=0;
-    HashSet<Move> moveList=new HashSet<>();
-    VirtualRegister alias=null;
-    PhysicalRegister color=null;
-
     public HashSet<VirtualRegister> getAdjList() {
         return adjList;
     }
-
 
     public HashSet<Move> getMoveList() {
         return moveList;
@@ -32,6 +39,10 @@ public class VirtualRegister extends Register{
 
     public VirtualRegister getAlias() {
         return alias;
+    }
+
+    public void setAlias(VirtualRegister alias) {
+        this.alias = alias;
     }
 
     public PhysicalRegister getColor() {
@@ -42,12 +53,30 @@ public class VirtualRegister extends Register{
         this.color = color;
     }
 
-    public void setAlias(VirtualRegister alias) {
-        this.alias = alias;
-    }
-    public double spillCost=0;
     public double getRealSpillCost(){
         return spillCost/degree;
     }
-    public boolean spillTemporary=false;
+
+    public HashSet<VirtualRegister> getContainList() {
+        return containList;
+    }
+
+    public HashSet<VirtualRegister> getSplitAround() {
+        return splitAround;
+    }
+
+    public boolean isRematerializable() {
+        return rematerializable;
+    }
+
+    public int getRematerializeVal() {
+        return rematerializeVal;
+    }
+
+    public StackLocation getSplitAddr(MachineFunction function) {
+        if (splitAddr == null) {
+            return splitAddr=new StackLocation(function);
+        }
+        return splitAddr;
+    }
 }

@@ -48,6 +48,7 @@ public class RegAlloc {
     private HashSet<VirtualRegister> coalescedNodes=new HashSet<>();
     private HashSet<VirtualRegister> coloredNodes=new HashSet<>();
     private Stack<VirtualRegister> selectStack=new Stack<>();
+    private HashSet<VirtualRegister> splitNodes=new HashSet<>();
 
     private HashSet<Move> coalescedMoves=new HashSet<>();
     private HashSet<Move> constrainedMoves=new HashSet<>();
@@ -166,6 +167,7 @@ public class RegAlloc {
         worklistMoves.clear();
         activeMoves.clear();
         adjSet.clear();
+        splitNodes.clear();
 
         precoloured.addAll(TargetInfo.vPhysicalReg.values());
         for (var bb : function.getBasicBlocks()) {
@@ -182,11 +184,15 @@ public class RegAlloc {
             vreg.getMoveList().clear();
             vreg.setColor(null);
             vreg.spillCost=0;
+            vreg.getContainList().clear();
+            vreg.getSplitAround().clear();
+            vreg.splitAddr=null;
         }
         for (var precolor : precoloured) {
             precolor.degree=100000000;
         }
         calculateSpillCost();
+        splitCosts();
     }
     private void run(){
         init();
@@ -206,7 +212,7 @@ public class RegAlloc {
             }
         } while (!simplifyWorklist.isEmpty() || !worklistMoves.isEmpty() || !freezeWorklist.isEmpty() || !spillWorklist.isEmpty());
         assignColors();
-        if (!spilledNodes.isEmpty()) {
+        if (!spilledNodes.isEmpty() || !splitNodes.isEmpty()) {
             rewriteProgram();
             run();
         }
@@ -463,7 +469,12 @@ public class RegAlloc {
                 }
             }
             if (okColors.isEmpty()) {
-                spilledNodes.add(n);
+                boolean split=findColor(n);
+                if (split) {
+                    splitNodes.add(n);
+                }else {
+                    spilledNodes.add(n);
+                }
             } else {
                 coloredNodes.add(n);
                 //assign caller-saved register first
@@ -488,6 +499,8 @@ public class RegAlloc {
         debug("spilled: "+spilledNodes);
         Rewriter rewriter=new Rewriter(function);
         rewriter.run();
+        debug("split: "+splitNodes);
+        splitCode();
     }
     private class Rewriter implements Visitor {
         private HashMap<VirtualRegister,StackLocation> spillAddr=new HashMap<>();
@@ -669,12 +682,190 @@ public class RegAlloc {
             int depth=loopAnalysis.getLoopDepth(bb.getIRBasicBlock());
             for (var inst = bb.getHead(); inst != null; inst = inst.getNext()) {
                 for (var use : inst.getUse()) {
-                    use.spillCost+=Math.pow(10,depth);
+                    use.spillCost+=Math.pow(10,depth)*64;
                 }
                 for (var def : inst.getDef()) {
-                    def.spillCost+=Math.pow(10,depth);
+                    def.spillCost+=Math.pow(10,depth)*64;
                 }
             }
         }
+    }
+    private void buildContainmentGraph(){
+        for (var bb : function.getBasicBlocks()) {
+            var live = new HashSet<>(bb.liveOut);
+            for (var inst = bb.getTail(); inst != null; inst = inst.getPrev()) {
+                for (var l : inst.getDef()) {
+                    for (var m : live) {
+                        addContainmentEdge(l,m);
+                    }
+                }
+                live.removeAll(inst.getDef());
+                live.addAll(inst.getUse());
+                for (var l : inst.getUse()) {
+                    for (var m : live) {
+                        addContainmentEdge(l,m);
+                    }
+                }
+            }
+        }
+    }
+    private void splitCosts(){
+        buildContainmentGraph();
+        for (var b : function.getBasicBlocks()) {
+            int depth=loopAnalysis.getLoopDepth(b.getIRBasicBlock());
+            int weight=(int)Math.pow(10,depth);
+            var live = new HashSet<>(b.liveOut);
+            for (var s : b.getSuccessor()) {
+                var death=new HashSet<>(b.liveOut);
+                death.removeAll(s.liveIn);
+                for (var m : death) {
+                    m.splitLoads+=(int)Math.pow(10,loopAnalysis.getLoopDepth(s.getIRBasicBlock()));
+                }
+            }
+            for (var inst = b.getTail(); inst != null; inst = inst.getPrev()) {
+                for (var l : inst.getDef()) {
+                    l.splitStores+=weight;
+                    if (inst instanceof Call && l!=TargetInfo.vPhysicalReg.get("a0")) {
+                        l.splitLoads+=weight;
+                    }
+                }
+                for (var l : inst.getUse()) {
+                    if (!live.contains(l)) {
+                        l.splitLoads+=weight;
+                    }
+                }
+                live.removeAll(inst.getDef());
+                live.addAll(inst.getUse());
+            }
+        }
+    }
+    private void splitCode(){
+        for (var b : function.getBasicBlocks()) {
+            var live = new HashSet<>(b.liveOut);
+            for (var s : b.getSuccessor()) {
+                var death=new HashSet<>(b.liveOut);
+                death.removeAll(s.liveIn);
+                for (var m : death) {
+                    for (var l : m.getSplitAround()) {
+                        if (l.isRematerializable()) {
+                            s.getHead().addInstBefore(new LI(l, new Imm(l.getRematerializeVal())));
+                        } else {
+                            s.getHead().addInstBefore(new Load(l.getSplitAddr(function),l));
+                        }
+                    }
+                }
+            }
+            for (var inst = b.getTail(); inst != null; ) {
+                var tmp=inst.getPrev();
+                for (var l : inst.getDef()) {
+                    for (var s : l.getSplitAround()) {
+                        if (!s.isRematerializable()) {
+                            inst.addInstBefore(new Store(4,s.getSplitAddr(function),s,0,null));
+                        }
+                        if (inst instanceof Call && l!=TargetInfo.vPhysicalReg.get("a0")) {
+                            if (s.isRematerializable()) {
+                                inst.addInstAfter(new LI(s, new Imm(s.getRematerializeVal())));
+                            } else {
+                                inst.addInstAfter(new Load(s.getSplitAddr(function),s));
+                            }
+                        }
+                    }
+                }
+                for (var l : inst.getUse()) {
+                    if (!live.contains(l)) {
+                        for (var s : l.getSplitAround()) {
+                            if (s.isRematerializable()) {
+                                inst.addInstAfter(new LI(s, new Imm(s.getRematerializeVal())));
+                            } else {
+                                inst.addInstAfter(new Load(s.getSplitAddr(function),s));
+                            }
+                        }
+                    }
+                }
+                live.removeAll(inst.getDef());
+                live.addAll(inst.getUse());
+                inst=tmp;
+            }
+        }
+    }
+    private final int maxImm=(1<<11)-1;
+    private final int minImm=-(1<<11);
+    private boolean findColor(VirtualRegister l) {
+        double bestCost=l.spillCost;
+        boolean splitAroundName=false;
+        boolean splitFound=false;
+        PhysicalRegister bestColor=null;
+        for (var c : TargetInfo.AllocableRegister) {
+            boolean splitOK=true;
+            double cost=0;
+
+            for (var n : l.getAdjList()) {
+                VirtualRegister alias = getAlias(n);
+                if (coloredNodes.contains(alias) || precoloured.contains(alias)) {
+                    if (alias.getColor().getRegName().equals(c)) {
+                        if (n.getContainList().contains(l)) {
+                            splitOK=false;
+                        } else if (n.isRematerializable()) {
+                            boolean complex=n.getRematerializeVal()>maxImm || n.getRematerializeVal()<minImm;
+                            cost += l.splitLoads*(complex?2:1);
+                        } else {
+                            cost+=(l.splitStores+l.splitLoads)*64;
+                        }
+                    }
+                }
+            }
+            if (splitOK && cost<bestCost) {
+                bestCost=cost;
+                bestColor=new PhysicalRegister(c);
+                splitAroundName=true;
+                splitFound=true;
+            }
+            splitOK=true;
+            cost=0;
+            for (var n : l.getAdjList()) {
+                VirtualRegister alias = getAlias(n);
+                if (coloredNodes.contains(alias) || precoloured.contains(alias)) {
+                    if (alias.getColor().getRegName().equals(c)) {
+                        if (l.getContainList().contains(n)) {
+                            splitOK=false;
+                        } else if (l.isRematerializable()) {
+                            boolean complex=l.getRematerializeVal()>maxImm || l.getRematerializeVal()<minImm;
+                            cost += n.splitLoads*(complex?2:1);
+                        } else {
+                            cost+=(n.splitStores+n.splitLoads)*64;
+                        }
+                    }
+                }
+            }
+            if (splitOK && cost<bestCost) {
+                bestCost=cost;
+                bestColor=new PhysicalRegister(c);
+                splitAroundName=false;
+                splitFound=true;
+            }
+        }
+        if (splitFound) {
+            l.setColor(bestColor);
+            for (var n : l.getAdjList()) {
+                VirtualRegister alias = getAlias(n);
+                if (coloredNodes.contains(alias) || precoloured.contains(alias)) {
+                    if (alias.getColor().equals(bestColor)) {
+                        if (splitAroundName) {
+                            l.getSplitAround().add(n);
+                        } else {
+                            n.getSplitAround().add(l);
+                        }
+                    }
+                }
+            }
+
+        }
+        return splitFound;
+    }
+    private void addContainmentEdge(VirtualRegister from, VirtualRegister to) {
+        if (from == to) {
+            return;
+        }
+        from.getContainList().add(to);
     }
 }

@@ -44,6 +44,7 @@ public class Main {
         if(args[0].equals("0")) {
             IRPrinter irPrinter = new IRPrinter(topModule, "main.ll", false);
         }else {
+//            IRPrinter irPrinter = new IRPrinter(topModule, "main.ll", true);
             GlobalOptimizer optimizer = new GlobalOptimizer(topModule);
             optimizer.run();
             MachineModule mModule=new MachineModule();
