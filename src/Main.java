@@ -57,7 +57,7 @@ public class Main {
                     alloc.alloc();
                 }
             }
-            AsmPrinter printer2=new AsmPrinter(mModule,"test.s");
+            AsmPrinter printer2=new AsmPrinter(mModule,"output.s");
 
         }
 
