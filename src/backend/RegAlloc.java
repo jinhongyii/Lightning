@@ -190,6 +190,13 @@ public class RegAlloc {
         }
         for (var precolor : precoloured) {
             precolor.degree=100000000;
+            precolor.getContainList().clear();
+            precolor.splitAddr=null;
+            precolor.getSplitAround().clear();
+            precolor.getAdjList().clear();
+            precolor.getMoveList().clear();
+            precolor.setAlias(null);
+
         }
         calculateSpillCost();
         splitCosts();
@@ -496,10 +503,10 @@ public class RegAlloc {
         }
     }
     private void rewriteProgram(){
-        debug("spilled: "+spilledNodes);
+        debug(function.getName()+" spilled: "+spilledNodes);
         Rewriter rewriter=new Rewriter(function);
         rewriter.run();
-        debug("split: "+splitNodes);
+        debug(function.getName()+" split: "+splitNodes);
         splitCode();
     }
     private class Rewriter implements Visitor {
