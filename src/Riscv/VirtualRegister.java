@@ -79,4 +79,12 @@ public class VirtualRegister extends Register{
         }
         return splitAddr;
     }
+
+    public void setRematerializable(boolean rematerializable) {
+        this.rematerializable = rematerializable;
+    }
+
+    public void setRematerializeVal(int rematerializeVal) {
+        this.rematerializeVal = rematerializeVal;
+    }
 }

@@ -199,7 +199,6 @@ public class RegAlloc {
 
         }
         calculateSpillCost();
-        splitCosts();
     }
     private void run(){
         init();
@@ -207,6 +206,7 @@ public class RegAlloc {
         livenessAnalysis.run();
         build();
         makeWorklist();
+        splitCosts();
         do {
             if (!simplifyWorklist.isEmpty()) {
                 simplify();

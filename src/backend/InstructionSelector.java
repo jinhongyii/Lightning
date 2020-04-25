@@ -8,6 +8,7 @@ import IR.instructions.*;
 import Riscv.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class InstructionSelector implements IRVisitor {
     HashMap<Instruction, VirtualRegister> convertMap=new HashMap<>();
@@ -20,6 +21,7 @@ public class InstructionSelector implements IRVisitor {
     private HashMap<Argument,VirtualRegister> argMap=new HashMap<>();
     private HashMap<GlobalVariable,GlobalVar> globalVarMap=new HashMap<>();
     private HashMap<VirtualRegister,VirtualRegister> calleeMap;
+    private HashMap<Integer,VirtualRegister> immMap=new HashMap<>();
     private VirtualRegister ra;
     private final int maxImm=(1<<11)-1;
     private final int minImm=-(1<<11);
@@ -48,6 +50,7 @@ public class InstructionSelector implements IRVisitor {
 
     @Override
     public Object visitFunction(Function function) {
+        immMap.clear();
         curFunc=funcMap.get(function);
         calleeMap=new HashMap<>();
         curBB=getMachineBB(function.getHead());
@@ -120,8 +123,14 @@ public class InstructionSelector implements IRVisitor {
                 if (val == 0) {
                     return getVPhyReg("zero");
                 }
+                if (immMap.containsKey(val)) {
+                    return immMap.get(val);
+                }
                 var tmpVReg = new VirtualRegister("tmp");
-                curBB.addInst(new LI(tmpVReg,new Imm(val)));
+                tmpVReg.setRematerializable(true);
+                tmpVReg.setRematerializeVal(val);
+                curFunc.getBasicBlocks().getFirst().addInstBeforeTerminator(new LI(tmpVReg,new Imm(val)));
+                immMap.put(val,tmpVReg);
                 return tmpVReg;
             } else {
                 return new Imm(val);

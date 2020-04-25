@@ -97,4 +97,15 @@ public class MachineBasicBlock {
         ((Branch) tail.prev).flip(jmpTarget);
         ((Jump) tail).setTarget(branchTarget);
     }
+    public void addInstBeforeTerminator(MachineInstruction inst){
+        if (!(tail instanceof Jump) && !(tail instanceof Branch)) {
+            addInst(inst);
+        }else {
+            if (tail.prev != null && tail.prev instanceof Branch) {
+                tail.prev.addInstBefore(inst);
+            } else {
+                tail.addInstBefore(inst);
+            }
+        }
+    }
 }
