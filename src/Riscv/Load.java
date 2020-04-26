@@ -12,6 +12,10 @@ public class Load extends MachineInstruction{
     public int offset=0;
     public Register rd;
 
+    public int getOffset() {
+        return offset;
+    }
+
     public boolean isGlobal() {
         return isGlobal;
     }

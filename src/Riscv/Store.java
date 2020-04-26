@@ -89,4 +89,8 @@ public class Store extends MachineInstruction {
             helperReg= ((VirtualRegister) helperReg).color;
         }
     }
+
+    public int getOffset() {
+        return offset;
+    }
 }
