@@ -80,7 +80,7 @@ public class GraphBuilder implements IRVisitor{
     }
     //used to update type info of a node(not a field)
     DSHandle updateType(DSHandle handle, Type type){
-        if (!type.equals(Type.theVoidType) && type != handle.getNode().type) {
+        if (type != handle.getNode().type) {
             var tmpNode = new DSNode(type,graph);
             return DSHandle.mergeCells(new DSHandle(tmpNode, 0), handle);
         } else {

@@ -1,6 +1,7 @@
 package optim.dsa;
 
 import IR.Type;
+import IR.Types.StructType;
 
 import java.util.ArrayList;
 
@@ -20,14 +21,14 @@ public class DSHandle {
         this.field = field;
     }
     //return true if cell2 is collapsed after this operation
-    private static boolean mergeTypeInfo(DSHandle cell1, DSHandle cell2){
-        if (cell1.field != cell2.field) {
-            cell1.getNode().collapse();
-            cell2.getNode().collapse();
-            return true;
-        }
-        return mergeTypeInfo(cell1.getNode(), cell2.getNode());
-    }
+//    private static boolean mergeTypeInfo(DSHandle cell1, DSHandle cell2){
+////        if (cell1.field != cell2.field) {
+////            cell1.getNode().collapse();
+////            cell2.getNode().collapse();
+////            return true;
+////        }
+//        return mergeTypeInfo(cell1, cell2.getNode());
+//    }
 
     public DSNode getNode(){
         if (node == null) {
@@ -42,7 +43,10 @@ public class DSHandle {
         }
         return node.forwardNode=getNode(node.forwardNode);
     }
-    private static boolean mergeTypeInfo(DSNode node1, DSNode node2) {
+    //node 1's type merge to node 2
+    private static boolean mergeTypeInfo(DSHandle cell1, DSHandle cell2) {
+        var node1=cell1.getNode();
+        var node2=cell2.getNode();
         var t1=node1.type;
         var t2=node2.type;
         if (node2.isCollapsed()) {
@@ -60,6 +64,12 @@ public class DSHandle {
             node2.setType(node1.type);
             return false;
         }
+        if (t1.equals(t2)) {
+            return false;
+        }
+        if (t2 instanceof StructType) {
+            t2=((StructType) t2).getRecordTypes().get(cell2.field);
+        }
         if (!t1.equals(t2)) {
             node1.collapse();
             node2.collapse();
@@ -69,11 +79,15 @@ public class DSHandle {
     }
 
     public static DSHandle mergeCells(DSHandle cell1, DSHandle cell2){
+
         if (cell1 == null) {
             return cell2;
         }
         if (cell2 == null) {
             return cell1;
+        }
+        if (cell1.field > cell2.field ) {
+            return mergeCells(cell2,cell1);
         }
         if (cell1.getNode() == null) {
             cell1.node = cell2.getNode();
@@ -88,15 +102,20 @@ public class DSHandle {
         if(node1!=node2) {
             node2.flag |= node1.flag;
             node2.globalValue.addAll(node1.globalValue);
-            assert node1.outGoingEdge.size() == node2.outGoingEdge.size();
+//            assert node1.outGoingEdge.size() == node2.outGoingEdge.size();
             ArrayList<DSHandle> newEdges = new ArrayList<>();
             node1.setDeleted();
             node1.forwardNode = node2;
-            for (int i = 0; i < node1.outGoingEdge.size(); i++) {
-                newEdges.add(mergeCells(node1.getOutEdge(i), node2.getOutEdge(i)));
+
+            for (int i = 0; i < node2.outGoingEdge.size(); i++) {
+                if (i < node1.outGoingEdge.size()) {
+                    newEdges.add(mergeCells(node1.getOutEdge(i), node2.getOutEdge(i+cell2.field)));
+                } else {
+                    newEdges.add(node2.getOutEdge(i));
+                }
             }
             node2.outGoingEdge = newEdges;
-
+            cell1.field=cell2.field;
         }
         if (node2.isCollapsed()) {
             return new DSHandle(node2, 0);
