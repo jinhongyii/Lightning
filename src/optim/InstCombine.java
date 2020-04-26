@@ -3,6 +3,7 @@ package optim;
 import IR.Module;
 import IR.*;
 import IR.instructions.*;
+import Riscv.Call;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -566,6 +567,20 @@ public class InstCombine extends FunctionPass implements IRVisitor {
 
     @Override
     public Object visitCallInst(CallInst callInst) {
+        var funcName=callInst.getCallee().getName();
+        if (funcName.equals("println") || funcName.equals("print")) {
+            var param=callInst.getParams().get(0);
+            if (callInst.getParams().size() == 1 && param instanceof CallInst && ((CallInst) param).getCallee().getName().equals("toString")) {
+                var newFuncName=funcName+"Int";
+                var newFunc=function.getParent().getSymbolTable().get(newFuncName);
+                var newParam=new ArrayList<Value>();
+                newParam.add(((CallInst) param).getParams().get(0));
+                var replaceCall=new CallInst(callInst.getName(), (Function) newFunc,newParam);
+                addInstBefore(callInst,replaceCall);
+                return replace(callInst,replaceCall);
+            }
+
+        }
         return callInst;
     }
 

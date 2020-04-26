@@ -1,10 +1,7 @@
 import IR.IRPrinter;
 import IR.Module;
 import Riscv.MachineModule;
-import backend.AsmPrinter;
-import backend.IRBuilder;
-import backend.InstructionSelector;
-import backend.RegAlloc;
+import backend.*;
 import frontend.ASTBuilder;
 import optim.*;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -55,6 +52,8 @@ public class Main {
                 if(!func.isExternalLinkage()) {
                     RegAlloc alloc = new RegAlloc(func, optimizer.localOptimizers.get(func.getIRfunction()).loopAnalysis);
                     alloc.alloc();
+                    Peephole peephole=new Peephole(func);
+                    peephole.run();
                 }
             }
             AsmPrinter printer2=new AsmPrinter(mModule,"output.s");
