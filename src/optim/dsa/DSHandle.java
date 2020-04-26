@@ -108,8 +108,8 @@ public class DSHandle {
             node1.forwardNode = node2;
 
             for (int i = 0; i < node2.outGoingEdge.size(); i++) {
-                if (i < node1.outGoingEdge.size()) {
-                    newEdges.add(mergeCells(node1.getOutEdge(i), node2.getOutEdge(i+cell2.field)));
+                if (i>=cell2.field && i < node1.outGoingEdge.size()+cell2.field) {
+                    newEdges.add(mergeCells(node1.getOutEdge(i-cell2.field), node2.getOutEdge(i)));
                 } else {
                     newEdges.add(node2.getOutEdge(i));
                 }
