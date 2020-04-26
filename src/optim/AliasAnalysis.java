@@ -1,10 +1,9 @@
 package optim;
 
-import IR.Function;
-import IR.Instruction;
+import IR.*;
 import IR.Module;
-import IR.Value;
 import IR.instructions.CallInst;
+import IR.instructions.GetElementPtrInst;
 import IR.instructions.LoadInst;
 import IR.instructions.StoreInst;
 
@@ -14,6 +13,37 @@ public class AliasAnalysis implements Pass {
     public AliasResult alias(Value v1,Value v2){
         if (v1 == v2) {
             return AliasResult.MustAlias;
+        }
+        if (v1 instanceof GetElementPtrInst && v2 instanceof GetElementPtrInst) {
+            if (((GetElementPtrInst) v1).getOperands().size() == ((GetElementPtrInst) v2).getOperands().size()) {
+                var size=((GetElementPtrInst) v1).getOperands().size();
+                var obj1=((GetElementPtrInst) v1).getOperands().get(0).getVal();
+                var obj2=((GetElementPtrInst) v2).getOperands().get(0).getVal();
+                if (alias(obj1,obj2)==AliasResult.MustAlias) {
+                    if (size == 2) {
+                        var idx1 = ((GetElementPtrInst) v1).getOperands().get(1).getVal();
+                        var idx2 = ((GetElementPtrInst) v2).getOperands().get(1).getVal();
+                        if (idx1 instanceof ConstantInt && idx2 instanceof ConstantInt) {
+                            if (((ConstantInt) idx1).getVal() == ((ConstantInt) idx2).getVal()) {
+                                return AliasResult.MustAlias;
+                            } else {
+                                return AliasResult.NoAlias;
+                            }
+                        }
+
+                    } else {
+                        var idx1 = ((GetElementPtrInst) v1).getOperands().get(2).getVal();
+                        var idx2 = ((GetElementPtrInst) v2).getOperands().get(2).getVal();
+                        if (idx1 instanceof ConstantInt && idx2 instanceof ConstantInt) {
+                            if (((ConstantInt) idx1).getVal() == ((ConstantInt) idx2).getVal()) {
+                                return AliasResult.MustAlias;
+                            } else {
+                                return AliasResult.NoAlias;
+                            }
+                        }
+                    }
+                }
+            }
         }
 //        if (v1 instanceof GetElementPtrInst && v2 instanceof GetElementPtrInst && ((GetElementPtrInst) v1).getOperands().size()==((GetElementPtrInst) v2).getOperands().size()) {
 //            var ptr1=((GetElementPtrInst) v1).getOperands().get(0).getVal();
