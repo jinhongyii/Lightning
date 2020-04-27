@@ -166,7 +166,6 @@ public class GlobalOptimizer implements Pass {
             aa.run(module);
             changed|=adce();
             changed|=redundantLoadElim();
-            changed|=dse();
             loopAnalysis();
             domUpdate();
             aa.run(module);
@@ -174,6 +173,8 @@ public class GlobalOptimizer implements Pass {
             aa.run(module);
             changed|=licm();
             instComb();
+            aa.run(module);
+            changed|=dse();
             CFGSimplify();
             domUpdate();
             adce();

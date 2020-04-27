@@ -95,6 +95,8 @@ public class DSNode {
         return (flag & (1 << 9)) != 0;
     }
 
+    boolean isIrrepeatable(){return  (flag& (1<<10))!=0;}
+
     void setHeap() {
         flag |= 1;
     }
@@ -133,6 +135,10 @@ public class DSNode {
 
     void setDeleted(){
         flag |= (1 << 9);
+    }
+
+    void setIrrepeatable(){
+        flag |= (1 << 10);
     }
     void collapse(){
         DSHandle theOnlyCell=getOutEdge(0);

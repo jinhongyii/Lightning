@@ -26,11 +26,11 @@ public class DSE extends FunctionPass {
 
     @Override
     public boolean run() {
-        try {
-            new IRPrinter(function.getParent(),"dse.ll",true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            new IRPrinter(function.getParent(),"dse.ll",true);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         changed=false;
         runOnBasicblock(dominatorAnalysis.postTreeRoot.basicBlock,new HashSet<>());
         return changed;

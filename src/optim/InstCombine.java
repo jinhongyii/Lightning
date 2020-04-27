@@ -596,22 +596,22 @@ public class InstCombine extends FunctionPass implements IRVisitor {
     public Object visitGEPInst(GetElementPtrInst GEPInst) {
         boolean isAllZero=true;
         var ptr=GEPInst.getOperands().get(0).getVal();
-        for (int i = 1; i < GEPInst.getOperands().size();i++) {
-            var idx=GEPInst.getOperands().get(i).getVal();
-            if (!(idx instanceof ConstantInt) || ((ConstantInt) idx).getVal() != 0) {
-                isAllZero=false;
-                break;
-            }
-        }
-        if (isAllZero) {
-            if (GEPInst.getOperands().size() == 2) {
-                return replace(GEPInst, ptr);
-            } else {
-                var castInst=new CastInst("cast", GEPInst.getType(),ptr );
-                addInstBefore(GEPInst, castInst);
-                return replace(GEPInst,castInst);
-            }
-        }
+//        for (int i = 1; i < GEPInst.getOperands().size();i++) {
+//            var idx=GEPInst.getOperands().get(i).getVal();
+//            if (!(idx instanceof ConstantInt) || ((ConstantInt) idx).getVal() != 0) {
+//                isAllZero=false;
+//                break;
+//            }
+//        }
+//        if (isAllZero) {
+//            if (GEPInst.getOperands().size() == 2) {
+//                return replace(GEPInst, ptr);
+//            } else {
+//                var castInst=new CastInst("cast", GEPInst.getType(),ptr );
+//                addInstBefore(GEPInst, castInst);
+//                return replace(GEPInst,castInst);
+//            }
+//        }
         ArrayList<Value> offsetIdx=new ArrayList<>();
         ArrayList<Value> referenceIdx=new ArrayList<>();
         for (int i = 2; i < GEPInst.getOperands().size(); i++) {

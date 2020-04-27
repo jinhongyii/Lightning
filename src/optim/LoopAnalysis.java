@@ -81,7 +81,15 @@ public class LoopAnalysis extends FunctionPass {
         addBackedgeBB();
         rewriteExitBlock();
         cleanUp();
+        updateLoopStatus();
         return false;
+    }
+    private void updateLoopStatus(){
+        for (var bb = function.getHead(); bb != null; bb = bb.getNext()) {
+            if (!loopMap.containsKey(bb)) {
+                bb.setNotInLoop(true);
+            }
+        }
     }
     public void runWithoutModify(){
         topLoops.clear();

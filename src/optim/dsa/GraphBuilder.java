@@ -140,6 +140,9 @@ public class GraphBuilder implements IRVisitor{
             var newNode=new DSNode(graph);
             newNode.globalValue.add(callInst);
             newNode.setHeap();
+            if (callInst.getParent().isNotInLoop()) {
+                newNode.setIrrepeatable();
+            }
             setValueNode(callInst,new DSHandle(newNode,0));
         }else {
             DSHandle returnVal=null;

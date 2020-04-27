@@ -4,6 +4,7 @@ import IR.instructions.BranchInst;
 import IR.instructions.MovInst;
 import IR.instructions.PhiNode;
 import IR.instructions.ReturnInst;
+import optim.LoopAnalysis;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -266,5 +267,15 @@ public class BasicBlock extends  Value {
 
     public HashSet<MovInst> getPcopys() {
         return pcopys;
+    }
+
+    private boolean notInLoop=false;//only be used by dsa
+
+    public boolean isNotInLoop() {
+        return notInLoop;
+    }
+
+    public void setNotInLoop(boolean notInLoop) {
+        this.notInLoop=notInLoop;
     }
 }

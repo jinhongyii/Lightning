@@ -333,6 +333,9 @@ public class InstructionSelector implements IRVisitor {
         } else {
             if (needInst) {
                 var rd = getOperand(GEPInst, false);
+                if (offset == 0) {
+                    curBB.addInst(new Move((Register)base,(Register)rd));
+                }
                 curBB.addInst(getTranslatedInst(Instruction.Opcode.add, new Imm(offset), base, (Register) rd));
             }
         }

@@ -5,6 +5,7 @@ import IR.Module;
 import IR.Value;
 import IR.instructions.CallInst;
 import optim.AliasAnalysis;
+import optim.LoopAnalysis;
 
 import java.util.HashMap;
 
@@ -41,7 +42,7 @@ public class DSA extends AliasAnalysis {
             if (node1.isArray()) {
                 return super.alias(v1,v2);
             }
-            if (node1.globalValue.size() == 1) {
+            if (node1.globalValue.size() == 1 && node1.isIrrepeatable()) {
                 return AliasResult.MustAlias;
             }
         }
