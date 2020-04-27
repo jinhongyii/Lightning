@@ -13,7 +13,7 @@ public class AsmPrinter implements Visitor {
     private void indent(){prefix+="\t";}
     private void dedent(){prefix=prefix.substring(0,prefix.length()-1);}
     private void print(String str){
-//        System.out.println(prefix+str);
+        System.err.println(prefix+str);
         try {
             bufferedWriter.write(prefix + str + "\n");
         } catch (IOException e) {
