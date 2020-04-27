@@ -148,9 +148,7 @@ public class InstructionSelector implements IRVisitor {
             if (enableImm) {
                 return new Imm(0);
             } else {
-                var tmpVReg = new VirtualRegister("tmp");
-                curBB.addInst(new I_Type(I_Type.Opcode.addi,getVPhyReg("zero"),tmpVReg,new Imm(0)));
-                return tmpVReg;
+                return getVPhyReg("zero");
             }
         } else if (value instanceof Instruction) {
             if (vRegMap.containsKey(value)) {
