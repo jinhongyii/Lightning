@@ -2,9 +2,11 @@ package optim;
 
 import IR.BasicBlock;
 import IR.Function;
+import IR.IRPrinter;
 import IR.instructions.StoreInst;
 
 
+import java.io.IOException;
 import java.util.HashSet;
 
 
@@ -22,6 +24,11 @@ public class DSE extends FunctionPass {
 
     @Override
     public boolean run() {
+        try {
+            new IRPrinter(function.getParent(),"dse.ll",true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         changed=false;
         runOnBasicblock(dominatorAnalysis.postTreeRoot.basicBlock,new HashSet<>());
         return changed;
@@ -47,9 +54,9 @@ public class DSE extends FunctionPass {
             runOnBasicblock(son.basicBlock,visited);
         }
     }
-    private boolean checkDeadStore(BasicBlock startBB, StoreInst store, HashSet<BasicBlock> visited) {
+    private boolean checkDeadStore(BasicBlock curBB, StoreInst store, HashSet<BasicBlock> visited) {
 
-        var curBB=store.getParent();
+        var startBB=store.getParent();
         if (visited.contains(curBB)) {
             return true;
         }else {
