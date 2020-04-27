@@ -1,9 +1,11 @@
 package optim;
 
-import IR.BasicBlock;
-import IR.Function;
-import IR.IRPrinter;
+import IR.*;
+import IR.instructions.CallInst;
+import IR.instructions.LoadInst;
+import IR.instructions.ReturnInst;
 import IR.instructions.StoreInst;
+import Riscv.Store;
 
 
 import java.io.IOException;
@@ -42,7 +44,7 @@ public class DSE extends FunctionPass {
         for (var inst = bb.getTail(); inst != null; ) {
             var tmp=inst;
             if (inst instanceof StoreInst) {
-                if (checkDeadStore(bb, (StoreInst) inst, new HashSet<>())) {
+                if (checkDeadStore( (StoreInst) inst)) {
                     inst.delete();
                     changed=true;
                 }
@@ -54,27 +56,51 @@ public class DSE extends FunctionPass {
             runOnBasicblock(son.basicBlock,visited);
         }
     }
+    private boolean checkDeadStore( StoreInst store){
+
+        for (var inst = store.getNext(); inst != null; inst = inst.getNext()) {
+            var modRef=checkModRef(store,inst);
+            if (modRef == AliasAnalysis.ModRef.Ref|| modRef== AliasAnalysis.ModRef.ModRef) {
+                return false;
+            } else if (modRef == AliasAnalysis.ModRef.Mod) {
+                if (inst instanceof StoreInst && aa.alias(((StoreInst) inst).getPtr(), store.getPtr()) == AliasAnalysis.AliasResult.MustAlias) {
+                    return true;
+                }
+            }
+            if (inst instanceof ReturnInst) {
+                return false;
+            }
+        }
+        HashSet<BasicBlock> visited=new HashSet<>();
+        for (var suc : store.getParent().getSuccessors()) {
+            if (!checkDeadStore(suc, store, visited)) {
+                return false;
+            }
+        }
+        return true;
+    }
     private boolean checkDeadStore(BasicBlock curBB, StoreInst store, HashSet<BasicBlock> visited) {
 
-        var startBB=store.getParent();
         if (visited.contains(curBB)) {
             return true;
         }else {
             visited.add(curBB);
         }
-        if (curBB == startBB) {
-            for (var inst = store.getNext(); inst != null; inst = inst.getNext()) {
-                if (aa.getModRefInfo(inst, store.getPtr()) != AliasAnalysis.ModRef.NoModRef) {
-                    return false;
+
+        for (var inst = curBB.getHead(); inst != null; inst = inst.getNext()) {
+            var modRef=checkModRef(store,inst);
+            if (modRef == AliasAnalysis.ModRef.Ref|| modRef== AliasAnalysis.ModRef.ModRef) {
+                return false;
+            } else if (modRef == AliasAnalysis.ModRef.Mod) {
+                if (inst instanceof StoreInst && aa.alias(((StoreInst) inst).getPtr(), store.getPtr()) == AliasAnalysis.AliasResult.MustAlias) {
+                    return true;
                 }
             }
-        } else {
-            for (var inst = curBB.getHead(); inst != null; inst = inst.getNext()) {
-                if (aa.getModRefInfo(inst, store.getPtr()) != AliasAnalysis.ModRef.NoModRef) {
-                    return false;
-                }
+            if (inst instanceof ReturnInst) {
+                return false;
             }
         }
+
         for (var sub : curBB.getSuccessors()) {
             if (!checkDeadStore(sub, store, visited)) {
                 return false;
@@ -82,5 +108,18 @@ public class DSE extends FunctionPass {
         }
         return true;
 
+    }
+
+    private AliasAnalysis.ModRef checkModRef(StoreInst storeInst, Instruction value) {
+        if (value instanceof CallInst ) {
+            var funcName=((CallInst) value).getCallee().getName();
+            switch (funcName) {
+                case "_array_size":
+                    return AliasAnalysis.ModRef.Ref;
+                case "malloc":
+                    return AliasAnalysis.ModRef.NoModRef;
+            }
+        }
+        return aa.getModRefInfo(value, storeInst.getPtr()) ;
     }
 }
