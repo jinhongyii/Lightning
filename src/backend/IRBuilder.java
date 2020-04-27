@@ -468,10 +468,7 @@ public class IRBuilder implements ASTVisitor {
             return new ConstantInt((Integer)node.getVal());
         } else if (node.getVal() instanceof String) {
             var globalVariable=this.topModule.addConstantStr((String) node.getVal());
-            ArrayList<Value>index=new ArrayList<>();
-            index.add(new ConstantInt(0));
-            index.add(new ConstantInt(0));
-            var ptr=new GetElementPtrInst("gep", globalVariable,index);
+            var ptr=new CastInst("str",new PointerType(Type.TheInt8),globalVariable);
             curBB.addInst(ptr);
             return ptr;
         } else {
