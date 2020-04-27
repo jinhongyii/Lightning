@@ -14,6 +14,7 @@ public class AliasAnalysis implements Pass {
         if (v1 == v2) {
             return AliasResult.MustAlias;
         }
+
         if (v1 instanceof GetElementPtrInst && v2 instanceof GetElementPtrInst) {
             if (((GetElementPtrInst) v1).getOperands().size() == ((GetElementPtrInst) v2).getOperands().size()) {
                 var size=((GetElementPtrInst) v1).getOperands().size();

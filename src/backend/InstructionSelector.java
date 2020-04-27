@@ -244,7 +244,6 @@ public class InstructionSelector implements IRVisitor {
     @Override
     public Object visitBranchInst(BranchInst branchInst) {
 
-        //todo: can merge cmp into the branch instruction
         if (branchInst.isConditional()) {
             var thenBB = getMachineBB(branchInst.getDstThen());
             var elseBB = getMachineBB(branchInst.getDstElse());
@@ -318,7 +317,6 @@ public class InstructionSelector implements IRVisitor {
     }
     @Override
     public Object visitGEPInst(GetElementPtrInst GEPInst) {
-        //todo: can be merged into the load/store
         var needInst=true;
         if (hasOnlyLoadAndStoreUse(GEPInst)) {
             needInst=false;

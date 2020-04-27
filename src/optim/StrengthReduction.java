@@ -6,6 +6,7 @@ import IR.instructions.BinaryOpInst;
 import IR.instructions.PhiNode;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class StrengthReduction extends FunctionPass {
     LoopAnalysis loopAnalysis;
@@ -18,7 +19,7 @@ public class StrengthReduction extends FunctionPass {
         Value start=null;
         Value step=null;
         PhiNode phiNode;
-
+        boolean sub=false;
         public boolean isValid(){
             return start!=null && step!=null;
         }
@@ -26,7 +27,7 @@ public class StrengthReduction extends FunctionPass {
             this.step=step;
             this.start=start;
         }
-        public InductionVariable(PhiNode phiNode) {
+        public InductionVariable(PhiNode phiNode, boolean enableSub) {
             this.phiNode=phiNode;
             var loop=loopAnalysis.loopMap.get(phiNode.getParent());
             var preheader=loop.getPreHeader();
@@ -59,9 +60,14 @@ public class StrengthReduction extends FunctionPass {
                         }
                     } else if (((BinaryOpInst) value1).getOpcode() == Instruction.Opcode.sub) {
                         if (lhs == phiNode && isInvariable(rhs, loop)) {
-                            var negInst=new BinaryOpInst("neg", Instruction.Opcode.sub,new ConstantInt(0),rhs);
-                            preheader.addInstBefore(preheaderTerminator,negInst);
-                            step=negInst;
+                            if (!enableSub) {
+                                var negInst = new BinaryOpInst("neg", Instruction.Opcode.sub, new ConstantInt(0), rhs);
+                                preheader.addInstBefore(preheaderTerminator, negInst);
+                                step = negInst;
+                            } else {
+                                sub=true;
+                                step=rhs;
+                            }
                         }
                     }
                 }
@@ -88,16 +94,46 @@ public class StrengthReduction extends FunctionPass {
             performStrengthReduction(loop);
         }
         cleanup();
+        for (var loop : loopAnalysis.topLoops) {
+            removeRedundantPhi(loop);
+        }
         return changed;
     }
     private void cleanup(){
         ADCE adce =new ADCE(function,dominatorAnalysis,aa);
         SCCP sccp=new SCCP(function);
+        CSE cse=new CSE(function,dominatorAnalysis);
         boolean changed=true;
         while(changed) {
             changed = false;
             changed|=sccp.run();
             changed|=adce.run();
+            changed|=cse.run();
+        }
+
+    }
+    private void removeRedundantPhi(LoopAnalysis.Loop loop){
+        for (var subLoop : loop.subLoops) {
+            removeRedundantPhi(subLoop);
+        }
+        indVarMap.clear();
+        findBasicInductionVariable(loop,true);
+        HashSet<InductionVariable> ivs=new HashSet<>();
+        for (var entry : indVarMap.entrySet()) {
+            var newIV=entry.getValue();
+            var newPhi=entry.getKey();
+            boolean flag=true;
+            for (var iv : ivs) {
+                if (iv.step.equals(newIV.step) && iv.start.equals(newIV.start) && iv.sub == newIV.sub) {
+                    newPhi.transferUses(iv.phiNode);
+                    ((PhiNode) newPhi).delete();
+                    flag=false;
+                    break;
+                }
+            }
+            if (flag) {
+                ivs.add(newIV);
+            }
         }
     }
     private void performStrengthReduction(LoopAnalysis.Loop loop){
@@ -105,16 +141,16 @@ public class StrengthReduction extends FunctionPass {
             performStrengthReduction(subLoop);
         }
         indVarMap.clear();
-        findBasicInductionVariable(loop);
+        findBasicInductionVariable(loop, false);
         findDerivedInductionVariable(dominatorAnalysis.DominantTree.get(loop.header),loop);
         for (var entry : indVarMap.entrySet()) {
             reduceStrength((Instruction) entry.getKey(),entry.getValue(),loop);
         }
     }
-    private void findBasicInductionVariable(LoopAnalysis.Loop loop){
+    private void findBasicInductionVariable(LoopAnalysis.Loop loop, boolean enableSub){
         var header=loop.getHeader();
         for (var inst = header.getHead(); inst instanceof PhiNode; inst = inst.getNext()) {
-            var indVar=new InductionVariable((PhiNode) inst);
+            var indVar=new InductionVariable((PhiNode) inst, enableSub);
             if (indVar.isValid()) {
                 indVarMap.put(inst,indVar);
             }

@@ -8,7 +8,6 @@ import IR.instructions.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-//todo:maybe we can hoist call and store
 public class LICM extends FunctionPass implements IRVisitor {
     LoopAnalysis loopAnalysis;
     AliasAnalysis aliasAnalysis;

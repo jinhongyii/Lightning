@@ -118,7 +118,6 @@ public class AsmPrinter implements Visitor {
 
     @Override
     public void visitFunction(MachineFunction function) {
-        //todo: reschedule block
         var name=function.getName();
         print(".globl\t"+name+"\t\t\t\t\t # -- Begin function "+name);
         print(".p2align\t2");
