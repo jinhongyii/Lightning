@@ -88,6 +88,9 @@ public class DSE extends FunctionPass {
         }
 
         for (var inst = curBB.getHead(); inst != null; inst = inst.getNext()) {
+            if (inst == store) {
+                return false;
+            }
             var modRef=checkModRef(store,inst);
             if (modRef == AliasAnalysis.ModRef.Ref|| modRef== AliasAnalysis.ModRef.ModRef) {
                 return false;
