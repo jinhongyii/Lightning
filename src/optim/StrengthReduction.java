@@ -127,6 +127,7 @@ public class StrengthReduction extends FunctionPass {
                 if (iv.step.equals(newIV.step) && iv.start.equals(newIV.start) && iv.sub == newIV.sub) {
                     newPhi.transferUses(iv.phiNode);
                     ((PhiNode) newPhi).delete();
+                    changed=true;
                     flag=false;
                     break;
                 }

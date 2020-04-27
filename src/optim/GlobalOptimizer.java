@@ -137,6 +137,13 @@ public class GlobalOptimizer implements Pass {
             optim.mem2reg();
         }
     }
+    private boolean dse(){
+        boolean changed=false;
+        for (var optim : localOptimizers.values()) {
+            changed|=optim.dse();
+        }
+        return changed;
+    }
     private boolean performLocalOptim(){
         localOptimizers.clear();
         for (var func : module.getFunctionList()) {
@@ -159,6 +166,7 @@ public class GlobalOptimizer implements Pass {
             aa.run(module);
             changed|=adce();
             changed|=redundantLoadElim();
+            changed|=dse();
             loopAnalysis();
             domUpdate();
             aa.run(module);

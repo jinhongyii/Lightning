@@ -18,6 +18,7 @@ public class Optimizer extends FunctionPass{
     private StrengthReduction strengthReduction;
     private AliasAnalysis aa;
     private RedundantLoadElimination loadElimination;
+    private DSE dse;
     public Optimizer(Function function,AliasAnalysis aa) {
         super(function);
         this.aa=aa;
@@ -32,6 +33,7 @@ public class Optimizer extends FunctionPass{
         strengthReduction=new StrengthReduction(function,loopAnalysis,dominatorAnalysis,aa);
         cse=new CSE(function,dominatorAnalysis);
         loadElimination=new RedundantLoadElimination(function,dominatorAnalysis,aa);
+        dse=new DSE(function,dominatorAnalysis,aa);
     }
     public void domUpdate(){
         dominatorAnalysis.run();
@@ -65,6 +67,9 @@ public class Optimizer extends FunctionPass{
     }
     public void mem2reg(){
         mem2reg.run();
+    }
+    public boolean dse(){
+        return dse.run();
     }
     @Override
     public boolean run() {
