@@ -68,7 +68,7 @@ public class DSE extends FunctionPass {
                 }
             }
             if (inst instanceof ReturnInst) {
-                return false;
+                return function.getName().equals("main");
             }
         }
         HashSet<BasicBlock> visited=new HashSet<>();
@@ -88,8 +88,8 @@ public class DSE extends FunctionPass {
         }
 
         for (var inst = curBB.getHead(); inst != null; inst = inst.getNext()) {
-            if (inst == store) {
-                return false;
+            if (inst == store || inst instanceof  ReturnInst) {
+                return function.getName().equals("main");
             }
             var modRef=checkModRef(store,inst);
             if (modRef == AliasAnalysis.ModRef.Ref|| modRef== AliasAnalysis.ModRef.ModRef) {
@@ -99,9 +99,7 @@ public class DSE extends FunctionPass {
                     return true;
                 }
             }
-            if (inst instanceof ReturnInst) {
-                return false;
-            }
+
         }
 
         for (var sub : curBB.getSuccessors()) {

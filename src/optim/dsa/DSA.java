@@ -23,6 +23,9 @@ public class DSA extends AliasAnalysis {
         if (v1 == v2) {
             return AliasResult.MustAlias;
         }
+        if (!v1.getType().equals(v2.getType())) {
+            return AliasResult.NoAlias;
+        }
         var mainGraph=bottomUp.graphs.get((Function)module.getSymbolTable().get("main"));
         var handle1=mainGraph.scalarMap.get(v1);
         var handle2=mainGraph.scalarMap.get(v2);
