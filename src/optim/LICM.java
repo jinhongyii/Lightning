@@ -150,6 +150,11 @@ public class LICM extends FunctionPass implements IRVisitor {
 
     @Override
     public Object visitCastInst(CastInst castInst) {
+        if (!isInvariable(castInst.getSource())) {
+            return null;
+        }
+        hoist(castInst);
+        invariableSet.add(castInst);
         return null;
     }
 
