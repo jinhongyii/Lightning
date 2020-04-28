@@ -1,5 +1,5 @@
 # Compiler2020
-##### progress:
+##### introduction of all parts:
 
 - parser 
 
@@ -13,21 +13,25 @@
 - ir
   - use llvm ir
   - can test without having to implement a interpreter
-- optims finished
-  - mem2reg pass (ssa construction)
-  - adce (dsa-based)
-  - sccp
-  - cse
-  - cfg simplify
-  - inst combine
-  - inlining
-  - licm (dsa-based)
-  - strength reduction
-  - redundant load elimination (dsa-based)
-- optims to be done  (sorted by priority)
-  - dead store elimination (dsa-based)
-  - pre
-  - gvn
-  - loop idiom recognition
-  - loop rotation
-  - tail call elimination
+- optimizations
+  - transformations
+    - mem2reg 
+    - adce
+    - sccp
+    - cse
+    - cfg simplify
+    - inst combine
+    - inlining
+    - licm
+    - strength reduction
+    - redundant load elimination 
+    - dead store elimination
+  - analysis
+    - loop analysis
+    - alias analysis
+    - domtree
+- codegen
+  - graph allocator
+  - live range splitting
+  - peephole optimization
+
