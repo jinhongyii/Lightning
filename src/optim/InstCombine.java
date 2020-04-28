@@ -612,26 +612,26 @@ public class InstCombine extends FunctionPass implements IRVisitor {
 //                return replace(GEPInst,castInst);
 //            }
 //        }
-        ArrayList<Value> offsetIdx=new ArrayList<>();
-        ArrayList<Value> referenceIdx=new ArrayList<>();
-        for (int i = 2; i < GEPInst.getOperands().size(); i++) {
-            referenceIdx.add(GEPInst.getOperands().get(i).getVal());
-        }
-        var ptrOffset=GEPInst.getOperands().get(1).getVal();
-        if (ptrOffset instanceof BinaryOpInst && hasOnlyOneUse(ptrOffset) && dominatorAnalysis.dominate(ptr,ptrOffset)) {
-            var lhs=((BinaryOpInst) ptrOffset).getLhs();
-            var rhs=((BinaryOpInst) ptrOffset).getRhs();
-            if (((BinaryOpInst) ptrOffset).getOpcode() == Instruction.Opcode.add) {
-                offsetIdx.add(lhs);
-                referenceIdx.add(0,rhs);
-                var offsetInst=new GetElementPtrInst("scevgep", ptr,offsetIdx);
-                addInstBefore((Instruction) ptrOffset, offsetInst);
-                ((BinaryOpInst) ptrOffset).delete();
-                var referenceInst=new GetElementPtrInst(GEPInst.getName(),offsetInst,referenceIdx);
-                addInstBefore(GEPInst,referenceInst);
-                return replace(GEPInst,referenceInst);
-            }
-        }
+//        ArrayList<Value> offsetIdx=new ArrayList<>();
+//        ArrayList<Value> referenceIdx=new ArrayList<>();
+//        for (int i = 2; i < GEPInst.getOperands().size(); i++) {
+//            referenceIdx.add(GEPInst.getOperands().get(i).getVal());
+//        }
+//        var ptrOffset=GEPInst.getOperands().get(1).getVal();
+//        if (ptrOffset instanceof BinaryOpInst && hasOnlyOneUse(ptrOffset) && dominatorAnalysis.dominate(ptr,ptrOffset)) {
+//            var lhs=((BinaryOpInst) ptrOffset).getLhs();
+//            var rhs=((BinaryOpInst) ptrOffset).getRhs();
+//            if (((BinaryOpInst) ptrOffset).getOpcode() == Instruction.Opcode.add) {
+//                offsetIdx.add(lhs);
+//                referenceIdx.add(0,rhs);
+//                var offsetInst=new GetElementPtrInst("scevgep", ptr,offsetIdx);
+//                addInstBefore((Instruction) ptrOffset, offsetInst);
+//                ((BinaryOpInst) ptrOffset).delete();
+//                var referenceInst=new GetElementPtrInst(GEPInst.getName(),offsetInst,referenceIdx);
+//                addInstBefore(GEPInst,referenceInst);
+//                return replace(GEPInst,referenceInst);
+//            }
+//        }
         return GEPInst;
     }
 

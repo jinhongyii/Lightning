@@ -110,7 +110,6 @@ public class StrengthReduction extends FunctionPass {
             changed|=adce.run();
             changed|=cse.run();
         }
-
     }
     private void removeRedundantPhi(LoopAnalysis.Loop loop){
         for (var subLoop : loop.subLoops) {
