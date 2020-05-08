@@ -142,13 +142,14 @@ public class DSNode {
     }
     void collapse(){
         DSHandle theOnlyCell=getOutEdge(0);
+
+        setCollapsed();
+        setArray();
         for (int i=1;i<outGoingEdge.size();i++) {
             theOnlyCell= DSHandle.mergeCells(theOnlyCell,getOutEdge(i));
         }
         outGoingEdge.clear();
         outGoingEdge.add(theOnlyCell);
-        setCollapsed();
-        setArray();
         type=Type.theVoidType;
     }
 

@@ -63,7 +63,7 @@ public class GraphBuilder implements IRVisitor{
             return InScalarMap;
         }
         if (value.equals(new ConstantNull())) {
-            return null;
+            return new DSHandle(new DSNode(graph),0);
         }
         DSNode newNode;
         if (value instanceof GlobalVariable) {
@@ -179,6 +179,7 @@ public class GraphBuilder implements IRVisitor{
             handle = updateType(handle, ((PointerType) ptr.getType()).getPtrType());
             setValueNode(GEPInst, handle);
             handle.getNode().setArray();
+
         } else {
             //handle structure case
             assert GEPInst.getOperands().size()==3;
