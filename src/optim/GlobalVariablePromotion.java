@@ -27,7 +27,16 @@ public class GlobalVariablePromotion implements Pass {
                     var replace = new AllocaInst(globalVar.getName(), ((PointerType) globalVar.getType()).getPtrType());
                     func.getEntryBB().addInstToFirst(replace);
                     var init = globalVar.getInitializer();
-                    func.getEntryBB().addInstBefore(insertPoint, new StoreInst(init == null ? new ConstantNull() : init, replace));
+                    if (init == null) {
+                        if (((PointerType) replace.getType()).getPtrType() instanceof PointerType) {
+                            func.getEntryBB().addInstBefore(insertPoint, new StoreInst(new ConstantNull(), replace));
+                        } else {
+                            func.getEntryBB().addInstBefore(insertPoint, new StoreInst(new ConstantInt(0), replace));
+                        }
+                    } else {
+                        func.getEntryBB().addInstBefore(insertPoint, new StoreInst(init, replace));
+                    }
+
                     globalVar.transferUses(replace);
                 }
             }
