@@ -51,7 +51,7 @@ public class LICM extends FunctionPass implements IRVisitor {
         replaceMap.clear();
         var headerNode=dominatorAnalysis.DominantTree.get(loop.header);
         hoistBB(headerNode);
-        doPromotion();
+//        doPromotion();
         invariableSet.clear();
     }
     private void hoistBB(DominatorAnalysis.Node node){
@@ -219,21 +219,21 @@ public class LICM extends FunctionPass implements IRVisitor {
 
     @Override
     public Object visitStoreInst(StoreInst storeInst) {
-        var ptr=storeInst.getPtr();
-        if (isInvariable(ptr) && !checkMayAlias(ptr)) {
-            AllocaInst allocaInst=null;
-            for (var v : replaceMap.entrySet()) {
-                if (aliasAnalysis.alias(v.getKey(), ptr) == AliasAnalysis.AliasResult.MustAlias) {
-                    allocaInst=v.getValue();
-                }
-            }
-            if (allocaInst == null) {
-                allocaInst=new AllocaInst("tmp.alloca", ((PointerType)ptr.getType()).getPtrType());
-                function.getEntryBB().addInstToFirst(allocaInst);
-            }
-            replaceMap.put(ptr,allocaInst);
-            changed=true;
-        }
+//        var ptr=storeInst.getPtr();
+//        if (isInvariable(ptr) && !checkMayAlias(ptr)) {
+//            AllocaInst allocaInst=null;
+//            for (var v : replaceMap.entrySet()) {
+//                if (aliasAnalysis.alias(v.getKey(), ptr) == AliasAnalysis.AliasResult.MustAlias) {
+//                    allocaInst=v.getValue();
+//                }
+//            }
+//            if (allocaInst == null) {
+//                allocaInst=new AllocaInst("tmp.alloca", ((PointerType)ptr.getType()).getPtrType());
+//                function.getEntryBB().addInstToFirst(allocaInst);
+//            }
+//            replaceMap.put(ptr,allocaInst);
+//            changed=true;
+//        }
         return null;
     }
 
