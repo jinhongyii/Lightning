@@ -14,7 +14,7 @@ import java.util.HashSet;
 
 public class Inliner implements Pass {
     private Module module;
-    private final int instNumThreshold=100;
+    private final int instNumThreshold=150;
     private final int inlineDepth=2;
     private HashMap<Function,Integer> instNum=new HashMap<>();
     private HashSet<Function> recursiveSet=new HashSet<>();
@@ -60,7 +60,7 @@ public class Inliner implements Pass {
                 for (var inst = bb.getHead(); inst != null; inst = inst.getNext()) {
                     if (inst instanceof CallInst) {
                         var callee = ((CallInst) inst).getCallee();
-                        if (!callee.isExternalLinkage() && instNum.get(callee) < instNumThreshold && callee==function) {
+                        if (!callee.isExternalLinkage() && instNum.get(callee) < 50 && callee==function) {
                             changed = true;
                             doFunctionInline((CallInst) inst);
                             getInstNum(function);
