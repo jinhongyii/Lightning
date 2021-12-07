@@ -1,4 +1,4 @@
-# Compiler2020
+# Lightning: A powerful compiler from a C-like language to RISCV
 ##### introduction of all parts:
 
 - parser 
